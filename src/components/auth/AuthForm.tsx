@@ -18,6 +18,17 @@ interface AuthFormProps {
   mode: 'login' | 'signup'
 }
 
+function extractErrorMessage(err: unknown): string {
+  if (err && typeof err === 'object') {
+    const e = err as Record<string, unknown>
+    if (typeof e.message === 'string' && e.message) return e.message
+    if (typeof e.error_description === 'string' && e.error_description)
+      return e.error_description
+  }
+  if (typeof err === 'string' && err) return err
+  return 'Ocorreu um erro. Tente novamente.'
+}
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -69,9 +80,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Ocorreu um erro. Tente novamente.'
-      )
+      setError(extractErrorMessage(err))
     } finally {
       setLoading(false)
     }

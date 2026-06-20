@@ -8,7 +8,7 @@ create table public.profiles (
   avatar_url text,
   purchase_date timestamp with time zone,
   stripe_customer_id text unique,
-  subscription_status text default 'inactive' check (subscription_status in ('active', 'cancelled', 'expired')),
+  subscription_status text default 'inactive' check (subscription_status in ('inactive', 'active', 'cancelled', 'expired')),
   course_access_until timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
