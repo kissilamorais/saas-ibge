@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   BookOpen,
   CalendarClock,
@@ -6,10 +7,12 @@ import {
   FileCheck2,
   GraduationCap,
   LogOut,
+  Lock,
   RotateCcw,
   Target,
 } from 'lucide-react'
 
+import { createClient } from '@/lib/supabase/server'
 import { DashboardCard } from '@/components/dashboard/DashboardCard'
 import { ProgressWidget } from '@/components/dashboard/ProgressWidget'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
@@ -48,7 +51,21 @@ const mockData = {
   },
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: profileData } = user
+    ? await supabase
+        .from('profiles')
+        .select('subscription_status')
+        .eq('id', user.id)
+        .maybeSingle()
+    : { data: null }
+  const profile = profileData as { subscription_status: string | null } | null
+  const hasAccess = profile?.subscription_status === 'active'
+
   const {
     daysUntilExam,
     totalHoursStudied,
@@ -82,6 +99,27 @@ export default function DashboardPage() {
           </button>
         </form>
       </div>
+
+      {/* Banner de acesso (aparece enquanto a compra não foi feita) */}
+      {!hasAccess && (
+        <div className="flex flex-col items-start justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <div>
+              <p className="font-medium">Seu acesso ainda não está liberado</p>
+              <p className="text-sm text-muted-foreground">
+                Pagamento único de R$97 desbloqueia todas as lições e simulados.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/checkout"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Liberar por R$97
+          </Link>
+        </div>
+      )}
 
       {/* Grid de 8 cards de métrica */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
