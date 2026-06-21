@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BookOpen,
+  Dumbbell,
   FileCheck2,
   GraduationCap,
   LayoutDashboard,
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/modules', label: 'Módulos', icon: BookOpen, exact: false },
+  { href: '/dashboard/practice', label: 'Praticar', icon: Dumbbell, exact: false },
   { href: '/dashboard/exams', label: 'Simulados', icon: FileCheck2, exact: false },
   { href: '/dashboard/settings', label: 'Configurações', icon: Settings, exact: false },
 ] as const

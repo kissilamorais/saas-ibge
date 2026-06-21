@@ -46,9 +46,9 @@ Plataforma de estudo online para o concurso de Analista de Gestão (ACA) da IBGE
 5. **Beta users:** testar fluxo completo (signup → pagamento → estudo → simulado)
 
 ### Pendências de UI ainda não construídas
-- Navbar / Sidebar / Footer globais (pastas existem, arquivos não)
-- Páginas de `auth/login`, `auth/signup`, `checkout`
-- Quiz de prática avulso por banco de questões (hoje só lição e simulado)
+- ~~Navbar / Sidebar / Footer globais~~ ✅ (Navbar pública, Sidebar+Footer no `dashboard/layout.tsx`)
+- ~~Páginas de `auth/login`, `auth/signup`, `checkout`~~ ✅ (+ recuperação de senha)
+- ~~Quiz de prática avulso por banco de questões~~ ✅ (`/dashboard/practice` + `[moduleSlug]`)
 - Fase 5 – Admin & Analytics (upload de conteúdo, métricas de usuários)
 
 ---

@@ -309,6 +309,27 @@ export async function getModules(): Promise<Module[]> {
   return data ?? []
 }
 
+export async function getModulesWithQuestionCount(): Promise<
+  (Module & { totalQuestions: number })[]
+> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('modules')
+    .select('*, questions(count)')
+    .order('order_index', { ascending: true })
+
+  if (error) throw error
+
+  const rows = (data ?? []) as unknown as (Module & {
+    questions: { count: number }[] | null
+  })[]
+
+  return rows.map(({ questions, ...mod }) => ({
+    ...mod,
+    totalQuestions: questions?.[0]?.count ?? 0,
+  }))
+}
+
 export async function getModulesWithLessonCount(): Promise<
   (Module & { totalLessons: number })[]
 > {

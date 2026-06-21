@@ -248,4 +248,74 @@ export async function markLessonComplete(
   }
 }
 
+// --- Prática avulsa (banco de questões por matéria) ---
+
+const practiceSchema = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().uuid(),
+        optionId: z.string().uuid(),
+      })
+    )
+    .min(1)
+    .max(100),
+})
+
+export type SubmitPracticeInput = z.infer<typeof practiceSchema>
+
+type SubmitPracticeResult =
+  | { ok: true; result: { score: number; total: number } }
+  | { ok: false; error: string }
+
+/**
+ * Registra as respostas de um quiz de prática avulso. Não cria
+ * `user_exam_results` (não é simulado); só persiste `user_answers` (upsert
+ * "última resposta por questão") com correção feita no servidor — alimentando
+ * a acurácia por módulo e as recomendações da dashboard.
+ */
+export async function submitPracticeAnswers(
+  rawInput: SubmitPracticeInput
+): Promise<SubmitPracticeResult> {
+  const parsed = practiceSchema.safeParse(rawInput)
+  if (!parsed.success) return { ok: false, error: 'invalid_input' }
+  const { answers } = parsed.data
+
+  const supabase = createClient()
+  const user = await getUser()
+  if (!user) return { ok: false, error: 'not_authenticated' }
+
+  try {
+    const questionIds = answers.map((a) => a.questionId)
+    const correctByQuestion = new Map<string, string>()
+    const { data: optRows, error: optErr } = await supabase
+      .from('question_options')
+      .select('question_id, id')
+      .eq('is_correct', true)
+      .in('question_id', questionIds)
+    if (optErr) return { ok: false, error: optErr.message }
+    for (const r of (optRows ?? []) as { question_id: string; id: string }[]) {
+      correctByQuestion.set(r.question_id, r.id)
+    }
+
+    const rows: AnswerInsert[] = answers.map((a) => ({
+      user_id: user.id,
+      question_id: a.questionId,
+      selected_option_id: a.optionId,
+      is_correct: correctByQuestion.get(a.questionId) === a.optionId,
+    }))
+    const { error: ansErr } = await supabase
+      .from('user_answers')
+      .upsert(rows, { onConflict: 'user_id,question_id' })
+    if (ansErr) return { ok: false, error: ansErr.message }
+
+    const score = rows.filter((r) => r.is_correct).length
+    revalidatePath('/dashboard')
+    return { ok: true, result: { score, total: answers.length } }
+  } catch (error) {
+    reportError('study.submitPracticeAnswers', error)
+    return { ok: false, error: 'unexpected_error' }
+  }
+}
+
 export { PASS_PERCENT }
