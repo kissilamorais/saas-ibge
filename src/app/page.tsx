@@ -1,7 +1,219 @@
-import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import {
+  BarChart3,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  FileCheck2,
+  Infinity as InfinityIcon,
+  Target,
+} from 'lucide-react'
 
-// Página inicial: por enquanto redireciona direto para o dashboard.
-// TODO: substituir por landing/página de vendas (R$97) quando o checkout existir.
+import { Navbar } from '@/components/layout/Navbar'
+
+export const metadata: Metadata = {
+  title: 'ACA IBGE — Preparatório completo para o concurso (R$97)',
+  description:
+    'Módulos, banco com 1000+ questões comentadas e 8 simulados no estilo da prova. Acesso vitalício por R$97.',
+}
+
+const STATS = [
+  { value: '40+', label: 'módulos de estudo' },
+  { value: '1000+', label: 'questões comentadas' },
+  { value: '8', label: 'simulados completos' },
+]
+
+const FEATURES = [
+  {
+    icon: BookOpen,
+    title: 'Conteúdo estruturado',
+    desc: 'Módulos e lições organizados por matéria, do básico ao avançado, cobrindo o edital.',
+  },
+  {
+    icon: Target,
+    title: 'Questões comentadas',
+    desc: 'Mais de mil questões com explicação — pratique e entenda o porquê de cada resposta.',
+  },
+  {
+    icon: FileCheck2,
+    title: 'Simulados cronometrados',
+    desc: '8 provas no estilo da banca, com timer, correção automática e revisão detalhada.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Dashboard de desempenho',
+    desc: 'Acompanhe horas estudadas, progresso por matéria e seus pontos fracos.',
+  },
+]
+
+const BENEFITS = [
+  'Acesso vitalício a todos os módulos e lições',
+  'Banco com 1000+ questões comentadas',
+  '8 simulados completos no estilo da prova',
+  'Dashboard de desempenho e revisões',
+  'Estude no computador ou no celular',
+  'Pagamento único — sem mensalidade',
+]
+
+const FAQ = [
+  {
+    q: 'É pagamento único mesmo?',
+    a: 'Sim. Você paga R$97 uma vez e tem acesso vitalício a todo o conteúdo. Sem assinatura, sem renovação.',
+  },
+  {
+    q: 'Como recebo o acesso?',
+    a: 'Logo após a confirmação do pagamento o acesso é liberado automaticamente na sua conta.',
+  },
+  {
+    q: 'Posso estudar pelo celular?',
+    a: 'Sim, a plataforma é responsiva e funciona bem em celular, tablet e computador.',
+  },
+]
+
 export default function HomePage() {
-  redirect('/dashboard')
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-950 text-white">
+      <Navbar />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.25),_transparent_60%)]" />
+        <div className="relative mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center sm:py-32">
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm text-slate-200">
+            <CheckCircle2 className="h-4 w-4 text-blue-400" />
+            Preparatório para Analista — Concurso ACA IBGE
+          </span>
+          <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
+            Passe no concurso da IBGE com um plano de estudo que cabe no seu dia.
+          </h1>
+          <p className="mt-6 max-w-2xl text-pretty text-lg text-slate-300">
+            Conteúdo completo, mais de mil questões comentadas e simulados no
+            estilo da prova — tudo em um só lugar, por um pagamento único.
+          </p>
+          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+            <Link
+              href="/auth/signup"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-blue-500 px-8 text-base font-semibold text-white transition-colors hover:bg-blue-400"
+            >
+              Começar agora por R$97
+            </Link>
+            <Link
+              href="/auth/login"
+              className="inline-flex h-12 items-center justify-center rounded-xl border border-white/15 px-8 text-base font-medium text-slate-200 transition-colors hover:bg-white/10"
+            >
+              Já tenho conta
+            </Link>
+          </div>
+
+          {/* Stats */}
+          <div className="mt-16 grid w-full max-w-2xl grid-cols-3 gap-6 border-t border-white/10 pt-10">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <p className="text-3xl font-bold text-white sm:text-4xl">
+                  {s.value}
+                </p>
+                <p className="mt-1 text-sm text-slate-400">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto w-full max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Tudo que você precisa para a aprovação
+          </h2>
+          <p className="mt-4 text-slate-300">
+            Pare de juntar PDFs soltos e videoaulas dispersas. Estude com método.
+          </p>
+        </div>
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ icon: Icon, title, desc }) => (
+            <div
+              key={title}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
+            >
+              <div className="mb-4 inline-flex rounded-xl bg-blue-500/10 p-3">
+                <Icon className="h-6 w-6 text-blue-400" />
+              </div>
+              <h3 className="font-semibold">{title}</h3>
+              <p className="mt-2 text-sm text-slate-400">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="mx-auto w-full max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-md rounded-3xl border border-blue-500/30 bg-gradient-to-b from-blue-500/10 to-transparent p-8 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/15 px-3 py-1 text-sm text-blue-300">
+            <InfinityIcon className="h-4 w-4" />
+            Acesso vitalício
+          </div>
+          <div className="mt-6 flex items-end justify-center gap-1">
+            <span className="text-2xl font-medium text-slate-400">R$</span>
+            <span className="text-6xl font-bold tracking-tight">97</span>
+          </div>
+          <p className="mt-2 text-sm text-slate-400">
+            Pagamento único — sem mensalidade
+          </p>
+
+          <ul className="mt-8 space-y-3 text-left">
+            {BENEFITS.map((b) => (
+              <li
+                key={b}
+                className="flex items-start gap-3 text-sm text-slate-200"
+              >
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+
+          <Link
+            href="/auth/signup"
+            className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-xl bg-blue-500 px-8 text-base font-semibold text-white transition-colors hover:bg-blue-400"
+          >
+            Liberar meu acesso
+          </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto w-full max-w-3xl px-6 py-20">
+        <h2 className="text-center text-3xl font-bold tracking-tight">
+          Perguntas frequentes
+        </h2>
+        <div className="mt-10 space-y-4">
+          {FAQ.map(({ q, a }) => (
+            <div
+              key={q}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
+            >
+              <h3 className="font-semibold">{q}</h3>
+              <p className="mt-2 text-sm text-slate-400">{a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-white/10 px-6 py-10 text-center text-sm text-slate-400">
+        <p>
+          © {new Date().getFullYear()} ACA IBGE — Preparatório para concurso.
+        </p>
+        <div className="mt-3 flex justify-center gap-4">
+          <Link href="/auth/login" className="hover:text-white">
+            Entrar
+          </Link>
+          <Link href="/auth/signup" className="hover:text-white">
+            Criar conta
+          </Link>
+        </div>
+      </footer>
+    </div>
+  )
 }

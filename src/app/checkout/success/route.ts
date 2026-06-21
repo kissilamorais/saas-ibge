@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getStripe } from '@/lib/stripe/server'
 import { activateUserAccess } from '@/lib/stripe/activate'
+import { reportError } from '@/lib/observability/log'
 
 /**
  * Stripe redireciona para cá após o checkout. Confirmamos o pagamento
@@ -27,7 +28,8 @@ export async function GET(request: Request) {
       })
       return NextResponse.redirect(`${origin}/dashboard?welcome=1`)
     }
-  } catch {
+  } catch (err) {
+    reportError('stripe.checkout.success', err, { sessionId })
     // cai no fallback abaixo
   }
 

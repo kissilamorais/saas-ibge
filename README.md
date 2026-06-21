@@ -2,11 +2,11 @@
 
 Plataforma de estudo online para o concurso de Analista de Gestão (ACA) da IBGE.
 
-**Status:** UI das Fases 2-4 completa (rodando com **dados mockados**) — backend pendente  
+**Status:** MVP integrado (Supabase + Stripe reais) — faltam apenas envs/webhook de produção  
 **Preço:** R$97 (one-time purchase)  
 **Stack:** Next.js 14 | TypeScript | Supabase | Stripe | Tailwind CSS + shadcn/ui
 
-> ⚠️ As telas de estudo (dashboard, módulos, lições, simulados) já funcionam e são navegáveis, mas com **dados de exemplo** (procure `// TODO` no código). Integração com Supabase, auth e Stripe ainda não foi feita — veja o **Roadmap** no fim deste arquivo.
+> ✅ As telas de estudo consomem **dados reais do Supabase** (sem mocks). Auth (login/signup/recuperação de senha), gate de assinatura por RLS, checkout Stripe R$97 com webhook idempotente, landing pública e layout com Sidebar já estão prontos. Rode `npm test` para os testes dos fluxos críticos. Para ir a produção, veja **Deploy na Vercel** abaixo.
 
 ---
 
@@ -23,19 +23,20 @@ npm install
 
 1. Crie um projeto em [supabase.com](https://supabase.com)
 2. Copie a URL e as chaves em `.env.local`
-3. Execute o schema SQL no Supabase SQL editor:
+3. Execute os SQLs no Supabase SQL editor, **nesta ordem**:
 
-```bash
-# Copie o conteúdo de schema.sql
-# Vá para: Project > SQL Editor > New Query
-# Cole e execute
+```text
+1) schema.sql
+2) migrations/0001_rls_indexes_exams.sql
+3) migrations/0002_questions_source_ref.sql
+4) migrations/0003_grant_subscription_fn.sql
+5) migrations/0004_consolidate_and_answers_unique.sql
 ```
 
-4. (Opcional) Seed inicial de dados:
+> Os arquivos em `supabase/*.sql` são **históricos** (superseded pelas migrations) — não rode.
 
-```bash
-npm run seed  # Será criado depois
-```
+4. Seed de dados: o banco já foi populado a partir dos `.md`. Para repovoar do
+   zero, importe o conteúdo via SQL Editor (o seed é idempotente por `source_ref`).
 
 ### 3. Configurar Stripe
 
@@ -62,6 +63,35 @@ npm run dev
 ```
 
 Abra [http://localhost:3000](http://localhost:3000) no navegador.
+
+### 6. Rodar os testes
+
+```bash
+npm test        # fluxos críticos (correção de simulado, gate de acesso)
+npm run type-check
+```
+
+---
+
+## 🚀 Deploy na Vercel (checklist de produção)
+
+1. **Variáveis de ambiente** (Project Settings → Environment Variables). Atenção
+   à separação cliente/servidor:
+   - Cliente (expostas no browser): `NEXT_PUBLIC_SUPABASE_URL`,
+     `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`,
+     `NEXT_PUBLIC_APP_URL` (= domínio de produção).
+   - **Somente servidor** (nunca prefixar com `NEXT_PUBLIC_`):
+     `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+2. **Migrations**: rodar `schema.sql` + `migrations/0001..0004` no Supabase de produção.
+3. **Webhook Stripe (produção)**: criar endpoint apontando para
+   `https://SEU-DOMINIO/api/stripe/webhook`, evento `checkout.session.completed`,
+   e colar o signing secret em `STRIPE_WEBHOOK_SECRET`.
+   - Mesmo sem webhook, a `/checkout/success` confirma o pagamento na API da
+     Stripe e ativa o acesso (fallback). O webhook é a via robusta/idempotente.
+4. **Supabase Auth**: em Authentication → URL Configuration, incluir o domínio de
+   produção em Site URL e Redirect URLs (`/auth/callback`).
+5. Deploy (`vercel` ou push no Git). Conferir o fluxo: signup → checkout →
+   acesso liberado → estudar lição → fazer simulado → ver resultado.
 
 ---
 

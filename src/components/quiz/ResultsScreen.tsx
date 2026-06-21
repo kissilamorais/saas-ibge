@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import type { ExamCorrection } from '@/lib/actions/study'
 import { cn } from '@/lib/utils'
 
 interface ResultsScreenProps {
@@ -19,6 +20,8 @@ interface ResultsScreenProps {
   questions: QuizQuestion[]
   /** questionId -> optionId selecionado */
   answers: Record<string, string>
+  /** Correção autoritativa do servidor (nota + gabarito). */
+  correction: ExamCorrection
   timeSpentSeconds: number
   backHref: string
   onRetry: () => void
@@ -34,28 +37,28 @@ export function ResultsScreen({
   title,
   questions,
   answers,
+  correction,
   timeSpentSeconds,
   backHref,
   onRetry,
 }: ResultsScreenProps) {
-  const total = questions.length
-  const correct = questions.reduce((count, q) => {
-    const correctOption = q.options.find((o) => o.isCorrect)
-    return correctOption && answers[q.id] === correctOption.id
-      ? count + 1
-      : count
-  }, 0)
-  const scorePercent = total > 0 ? Math.round((correct / total) * 100) : 0
-  const passed = scorePercent >= 70
+  const { correctByQuestion } = correction
+  const total = correction.total || questions.length
+  const correct = correction.score
+  const scorePercent = correction.percentage
+  const passed = correction.passed
 
-  // Desempenho por matéria
+  const isAnswerCorrect = (q: QuizQuestion) =>
+    correctByQuestion[q.id] !== undefined &&
+    answers[q.id] === correctByQuestion[q.id]
+
+  // Desempenho por matéria (usando o gabarito do servidor)
   const bySubject = new Map<string, { correct: number; total: number }>()
   for (const q of questions) {
     const subject = q.subject ?? 'Geral'
     const entry = bySubject.get(subject) ?? { correct: 0, total: 0 }
     entry.total += 1
-    const correctOption = q.options.find((o) => o.isCorrect)
-    if (correctOption && answers[q.id] === correctOption.id) entry.correct += 1
+    if (isAnswerCorrect(q)) entry.correct += 1
     bySubject.set(subject, entry)
   }
 
@@ -155,6 +158,7 @@ export function ResultsScreen({
             question={question}
             index={i + 1}
             selectedOptionId={answers[question.id]}
+            correctOptionId={correctByQuestion[question.id]}
             review
           />
         ))}

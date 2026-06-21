@@ -8,7 +8,12 @@ import { cn } from '@/lib/utils'
 export interface QuizOption {
   id: string
   text: string
-  isCorrect: boolean
+  /**
+   * Gabarito local. Opcional de propósito: em simulados NÃO enviamos isto ao
+   * cliente (evita ler a resposta no DevTools antes de responder). A revisão do
+   * simulado usa `correctOptionId`, devolvido pelo servidor só após enviar.
+   */
+  isCorrect?: boolean
 }
 
 export interface QuizQuestion {
@@ -28,6 +33,11 @@ interface QuestionCardProps {
   onSelect?: (optionId: string) => void
   /** Modo revisão: mostra acerto/erro e explicação, desabilita seleção */
   review?: boolean
+  /**
+   * Id da opção correta vinda do servidor (simulado). Quando informado, tem
+   * precedência sobre `option.isCorrect` para destacar a resposta na revisão.
+   */
+  correctOptionId?: string
 }
 
 export function QuestionCard({
@@ -36,7 +46,13 @@ export function QuestionCard({
   selectedOptionId,
   onSelect,
   review = false,
+  correctOptionId,
 }: QuestionCardProps) {
+  const isOptionCorrect = (option: QuizOption) =>
+    correctOptionId !== undefined
+      ? option.id === correctOptionId
+      : Boolean(option.isCorrect)
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -47,8 +63,9 @@ export function QuestionCard({
       <CardContent className="space-y-2">
         {question.options.map((option) => {
           const isSelected = selectedOptionId === option.id
-          const showCorrect = review && option.isCorrect
-          const showWrong = review && isSelected && !option.isCorrect
+          const optionCorrect = isOptionCorrect(option)
+          const showCorrect = review && optionCorrect
+          const showWrong = review && isSelected && !optionCorrect
 
           const letter = String.fromCharCode(
             65 + question.options.indexOf(option)

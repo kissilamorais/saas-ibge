@@ -134,13 +134,32 @@ export function AuthForm({ mode }: AuthFormProps) {
               />
             </div>
 
+            {isLogin && (
+              <div className="text-right">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
+            )}
+
             {error && (
-              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
                 {error}
               </p>
             )}
             {message && (
-              <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600">
+              <p
+                role="status"
+                aria-live="polite"
+                className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600"
+              >
                 {message}
               </p>
             )}

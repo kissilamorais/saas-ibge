@@ -19,6 +19,9 @@ export default async function ExamPlayerPage({
     notFound()
   }
 
+  // Importante: NÃO enviamos `is_correct` ao cliente no simulado — o gabarito
+  // só chega na resposta do servidor após enviar (ver submitExamResult). Isso
+  // impede ler as respostas pelo DevTools/network antes de responder.
   const questions: QuizQuestion[] = exam.questions.map((q) => ({
     id: q.id,
     text: q.question_text,
@@ -27,7 +30,6 @@ export default async function ExamPlayerPage({
     options: (q.options ?? []).map((o) => ({
       id: o.id,
       text: o.text,
-      isCorrect: Boolean(o.is_correct),
     })),
   }))
 

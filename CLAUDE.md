@@ -1,10 +1,12 @@
 # SaaS IBGE - Estudo para Concurso ACA
 
-**Status:** UI das Fases 2-4 completa (rodando com **dados mockados**) — integração com backend pendente  
+**Status:** MVP integrado — auth, dados, pagamento e gate de acesso funcionando com Supabase/Stripe reais  
 **Stack:** Next.js 14 (App Router) | TypeScript | Supabase | Stripe | Tailwind + shadcn/ui  
 **Preço:** R$97 (one-time purchase via Stripe)
 
-> ⚠️ **Estado atual (jun/2026):** todas as telas de estudo (dashboard, módulos, lições, simulados) estão construídas e navegáveis, porém **alimentadas por mocks** definidos no topo de cada page/componente (marcados com `// TODO`). Ainda **não há** client Supabase, auth real, Stripe nem Navbar/Sidebar. Veja o roadmap em "Pré-venda" no fim deste arquivo.
+> ✅ **Estado atual (jun/2026):** as telas de estudo (dashboard, módulos, lições, simulados) consomem **dados reais do Supabase** — não há mais mocks. Já existem: clients Supabase (browser/server/admin), Supabase Auth (login/signup/recuperação de senha), middleware protegendo `/dashboard` e `/checkout`, gate de assinatura por RLS, checkout Stripe (R$97) com webhook idempotente + fallback na página de sucesso, landing pública de vendas e layout com Sidebar/Footer. Banco já seedado.
+>
+> **Antes de produção:** rodar `migrations/0004` (dedupe de respostas + idempotência do webhook); configurar envs e webhook de produção na Vercel (ver "Deploy"). Testes automatizados cobrem a correção de simulado e o gate de acesso (`npm test`).
 
 ---
 
@@ -284,18 +286,20 @@ Todos os módulos e questões já foram gerados e estão em markdown (.md):
 
 ## 🎯 Checklist de Completude
 
-- [x] Dashboard com 8 cards de métrica (mock)
-- [x] Página de módulos com listagem (mock)
-- [x] Viewer de lição (mock)
+- [x] Dashboard com 8 cards de métrica (dados reais)
+- [x] Página de módulos com listagem (dados reais)
+- [x] Viewer de lição (dados reais)
 - [x] Quiz engine (`components/quiz/`, reutilizável)
-- [x] Simulados — player com timer + resultados (mock)
-- [ ] Layout base + Navbar + Sidebar (layout.tsx existe; navbar/sidebar não)
-- [ ] Auth login/signup funcional
-- [ ] Stripe checkout funcional
-- [ ] Supabase real (client/queries) + seed — trocar mocks (`// TODO`)
+- [x] Simulados — player com timer + resultados; correção e gabarito no servidor
+- [x] Layout base + Sidebar + Footer (`app/dashboard/layout.tsx`) + Navbar pública
+- [x] Auth login/signup/recuperação de senha (Supabase Auth)
+- [x] Stripe checkout R$97 + webhook idempotente + fallback na success route
+- [x] Supabase real (client/server/admin + queries tipadas) + seed
+- [x] Landing pública de vendas (`app/page.tsx`)
+- [x] Testes dos fluxos críticos (correção de simulado + gate de acesso)
 - [ ] Admin panel (upload/manage)
-- [ ] Analytics básicas
-- [ ] Deploy em Vercel
+- [ ] Analytics avançadas
+- [ ] Deploy em Vercel (envs + webhook de produção)
 
 ---
 

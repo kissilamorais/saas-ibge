@@ -69,7 +69,7 @@ export default async function ModuleDetailPage({
     notFound()
   }
 
-  const module: ModuleDetail = {
+  const moduleDetail: ModuleDetail = {
     slug: data.slug,
     title: data.title,
     description: data.description ?? '',
@@ -81,8 +81,10 @@ export default async function ModuleDetailPage({
     })),
   }
 
-  const completed = module.lessons.filter((l) => l.status === 'completed').length
-  const total = module.lessons.length
+  const completed = moduleDetail.lessons.filter(
+    (l) => l.status === 'completed'
+  ).length
+  const total = moduleDetail.lessons.length
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return (
@@ -98,8 +100,10 @@ export default async function ModuleDetailPage({
         </Link>
 
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{module.title}</h1>
-          <p className="text-muted-foreground">{module.description}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {moduleDetail.title}
+          </h1>
+          <p className="text-muted-foreground">{moduleDetail.description}</p>
         </div>
 
         <div className="max-w-md space-y-2">
@@ -116,14 +120,14 @@ export default async function ModuleDetailPage({
       {/* Lista de lições */}
       <Card>
         <CardContent className="divide-y p-0">
-          {module.lessons.map((lesson, index) => {
+          {moduleDetail.lessons.map((lesson, index) => {
             const { icon: StatusIcon, className, label } =
               statusConfig[lesson.status]
 
             return (
               <Link
                 key={lesson.slug}
-                href={`/dashboard/modules/${module.slug}/${lesson.slug}`}
+                href={`/dashboard/modules/${moduleDetail.slug}/${lesson.slug}`}
                 className="group flex items-center gap-4 p-4 transition-colors hover:bg-accent"
               >
                 <span className="w-6 text-center text-sm font-medium text-muted-foreground">

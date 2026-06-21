@@ -6,7 +6,6 @@ import {
   Clock,
   FileCheck2,
   GraduationCap,
-  LogOut,
   Lock,
   RotateCcw,
   Target,
@@ -58,22 +57,11 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8 p-6 md:p-8">
       {/* Cabeçalho */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Acompanhe seu progresso rumo ao concurso ACA do IBGE.
-          </p>
-        </div>
-        <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </button>
-        </form>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Acompanhe seu progresso rumo ao concurso ACA do IBGE.
+        </p>
       </div>
 
       {/* Banner de acesso (aparece enquanto a compra não foi feita) */}

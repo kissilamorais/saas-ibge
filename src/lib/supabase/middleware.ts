@@ -46,8 +46,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Usuário logado em página de auth → manda pro dashboard
-  if (user && path.startsWith('/auth')) {
+  // Usuário logado em página de auth → manda pro dashboard.
+  // Exceções: reset-password (chega-se a ela JÁ logado via sessão de recovery)
+  // e signout (precisa rodar para encerrar a sessão).
+  const authException =
+    path.startsWith('/auth/reset-password') ||
+    path.startsWith('/auth/signout')
+  if (user && path.startsWith('/auth') && !authException) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

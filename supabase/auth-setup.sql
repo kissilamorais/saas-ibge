@@ -1,4 +1,9 @@
 -- =====================================================================
+-- ⚠️ HISTÓRICO / SUPERSEDED — NÃO RODAR.
+-- Esta versão de handle_new_user() (search_path = public, sem full_name) foi
+-- substituída pela canônica em migrations/0004_consolidate_and_answers_unique.sql.
+-- Mantido apenas como registro. Use sempre as migrations 0001..0004.
+-- =====================================================================
 -- Auth setup — rode no Supabase SQL Editor (uma vez)
 -- Cria automaticamente um registro em `profiles` quando um usuário se
 -- cadastra, e permite o fallback de insert do próprio profile.

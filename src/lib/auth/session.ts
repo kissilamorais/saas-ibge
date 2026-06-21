@@ -1,7 +1,9 @@
+import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
 import { createClient } from '@/lib/supabase/server'
+import { isSubscriptionActive } from '@/lib/auth/subscription'
 import type { UserProfile } from '@/types'
 
 /**
@@ -13,21 +15,25 @@ import type { UserProfile } from '@/types'
  * funções acrescentam a checagem de assinatura nas páginas de conteúdo pago.
  */
 
-export async function getUser(): Promise<User | null> {
+/**
+ * Usuário autenticado da requisição. `cache()` (React) deduplica as chamadas
+ * dentro do mesmo render/route handler: vários helpers chamam getUser() na mesma
+ * página (dashboard chega a 4x), mas o supabase.auth.getUser() — que valida o
+ * JWT no servidor de Auth — só roda uma vez por request.
+ */
+export const getUser = cache(async (): Promise<User | null> => {
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   return user
-}
+})
 
-export async function getProfile(): Promise<UserProfile | null> {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export const getProfile = cache(async (): Promise<UserProfile | null> => {
+  const user = await getUser()
   if (!user) return null
 
+  const supabase = createClient()
   const { data } = await supabase
     .from('profiles')
     .select('*')
@@ -35,10 +41,10 @@ export async function getProfile(): Promise<UserProfile | null> {
     .maybeSingle()
 
   return (data as UserProfile | null) ?? null
-}
+})
 
 export function hasActiveSubscription(profile: UserProfile | null): boolean {
-  return profile?.subscription_status === 'active'
+  return isSubscriptionActive(profile?.subscription_status)
 }
 
 /** Exige usuário logado; senão redireciona ao login preservando o destino. */

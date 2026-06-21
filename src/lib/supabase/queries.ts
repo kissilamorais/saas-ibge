@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth/session'
 import type {
   Exam,
   Lesson,
@@ -31,9 +32,7 @@ export async function getCompletedLessons(): Promise<{
   byModule: Map<string, number>
 }> {
   const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getUser()
   const lessonIds = new Set<string>()
   const byModule = new Map<string, number>()
   if (!user) return { lessonIds, byModule }
@@ -63,9 +62,7 @@ export async function getUserExamStats(): Promise<
   Map<string, { attempts: number; lastScore: number | null }>
 > {
   const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getUser()
   const map = new Map<string, { attempts: number; lastScore: number | null }>()
   if (!user) return map
 
@@ -118,19 +115,29 @@ const round1 = (n: number) => Math.round(n * 10) / 10
 /** Agrega tudo que a dashboard precisa (progresso, horas, próximos passos). */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getUser()
 
-  // Módulos + lições ordenados → progresso e próxima lição.
-  const { data: modsRaw, error: modErr } = await supabase
-    .from('modules')
-    .select('id, slug, title, lessons(id, slug, title, order_index)')
-    .order('order_index', { ascending: true })
-    .order('order_index', { foreignTable: 'lessons', ascending: true })
-  if (modErr) throw modErr
+  // Tudo que a dashboard precisa é independente entre si → busca em paralelo
+  // (evita o waterfall: módulos → progresso → sessões → simulados).
+  const sessionsPromise = user
+    ? supabase.from('study_sessions').select('duration_minutes, started_at')
+    : Promise.resolve({ data: [], error: null } as const)
 
-  const mods = (modsRaw ?? []) as unknown as {
+  const [modsRes, completed, sessionsRes, exams, stats] = await Promise.all([
+    supabase
+      .from('modules')
+      .select('id, slug, title, lessons(id, slug, title, order_index)')
+      .order('order_index', { ascending: true })
+      .order('order_index', { foreignTable: 'lessons', ascending: true }),
+    getCompletedLessons(),
+    sessionsPromise,
+    getExams(),
+    getUserExamStats(),
+  ])
+
+  if (modsRes.error) throw modsRes.error
+
+  const mods = (modsRes.data ?? []) as unknown as {
     id: string
     slug: string
     title: string
@@ -139,7 +146,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       | null
   }[]
 
-  const { lessonIds } = await getCompletedLessons()
+  const { lessonIds } = completed
 
   let totalLessons = 0
   let completedLessons = 0
@@ -189,30 +196,24 @@ export async function getDashboardData(): Promise<DashboardData> {
   let dailyMin = 0
   let weeklyMin = 0
 
-  if (user) {
-    const { data: sessions, error: sErr } = await supabase
-      .from('study_sessions')
-      .select('duration_minutes, started_at')
-    if (sErr) throw sErr
-    for (const s of (sessions ?? []) as {
-      duration_minutes: number | null
-      started_at: string
-    }[]) {
-      const mins = s.duration_minutes ?? 0
-      const d = new Date(s.started_at)
-      totalMin += mins
-      if (d >= startOfToday) dailyMin += mins
-      if (d >= weekStart) weeklyMin += mins
-      const k = keyFor(d)
-      minutesByDay.set(k, (minutesByDay.get(k) ?? 0) + mins)
-    }
+  if (sessionsRes.error) throw sessionsRes.error
+  for (const s of (sessionsRes.data ?? []) as {
+    duration_minutes: number | null
+    started_at: string
+  }[]) {
+    const mins = s.duration_minutes ?? 0
+    const d = new Date(s.started_at)
+    totalMin += mins
+    if (d >= startOfToday) dailyMin += mins
+    if (d >= weekStart) weeklyMin += mins
+    const k = keyFor(d)
+    minutesByDay.set(k, (minutesByDay.get(k) ?? 0) + mins)
   }
   studyDays.forEach((day, i) => {
     day.hours = round1((minutesByDay.get(dayKeys[i]) ?? 0) / 60)
   })
 
   // Próximo simulado: primeiro ainda não realizado.
-  const [exams, stats] = await Promise.all([getExams(), getUserExamStats()])
   let nextExam: DashboardData['nextExam'] = null
   for (const e of exams) {
     if (!stats.get(e.id)) {

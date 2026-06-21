@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 
+import { reportError } from '@/lib/observability/log'
+
 export default function Error({
   error,
   reset,
@@ -11,7 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    reportError('react.error-boundary', error, { digest: error.digest })
   }, [error])
 
   return (

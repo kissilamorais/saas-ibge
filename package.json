@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{ts,tsx,md}\""
   },
   "dependencies": {
@@ -48,6 +50,7 @@
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.31",
     "prettier": "^3.0.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "vitest": "^2.1.9"
   }
 }

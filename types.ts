@@ -11,13 +11,14 @@ export type Database = {
           avatar_url: string | null
           purchase_date: string | null
           stripe_customer_id: string | null
-          subscription_status: 'active' | 'cancelled' | 'expired'
+          subscription_status: 'inactive' | 'active' | 'cancelled' | 'expired'
           course_access_until: string | null
           created_at: string
           updated_at: string
         }
         Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['profiles']['Row']>
+        Relationships: []
       }
       modules: {
         Row: {
@@ -32,6 +33,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['modules']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['modules']['Row']>
+        Relationships: []
       }
       lessons: {
         Row: {
@@ -48,6 +50,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['lessons']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['lessons']['Row']>
+        Relationships: []
       }
       questions: {
         Row: {
@@ -65,6 +68,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['questions']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['questions']['Row']>
+        Relationships: []
       }
       question_options: {
         Row: {
@@ -77,6 +81,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['question_options']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['question_options']['Row']>
+        Relationships: []
       }
       user_progress: {
         Row: {
@@ -122,6 +127,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['study_sessions']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['study_sessions']['Row']>
+        Relationships: []
       }
       exams: {
         Row: {
@@ -138,6 +144,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['exams']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['exams']['Row']>
+        Relationships: []
       }
       user_exam_results: {
         Row: {
@@ -167,6 +174,19 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['exam_questions']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['exam_questions']['Row']>
+        Relationships: []
+      }
+      stripe_events: {
+        Row: {
+          id: string
+          type: string | null
+          processed_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['stripe_events']['Row'], 'processed_at'> & {
+          processed_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['stripe_events']['Row']>
+        Relationships: []
       }
     }
     Views: {}

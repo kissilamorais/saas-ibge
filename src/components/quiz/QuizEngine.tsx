@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Clock, Flag } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Flag, Loader2 } from 'lucide-react'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
 import { ResultsScreen } from '@/components/quiz/ResultsScreen'
-import { submitExamResult } from '@/lib/actions/study'
+import { submitExamResult, type ExamCorrection } from '@/lib/actions/study'
 import { cn } from '@/lib/utils'
 
 interface QuizEngineProps {
@@ -34,36 +34,46 @@ export function QuizEngine({
 
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [submitted, setSubmitted] = useState(false)
+  // Fluxo de envio: 'taking' → 'saving' → 'results' (ou 'error' com retry).
+  const [phase, setPhase] = useState<'taking' | 'saving' | 'results' | 'error'>(
+    'taking'
+  )
+  const [correction, setCorrection] = useState<ExamCorrection | null>(null)
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
-  const savedRef = useRef(false)
+  const submittingRef = useRef(false)
 
   const total = questions.length
   const answeredCount = Object.keys(answers).length
-  const timeSpent = totalSeconds - secondsLeft
 
+  // Envia ao servidor (correção + persistência) e só então mostra o resultado.
+  // A nota e o gabarito vêm da resposta do servidor — nada é confiado ao cliente.
   const handleSubmit = useCallback(() => {
-    setSubmitted(true)
-  }, [])
+    if (submittingRef.current || !examId) return
+    submittingRef.current = true
+    const timeSpent = totalSeconds - secondsLeft
+    setPhase('saving')
+    void (async () => {
+      const res = await submitExamResult({
+        examId,
+        timeSpentSeconds: timeSpent,
+        answers: Object.entries(answers).map(([questionId, optionId]) => ({
+          questionId,
+          optionId,
+        })),
+      })
+      submittingRef.current = false
+      if (res.ok) {
+        setCorrection(res.result)
+        setPhase('results')
+      } else {
+        setPhase('error')
+      }
+    })()
+  }, [examId, totalSeconds, secondsLeft, answers])
 
-  // Salva o resultado uma vez ao finalizar (guard contra re-render/auto-submit).
+  // Timer regressivo: para ao sair de 'taking'; auto-envia ao zerar.
   useEffect(() => {
-    if (!submitted || savedRef.current || !examId) return
-    savedRef.current = true
-    void submitExamResult({
-      examId,
-      totalQuestions: total,
-      timeSpentSeconds: timeSpent,
-      answers: Object.entries(answers).map(([questionId, optionId]) => ({
-        questionId,
-        optionId,
-      })),
-    })
-  }, [submitted, examId, total, timeSpent, answers])
-
-  // Timer regressivo: para ao enviar; auto-envia ao zerar
-  useEffect(() => {
-    if (submitted) return
+    if (phase !== 'taking') return
     if (secondsLeft <= 0) {
       handleSubmit()
       return
@@ -72,7 +82,7 @@ export function QuizEngine({
       setSecondsLeft((prev) => Math.max(0, prev - 1))
     }, 1000)
     return () => clearInterval(id)
-  }, [submitted, secondsLeft, handleSubmit])
+  }, [phase, secondsLeft, handleSubmit])
 
   const handleSelect = useCallback(
     (optionId: string) => {
@@ -83,14 +93,15 @@ export function QuizEngine({
   )
 
   const handleReset = useCallback(() => {
-    savedRef.current = false
+    submittingRef.current = false
+    setCorrection(null)
     setAnswers({})
-    setSubmitted(false)
+    setPhase('taking')
     setSecondsLeft(totalSeconds)
     setCurrent(0)
   }, [totalSeconds])
 
-  const lowTime = secondsLeft <= 60 && !submitted
+  const lowTime = secondsLeft <= 60 && phase === 'taking'
   const question = questions[current]
 
   const palette = useMemo(
@@ -103,13 +114,47 @@ export function QuizEngine({
     [questions, answers, current]
   )
 
-  if (submitted) {
+  // Salvando: a correção é feita no servidor; segura a tela de resultado.
+  if (phase === 'saving') {
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-3 p-12 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Corrigindo seu simulado…</p>
+      </div>
+    )
+  }
+
+  // Erro ao salvar: não perde as respostas, permite tentar de novo.
+  if (phase === 'error') {
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-4 p-12 text-center">
+        <AlertTriangle className="h-9 w-9 text-destructive" />
+        <div className="space-y-1">
+          <p className="font-semibold">Não foi possível salvar seu resultado</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Suas respostas não foram perdidas. Verifique sua conexão e tente
+            enviar novamente.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+        >
+          Tentar enviar de novo
+        </button>
+      </div>
+    )
+  }
+
+  if (phase === 'results' && correction) {
     return (
       <ResultsScreen
         title={title}
         questions={questions}
         answers={answers}
-        timeSpentSeconds={timeSpent}
+        correction={correction}
+        timeSpentSeconds={totalSeconds - secondsLeft}
         backHref={backHref}
         onRetry={handleReset}
       />
