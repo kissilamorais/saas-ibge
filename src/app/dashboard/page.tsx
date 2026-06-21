@@ -26,21 +26,24 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
-// Config sem fonte no banco ainda (não há modelo de metas/data da prova).
-const EXAM_DATE = '2026-09-20'
-const DAILY_GOAL_HOURS = 4
-const WEEKLY_GOAL_HOURS = 25
-
 export default async function DashboardPage() {
   const [profile, data] = await Promise.all([getProfile(), getDashboardData()])
   const hasAccess = hasActiveSubscription(profile)
 
-  const daysUntilExam = Math.max(
-    0,
-    Math.ceil((new Date(EXAM_DATE).getTime() - Date.now()) / 86400000)
-  )
-  const dailyGoalHours = DAILY_GOAL_HOURS
-  const weeklyGoalHours = WEEKLY_GOAL_HOURS
+  // Config do usuário (data da prova + metas) vem do profile; ajustável em
+  // /dashboard/settings. Sem data definida → countdown vira "—".
+  const dailyGoalHours = profile?.daily_goal_hours ?? 4
+  const weeklyGoalHours = profile?.weekly_goal_hours ?? 25
+  const examDate = profile?.exam_date ?? null
+  const daysUntilExam = examDate
+    ? Math.max(
+        0,
+        Math.ceil((new Date(examDate).getTime() - Date.now()) / 86400000)
+      )
+    : null
+  const examDateLabel = examDate
+    ? new Date(`${examDate}T00:00:00`).toLocaleDateString('pt-BR')
+    : null
   const {
     totalHoursStudied,
     dailyHoursDone,
@@ -52,6 +55,7 @@ export default async function DashboardPage() {
     studyDays,
     nextLesson,
     nextExam,
+    recommendations,
   } = data
 
   return (
@@ -89,8 +93,10 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
           title="Dias restantes para a prova"
-          value={`${daysUntilExam} dias`}
-          subtitle="Prova em 20/09/2026"
+          value={daysUntilExam !== null ? `${daysUntilExam} dias` : '—'}
+          subtitle={
+            examDateLabel ? `Prova em ${examDateLabel}` : 'Defina em Configurações'
+          }
           icon={CalendarDays}
           accentClassName="text-red-500 bg-red-500/10"
         />
@@ -196,7 +202,7 @@ export default async function DashboardPage() {
       {/* Gráfico de horas + recomendações */}
       <div className="grid gap-4 lg:grid-cols-2">
         <StudyChart data={studyDays} dailyGoalHours={dailyGoalHours} />
-        <RecommendationCard />
+        <RecommendationCard recommendations={recommendations} />
       </div>
     </div>
   )

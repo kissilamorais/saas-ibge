@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { getUser } from '@/lib/auth/session'
+import { getProfile, getUser } from '@/lib/auth/session'
+import {
+  buildRecommendations,
+  type ModuleAccuracy,
+  type Recommendation,
+} from '@/lib/dashboard/recommendations'
 import type {
   Exam,
   Lesson,
@@ -86,6 +91,37 @@ export async function getUserExamStats(): Promise<
   return map
 }
 
+/**
+ * Aproveitamento do usuário por módulo (acertos/total nas respostas dadas).
+ * Alimenta as recomendações de "fraqueza". RLS restringe às respostas do usuário.
+ */
+export async function getModuleAccuracy(): Promise<ModuleAccuracy[]> {
+  const supabase = createClient()
+  const user = await getUser()
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('user_answers')
+    .select('is_correct, questions(modules(slug, title))')
+  if (error) throw error
+
+  const byModule = new Map<string, ModuleAccuracy>()
+  for (const r of (data ?? []) as unknown as {
+    is_correct: boolean | null
+    questions: { modules: { slug: string; title: string } | null } | null
+  }[]) {
+    const mod = r.questions?.modules
+    if (!mod) continue
+    const cur =
+      byModule.get(mod.slug) ??
+      ({ slug: mod.slug, title: mod.title, correct: 0, total: 0 } as ModuleAccuracy)
+    cur.total += 1
+    if (r.is_correct) cur.correct += 1
+    byModule.set(mod.slug, cur)
+  }
+  return Array.from(byModule.values())
+}
+
 export interface DashboardData {
   syllabusProgress: number
   completedLessons: number
@@ -107,6 +143,7 @@ export interface DashboardData {
     title: string
   } | null
   nextExam: { slug: string; title: string } | null
+  recommendations: Recommendation[]
 }
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -123,17 +160,22 @@ export async function getDashboardData(): Promise<DashboardData> {
     ? supabase.from('study_sessions').select('duration_minutes, started_at')
     : Promise.resolve({ data: [], error: null } as const)
 
-  const [modsRes, completed, sessionsRes, exams, stats] = await Promise.all([
-    supabase
-      .from('modules')
-      .select('id, slug, title, lessons(id, slug, title, order_index)')
-      .order('order_index', { ascending: true })
-      .order('order_index', { foreignTable: 'lessons', ascending: true }),
-    getCompletedLessons(),
-    sessionsPromise,
-    getExams(),
-    getUserExamStats(),
-  ])
+  const [modsRes, completed, sessionsRes, exams, stats, moduleAccuracy, profile] =
+    await Promise.all([
+      supabase
+        .from('modules')
+        .select('id, slug, title, lessons(id, slug, title, order_index)')
+        .order('order_index', { ascending: true })
+        .order('order_index', { foreignTable: 'lessons', ascending: true }),
+      getCompletedLessons(),
+      sessionsPromise,
+      getExams(),
+      getUserExamStats(),
+      getModuleAccuracy(),
+      getProfile(),
+    ])
+
+  const weeklyGoalHours = profile?.weekly_goal_hours ?? 25
 
   if (modsRes.error) throw modsRes.error
 
@@ -222,17 +264,35 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
+  const weeklyHoursDone = round1(weeklyMin / 60)
+
+  const recommendations = buildRecommendations({
+    moduleAccuracy,
+    weeklyHoursDone,
+    weeklyGoalHours,
+    syllabusProgress,
+    nextLesson: nextLesson
+      ? {
+          moduleSlug: nextLesson.moduleSlug,
+          lessonSlug: nextLesson.lessonSlug,
+          title: nextLesson.title,
+        }
+      : null,
+    nextExam,
+  })
+
   return {
     syllabusProgress,
     completedLessons,
     totalLessons,
     totalHoursStudied: round1(totalMin / 60),
     dailyHoursDone: round1(dailyMin / 60),
-    weeklyHoursDone: round1(weeklyMin / 60),
+    weeklyHoursDone,
     moduleProgress,
     studyDays,
     nextLesson,
     nextExam,
+    recommendations,
   }
 }
 

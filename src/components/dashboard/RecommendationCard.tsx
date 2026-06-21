@@ -14,23 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import type {
+  Recommendation,
+  RecommendationKind,
+  RecommendationPriority,
+} from '@/lib/dashboard/recommendations'
 import { cn } from '@/lib/utils'
 
-type RecommendationPriority = 'alta' | 'media' | 'baixa'
-type RecommendationKind = 'revisao' | 'fraqueza' | 'ritmo' | 'dica'
-
-export interface Recommendation {
-  id: string
-  kind: RecommendationKind
-  priority: RecommendationPriority
-  title: string
-  description: string
-  /** Link de ação opcional, ex: "/dashboard/modules/portugues" */
-  href?: string
-}
-
 interface RecommendationCardProps {
-  recommendations?: Recommendation[]
+  recommendations: Recommendation[]
 }
 
 const kindConfig: Record<
@@ -55,47 +47,8 @@ const priorityBadge: Record<RecommendationPriority, string> = {
   baixa: 'text-muted-foreground bg-muted',
 }
 
-// TODO: gerar a partir de progresso real, desempenho em quizzes e revisões pendentes
-const mockRecommendations: Recommendation[] = [
-  {
-    id: '1',
-    kind: 'fraqueza',
-    priority: 'alta',
-    title: 'Reforce Raciocínio Lógico',
-    description:
-      'Seu aproveitamento em quizzes deste módulo está em 52%. Refaça as lições de estruturas lógicas.',
-    href: '/dashboard/modules/raciocinio-logico',
-  },
-  {
-    id: '2',
-    kind: 'revisao',
-    priority: 'alta',
-    title: '3 revisões pendentes para hoje',
-    description:
-      'Concordância Verbal, Crase e Regência aguardam revisão pelo método de repetição espaçada.',
-    href: '/dashboard/modules',
-  },
-  {
-    id: '3',
-    kind: 'ritmo',
-    priority: 'media',
-    title: 'Você está 7h atrás da meta semanal',
-    description:
-      'Estude +1h30 por dia até domingo para voltar ao ritmo planejado.',
-  },
-  {
-    id: '4',
-    kind: 'dica',
-    priority: 'baixa',
-    title: 'Faça o Simulado 3 no sábado',
-    description:
-      'Já cobriu 64% do edital — um simulado completo ajuda a fixar e medir o progresso.',
-    href: '/dashboard/exams',
-  },
-]
-
 export function RecommendationCard({
-  recommendations = mockRecommendations,
+  recommendations,
 }: RecommendationCardProps) {
   return (
     <Card>

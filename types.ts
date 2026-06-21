@@ -13,10 +13,25 @@ export type Database = {
           stripe_customer_id: string | null
           subscription_status: 'inactive' | 'active' | 'cancelled' | 'expired'
           course_access_until: string | null
+          exam_date: string | null
+          daily_goal_hours: number
+          weekly_goal_hours: number
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Omit<
+          Database['public']['Tables']['profiles']['Row'],
+          | 'id'
+          | 'created_at'
+          | 'updated_at'
+          | 'exam_date'
+          | 'daily_goal_hours'
+          | 'weekly_goal_hours'
+        > & {
+          exam_date?: string | null
+          daily_goal_hours?: number
+          weekly_goal_hours?: number
+        }
         Update: Partial<Database['public']['Tables']['profiles']['Row']>
         Relationships: []
       }

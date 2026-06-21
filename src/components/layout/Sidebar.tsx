@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  Settings,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/modules', label: 'Módulos', icon: BookOpen, exact: false },
   { href: '/dashboard/exams', label: 'Simulados', icon: FileCheck2, exact: false },
+  { href: '/dashboard/settings', label: 'Configurações', icon: Settings, exact: false },
 ] as const
 
 function useIsActive() {
