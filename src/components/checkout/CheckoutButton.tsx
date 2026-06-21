@@ -12,8 +12,10 @@ export function CheckoutButton() {
     setError(null)
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento')
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || 'Erro ao iniciar pagamento')
+      }
       window.location.href = data.url
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao iniciar pagamento')

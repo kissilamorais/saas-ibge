@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { reportError } from '@/lib/observability/log'
 import {
   COURSE_CURRENCY,
   COURSE_NAME,
@@ -33,23 +34,31 @@ export async function POST(request: Request) {
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 
-  const session = await getStripe().checkout.sessions.create({
-    mode: 'payment',
-    customer_email: user.email,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: COURSE_CURRENCY,
-          unit_amount: COURSE_PRICE_CENTS,
-          product_data: { name: COURSE_NAME },
+  try {
+    const session = await getStripe().checkout.sessions.create({
+      mode: 'payment',
+      customer_email: user.email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: COURSE_CURRENCY,
+            unit_amount: COURSE_PRICE_CENTS,
+            product_data: { name: COURSE_NAME },
+          },
         },
-      },
-    ],
-    metadata: { user_id: user.id },
-    success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${appUrl}/checkout?canceled=1`,
-  })
+      ],
+      metadata: { user_id: user.id },
+      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/checkout?canceled=1`,
+    })
 
-  return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url })
+  } catch (error) {
+    reportError('stripe.checkout.create', error)
+    return NextResponse.json(
+      { error: 'Não foi possível iniciar o pagamento. Tente novamente.' },
+      { status: 500 },
+    )
+  }
 }
