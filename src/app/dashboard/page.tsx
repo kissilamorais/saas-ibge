@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import {
   BookOpen,
   CalendarClock,
@@ -27,8 +28,13 @@ import {
 import { Progress } from '@/components/ui/progress'
 
 export default async function DashboardPage() {
-  const [profile, data] = await Promise.all([getProfile(), getDashboardData()])
+  const profile = await getProfile()
   const hasAccess = hasActiveSubscription(profile)
+
+  // Assinante sem trilha escolhida → onboarding (escolha de cargo) no 1º acesso.
+  if (hasAccess && !profile?.target_function) redirect('/dashboard/onboarding')
+
+  const data = await getDashboardData()
 
   // Config do usuário (data da prova + metas) vem do profile; ajustável em
   // /dashboard/settings. Sem data definida → countdown vira "—".

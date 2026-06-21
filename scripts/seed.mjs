@@ -47,12 +47,16 @@ const supabase = createClient(url, serviceKey, {
 })
 
 // --- Manifesto: arquivo .md -> módulo (slug/título/ícone controlados) ---
+// `functions`: a quais cargos do edital o módulo pertence. Português e
+// Raciocínio Lógico são comuns a todos; os demais variam por trilha.
+// Cargos: aca, aci, aor, acr, acs.
+const ALL_FUNCTIONS = ['aca', 'aci', 'aor', 'acr', 'acs']
 const MODULES = [
-  { file: '02-MODULO-PORTUGUES.md', slug: 'portugues', title: 'Português', icon: 'languages', description: 'Gramática, interpretação de texto, ortografia e redação oficial.' },
-  { file: '03-MODULO-RACIOCINIO-LOGICO.md', slug: 'raciocinio-logico', title: 'Raciocínio Lógico', icon: 'brain', description: 'Estruturas lógicas, lógica de argumentação, sequências e probabilidade.' },
-  { file: '04-MODULO-ADMINISTRACAO.md', slug: 'administracao', title: 'Administração', icon: 'briefcase', description: 'Administração pública, gestão de processos, planejamento e controle.' },
-  { file: '05-MODULOS-INFORMATICA-E-TECNICOS.md', slug: 'informatica', title: 'Informática', icon: 'monitor', description: 'Conceitos de hardware, software, redes, segurança e pacote Office.' },
-  { file: '05B-MODULO-CONHECIMENTOS-TECNICOS.md', slug: 'conhecimentos-tecnicos', title: 'Conhecimentos Técnicos', icon: 'book-open', description: 'Conteúdo técnico específico do Censo Agro / cargo ACA.' },
+  { file: '02-MODULO-PORTUGUES.md', slug: 'portugues', title: 'Português', icon: 'languages', description: 'Gramática, interpretação de texto, ortografia e redação oficial.', functions: ALL_FUNCTIONS },
+  { file: '03-MODULO-RACIOCINIO-LOGICO.md', slug: 'raciocinio-logico', title: 'Raciocínio Lógico', icon: 'brain', description: 'Estruturas lógicas, lógica de argumentação, sequências e probabilidade.', functions: ALL_FUNCTIONS },
+  { file: '04-MODULO-ADMINISTRACAO.md', slug: 'administracao', title: 'Administração', icon: 'briefcase', description: 'Administração pública, gestão de processos, planejamento e controle.', functions: ['aca', 'aor', 'acr', 'acs'] },
+  { file: '05-MODULOS-INFORMATICA-E-TECNICOS.md', slug: 'informatica', title: 'Informática', icon: 'monitor', description: 'Conceitos de hardware, software, redes, segurança e pacote Office.', functions: ['aci', 'aor'] },
+  { file: '05B-MODULO-CONHECIMENTOS-TECNICOS.md', slug: 'conhecimentos-tecnicos', title: 'Conhecimentos Técnicos', icon: 'book-open', description: 'Conteúdo técnico específico do Censo / cargos de campo.', functions: ['acr', 'acs'] },
 ]
 
 // --- Helpers ---
@@ -133,6 +137,7 @@ async function main() {
           description: mod.description,
           icon: mod.icon,
           order_index: i,
+          functions: mod.functions,
         },
         { onConflict: 'slug' }
       )

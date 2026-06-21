@@ -1,4 +1,4 @@
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import {
   getCompletedLessons,
   getModulesWithLessonCount,
@@ -9,10 +9,10 @@ import {
 } from '@/components/modules/ModuleCard'
 
 export default async function ModulesPage() {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
   const [mods, progress] = await Promise.all([
-    getModulesWithLessonCount(),
+    getModulesWithLessonCount(profile.target_function),
     getCompletedLessons(),
   ])
   const modules: ModuleCardData[] = mods.map((m) => ({

@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import { getExams, getUserExamStats } from '@/lib/supabase/queries'
 import { cn } from '@/lib/utils'
 
@@ -37,9 +37,12 @@ function formatDuration(minutes: number) {
 }
 
 export default async function ExamsPage() {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
-  const [examsData, stats] = await Promise.all([getExams(), getUserExamStats()])
+  const [examsData, stats] = await Promise.all([
+    getExams(profile.target_function),
+    getUserExamStats(),
+  ])
   const exams: ExamItem[] = examsData.map((e) => {
     const s = stats.get(e.id)
     return {

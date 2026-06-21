@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import { getExamWithQuestions } from '@/lib/supabase/queries'
 
 import { QuizEngine } from '@/components/quiz/QuizEngine'
@@ -11,11 +11,15 @@ export default async function ExamPlayerPage({
 }: {
   params: { examSlug: string }
 }) {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
   const exam = await getExamWithQuestions(params.examSlug)
 
-  if (!exam) {
+  // 404 se o simulado é de outra trilha (function_code nulo = genérico, liberado).
+  if (
+    !exam ||
+    (exam.function_code && exam.function_code !== profile.target_function)
+  ) {
     notFound()
   }
 

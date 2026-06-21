@@ -7,6 +7,7 @@ import {
 } from '@/lib/dashboard/recommendations'
 import type {
   Exam,
+  FunctionCode,
   Lesson,
   Module,
   Question,
@@ -153,6 +154,16 @@ const round1 = (n: number) => Math.round(n * 10) / 10
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = createClient()
   const user = await getUser()
+  // Função-alvo (getProfile é cache()) para filtrar módulos/simulados da trilha.
+  const profile = await getProfile()
+  const fn = profile?.target_function ?? null
+
+  let modulesQuery = supabase
+    .from('modules')
+    .select('id, slug, title, lessons(id, slug, title, order_index)')
+    .order('order_index', { ascending: true })
+    .order('order_index', { foreignTable: 'lessons', ascending: true })
+  if (fn) modulesQuery = modulesQuery.contains('functions', [fn])
 
   // Tudo que a dashboard precisa é independente entre si → busca em paralelo
   // (evita o waterfall: módulos → progresso → sessões → simulados).
@@ -160,19 +171,14 @@ export async function getDashboardData(): Promise<DashboardData> {
     ? supabase.from('study_sessions').select('duration_minutes, started_at')
     : Promise.resolve({ data: [], error: null } as const)
 
-  const [modsRes, completed, sessionsRes, exams, stats, moduleAccuracy, profile] =
+  const [modsRes, completed, sessionsRes, exams, stats, moduleAccuracy] =
     await Promise.all([
-      supabase
-        .from('modules')
-        .select('id, slug, title, lessons(id, slug, title, order_index)')
-        .order('order_index', { ascending: true })
-        .order('order_index', { foreignTable: 'lessons', ascending: true }),
+      modulesQuery,
       getCompletedLessons(),
       sessionsPromise,
-      getExams(),
+      getExams(fn),
       getUserExamStats(),
       getModuleAccuracy(),
-      getProfile(),
     ])
 
   const weeklyGoalHours = profile?.weekly_goal_hours ?? 25
@@ -298,25 +304,31 @@ export async function getDashboardData(): Promise<DashboardData> {
 
 // --- Módulos ---
 
-export async function getModules(): Promise<Module[]> {
+export async function getModules(
+  functionCode?: FunctionCode | null
+): Promise<Module[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('modules')
     .select('*')
     .order('order_index', { ascending: true })
+  if (functionCode) query = query.contains('functions', [functionCode])
+  const { data, error } = await query
 
   if (error) throw error
   return data ?? []
 }
 
-export async function getModulesWithQuestionCount(): Promise<
-  (Module & { totalQuestions: number })[]
-> {
+export async function getModulesWithQuestionCount(
+  functionCode?: FunctionCode | null
+): Promise<(Module & { totalQuestions: number })[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('modules')
     .select('*, questions(count)')
     .order('order_index', { ascending: true })
+  if (functionCode) query = query.contains('functions', [functionCode])
+  const { data, error } = await query
 
   if (error) throw error
 
@@ -330,14 +342,16 @@ export async function getModulesWithQuestionCount(): Promise<
   }))
 }
 
-export async function getModulesWithLessonCount(): Promise<
-  (Module & { totalLessons: number })[]
-> {
+export async function getModulesWithLessonCount(
+  functionCode?: FunctionCode | null
+): Promise<(Module & { totalLessons: number })[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('modules')
     .select('*, lessons(count)')
     .order('order_index', { ascending: true })
+  if (functionCode) query = query.contains('functions', [functionCode])
+  const { data, error } = await query
 
   if (error) throw error
 
@@ -454,12 +468,17 @@ export async function getModuleQuizSample(
 
 // --- Simulados ---
 
-export async function getExams(): Promise<Exam[]> {
+export async function getExams(
+  functionCode?: FunctionCode | null
+): Promise<Exam[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('exams')
     .select('*')
     .order('created_at', { ascending: true })
+  // Simulados da função do usuário + os genéricos (function_code nulo).
+  if (functionCode) query = query.or(`function_code.eq.${functionCode},function_code.is.null`)
+  const { data, error } = await query
 
   if (error) throw error
   return data ?? []

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import {
   getCompletedLessons,
   getLessonBySlug,
@@ -30,7 +30,7 @@ export default async function LessonPage({
 }: {
   params: { moduleSlug: string; lessonSlug: string }
 }) {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
   const { moduleSlug } = params
 
@@ -41,7 +41,11 @@ export default async function LessonPage({
     getCompletedLessons(),
   ])
 
-  if (!moduleData || !lessonData) {
+  if (
+    !moduleData ||
+    !lessonData ||
+    !moduleData.functions.includes(profile.target_function!)
+  ) {
     notFound()
   }
 

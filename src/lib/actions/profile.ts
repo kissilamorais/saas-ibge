@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/session'
 import { reportError } from '@/lib/observability/log'
+import { isFunctionCode } from '@/lib/functions'
 import type { Database } from '@/types'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -65,6 +66,33 @@ export async function updateStudyConfig(
     return { ok: true }
   } catch (error) {
     reportError('profile.updateStudyConfig', error)
+    return { ok: false, error: 'unexpected_error' }
+  }
+}
+
+/**
+ * Define a função-alvo (cargo) do candidato — usado no onboarding do 1º acesso
+ * e na troca de trilha em /dashboard/settings. Filtra todo o catálogo.
+ */
+export async function setTargetFunction(code: string): Promise<ActionResult> {
+  if (!isFunctionCode(code)) return { ok: false, error: 'invalid_function' }
+
+  const supabase = createClient()
+  const user = await getUser()
+  if (!user) return { ok: false, error: 'not_authenticated' }
+
+  try {
+    const payload: ProfileUpdate = { target_function: code }
+    const { error } = await supabase
+      .from('profiles')
+      .update(payload)
+      .eq('id', user.id)
+    if (error) return { ok: false, error: error.message }
+
+    revalidatePath('/dashboard', 'layout')
+    return { ok: true }
+  } catch (error) {
+    reportError('profile.setTargetFunction', error)
     return { ok: false, error: 'unexpected_error' }
   }
 }

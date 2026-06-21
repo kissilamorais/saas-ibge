@@ -82,6 +82,12 @@ function slugify(str) {
     .replace(/(^-|-$)/g, '')
 }
 
+// Deriva o cargo do simulado pelo nome do arquivo (ex.: 08E-SIMULADO-1-ACR.md -> 'acr').
+function functionFromFile(file) {
+  const m = file.match(/-(ACA|ACI|AOR|ACR|ACS)\.md$/i)
+  return m ? m[1].toLowerCase() : null
+}
+
 function difficultyFromCode(code) {
   // ex.: ADM-F01 / ADM2-M03 / POR-D12  -> letra após o "-"
   const m = code.match(/-([FMD])/i)
@@ -352,6 +358,7 @@ async function seedSimulados(moduleIds) {
     const title = titleLine.replace(/^#\s*/, '').trim()
     const code = file.match(/^(\d+[A-Z]?)/)[1] // ex.: 08A
     const slug = slugify(file.replace(/^\d+[A-Z]?-/, '').replace(/\.md$/, ''))
+    const functionCode = functionFromFile(file)
 
     const parsed = parseSimulado(raw)
 
@@ -364,6 +371,7 @@ async function seedSimulados(moduleIds) {
           title,
           description: null,
           exam_type: 'simulation',
+          function_code: functionCode,
           total_questions: parsed.length,
           duration_minutes: 240,
           passing_score: 18,

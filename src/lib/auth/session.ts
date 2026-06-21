@@ -64,3 +64,14 @@ export async function requireActiveSubscription(): Promise<UserProfile> {
   if (!hasActiveSubscription(profile)) redirect('/checkout')
   return profile
 }
+
+/**
+ * Como requireActiveSubscription, mas também exige que o candidato já tenha
+ * escolhido a função-alvo (trilha). Sem escolha → onboarding. Usado pelas
+ * páginas de conteúdo, que filtram o catálogo por `target_function`.
+ */
+export async function requireTargetFunction(): Promise<UserProfile> {
+  const profile = await requireActiveSubscription()
+  if (!profile.target_function) redirect('/dashboard/onboarding')
+  return profile
+}

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import { getModuleBySlug, getModuleQuizSample } from '@/lib/supabase/queries'
 import { PracticeQuiz } from '@/components/quiz/PracticeQuiz'
 import type { QuizQuestion } from '@/components/quiz/QuestionCard'
@@ -12,10 +12,12 @@ export default async function PracticeModulePage({
 }: {
   params: { moduleSlug: string }
 }) {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
   const moduleData = await getModuleBySlug(params.moduleSlug)
-  if (!moduleData) notFound()
+  if (!moduleData || !moduleData.functions.includes(profile.target_function!)) {
+    notFound()
+  }
 
   const sample = await getModuleQuizSample(moduleData.id, PRACTICE_SIZE)
 

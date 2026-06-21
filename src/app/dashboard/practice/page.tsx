@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import { ArrowRight, HelpCircle } from 'lucide-react'
 
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import { getModulesWithQuestionCount } from '@/lib/supabase/queries'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default async function PracticePage() {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
-  const modules = await getModulesWithQuestionCount()
+  const modules = await getModulesWithQuestionCount(profile.target_function)
   const withQuestions = modules.filter((m) => m.totalQuestions > 0)
 
   return (

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { requireActiveSubscription } from '@/lib/auth/session'
+import { requireTargetFunction } from '@/lib/auth/session'
 import { getCompletedLessons, getModuleBySlug } from '@/lib/supabase/queries'
 import {
   ArrowLeft,
@@ -58,14 +58,15 @@ export default async function ModuleDetailPage({
 }: {
   params: { moduleSlug: string }
 }) {
-  await requireActiveSubscription()
+  const profile = await requireTargetFunction()
 
   const [data, progress] = await Promise.all([
     getModuleBySlug(params.moduleSlug),
     getCompletedLessons(),
   ])
 
-  if (!data) {
+  // 404 se o módulo não pertence à trilha do usuário (evita acesso via URL).
+  if (!data || !data.functions.includes(profile.target_function!)) {
     notFound()
   }
 

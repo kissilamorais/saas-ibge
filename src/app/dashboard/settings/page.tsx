@@ -2,6 +2,14 @@ import { redirect } from 'next/navigation'
 
 import { getProfile } from '@/lib/auth/session'
 import { StudyConfigForm } from '@/components/dashboard/StudyConfigForm'
+import { FunctionSelector } from '@/components/onboarding/FunctionSelector'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default async function SettingsPage() {
   const profile = await getProfile()
@@ -12,9 +20,26 @@ export default async function SettingsPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
         <p className="text-muted-foreground">
-          Ajuste a data da prova e suas metas de estudo.
+          Ajuste sua trilha, a data da prova e suas metas de estudo.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Trilha (cargo)</CardTitle>
+          <CardDescription>
+            Trocar de cargo muda os módulos e simulados disponíveis. Seu
+            histórico de respostas é mantido.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FunctionSelector
+            initial={profile.target_function}
+            redirectTo="/dashboard/settings"
+            ctaLabel="Salvar trilha"
+          />
+        </CardContent>
+      </Card>
 
       <StudyConfigForm
         initial={{

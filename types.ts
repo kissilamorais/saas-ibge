@@ -1,5 +1,8 @@
 // types/database.ts - Gerado automaticamente do Supabase ou definido manualmente
 
+// Cargos do edital nº 01/2026 (trilhas de estudo).
+export type FunctionCode = 'aca' | 'aci' | 'aor' | 'acr' | 'acs'
+
 export type Database = {
   public: {
     Tables: {
@@ -13,6 +16,7 @@ export type Database = {
           stripe_customer_id: string | null
           subscription_status: 'inactive' | 'active' | 'cancelled' | 'expired'
           course_access_until: string | null
+          target_function: FunctionCode | null
           exam_date: string | null
           daily_goal_hours: number
           weekly_goal_hours: number
@@ -24,10 +28,12 @@ export type Database = {
           | 'id'
           | 'created_at'
           | 'updated_at'
+          | 'target_function'
           | 'exam_date'
           | 'daily_goal_hours'
           | 'weekly_goal_hours'
         > & {
+          target_function?: FunctionCode | null
           exam_date?: string | null
           daily_goal_hours?: number
           weekly_goal_hours?: number
@@ -43,6 +49,7 @@ export type Database = {
           description: string | null
           order_index: number | null
           icon: string | null
+          functions: FunctionCode[]
           created_at: string
           updated_at: string
         }
@@ -151,6 +158,7 @@ export type Database = {
           title: string
           description: string | null
           exam_type: 'simulation' | 'practice' | null
+          function_code: FunctionCode | null
           total_questions: number | null
           duration_minutes: number | null
           passing_score: number | null
