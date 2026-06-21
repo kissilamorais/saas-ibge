@@ -15,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { requireActiveSubscription } from '@/lib/auth/session'
+import { getExams, getUserExamStats } from '@/lib/supabase/queries'
 import { cn } from '@/lib/utils'
 
 interface ExamItem {
@@ -28,63 +30,28 @@ interface ExamItem {
   attempts: number
 }
 
-// TODO: substituir por dados reais do Supabase (exams + exam_attempts do usuário)
-const mockExams: ExamItem[] = [
-  {
-    slug: 'simulado-1-aca',
-    title: 'Simulado 1 - ACA',
-    description: 'Prova completa cobrindo todo o edital do cargo ACA.',
-    questionCount: 60,
-    durationMinutes: 180,
-    lastScore: 72,
-    attempts: 2,
-  },
-  {
-    slug: 'simulado-2-aca',
-    title: 'Simulado 2 - ACA',
-    description: 'Segundo simulado com foco em Administração e Conhecimentos Técnicos.',
-    questionCount: 60,
-    durationMinutes: 180,
-    lastScore: 65,
-    attempts: 1,
-  },
-  {
-    slug: 'simulado-3-aca',
-    title: 'Simulado 3 - ACA',
-    description: 'Terceiro simulado com questões inéditas de todas as matérias.',
-    questionCount: 60,
-    durationMinutes: 180,
-    lastScore: null,
-    attempts: 0,
-  },
-  {
-    slug: 'simulado-4-aca',
-    title: 'Simulado 4 - ACA',
-    description: 'Quarto simulado para fixação e medição de evolução.',
-    questionCount: 60,
-    durationMinutes: 180,
-    lastScore: null,
-    attempts: 0,
-  },
-  {
-    slug: 'simulado-final-aca',
-    title: 'Simulado Final - ACA',
-    description: 'Simulado final no formato e nível da prova oficial.',
-    questionCount: 70,
-    durationMinutes: 210,
-    lastScore: null,
-    attempts: 0,
-  },
-]
-
 function formatDuration(minutes: number) {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`
 }
 
-export default function ExamsPage() {
-  const exams = mockExams
+export default async function ExamsPage() {
+  await requireActiveSubscription()
+
+  const [examsData, stats] = await Promise.all([getExams(), getUserExamStats()])
+  const exams: ExamItem[] = examsData.map((e) => {
+    const s = stats.get(e.id)
+    return {
+      slug: e.slug,
+      title: e.title,
+      description: e.description ?? '',
+      questionCount: e.total_questions ?? 0,
+      durationMinutes: e.duration_minutes ?? 0,
+      lastScore: s?.lastScore ?? null,
+      attempts: s?.attempts ?? 0,
+    }
+  })
 
   const completed = exams.filter((e) => e.attempts > 0)
   const scores = completed

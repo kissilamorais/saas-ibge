@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Clock, HelpCircle, RotateCcw } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { CheckCircle2, Clock, HelpCircle, RotateCcw } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { markLessonComplete } from '@/lib/actions/study'
 import { cn } from '@/lib/utils'
 
 export type { QuizOption, QuizQuestion } from '@/components/quiz/QuestionCard'
@@ -20,12 +23,32 @@ export interface LessonData {
 
 interface LessonViewerProps {
   lesson: LessonData
+  completion: {
+    lessonId: string
+    moduleId: string
+    moduleSlug: string
+    completed: boolean
+  }
 }
 
-export function LessonViewer({ lesson }: LessonViewerProps) {
+export function LessonViewer({ lesson, completion }: LessonViewerProps) {
   // Mapa: questionId -> optionId selecionado
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [done, setDone] = useState(completion.completed)
+  const [isPending, startTransition] = useTransition()
+
+  function handleComplete() {
+    startTransition(async () => {
+      const res = await markLessonComplete(
+        completion.lessonId,
+        completion.moduleId,
+        completion.moduleSlug,
+        lesson.durationMinutes
+      )
+      if (res.ok) setDone(true)
+    })
+  }
 
   const totalQuestions = lesson.quiz.length
   const allAnswered =
@@ -49,11 +72,6 @@ export function LessonViewer({ lesson }: LessonViewerProps) {
     setSubmitted(false)
   }
 
-  const paragraphs = lesson.content
-    .split('\n')
-    .map((p) => p.trim())
-    .filter(Boolean)
-
   return (
     <div className="space-y-8">
       {/* Conteúdo da lição */}
@@ -63,10 +81,10 @@ export function LessonViewer({ lesson }: LessonViewerProps) {
           <span>{lesson.durationMinutes} min de leitura</span>
         </div>
 
-        <div className="space-y-4 text-[15px] leading-relaxed text-foreground/90">
-          {paragraphs.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+        <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:text-primary prose-table:text-sm">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {lesson.content}
+          </ReactMarkdown>
         </div>
       </article>
 
@@ -150,6 +168,26 @@ export function LessonViewer({ lesson }: LessonViewerProps) {
           </div>
         </section>
       )}
+
+      {/* Conclusão da lição */}
+      <div className="flex items-center gap-3 border-t pt-6">
+        {done ? (
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600">
+            <CheckCircle2 className="h-5 w-5" />
+            Lição concluída
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={handleComplete}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {isPending ? 'Salvando...' : 'Marcar lição como concluída'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

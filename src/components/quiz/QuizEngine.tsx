@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Clock, Flag } from 'lucide-react'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
 import { ResultsScreen } from '@/components/quiz/ResultsScreen'
+import { submitExamResult } from '@/lib/actions/study'
 import { cn } from '@/lib/utils'
 
 interface QuizEngineProps {
@@ -12,6 +13,8 @@ interface QuizEngineProps {
   questions: QuizQuestion[]
   durationMinutes: number
   backHref: string
+  /** Se informado, salva o resultado (user_exam_results) ao finalizar. */
+  examId?: string
 }
 
 function formatClock(totalSeconds: number) {
@@ -25,6 +28,7 @@ export function QuizEngine({
   questions,
   durationMinutes,
   backHref,
+  examId,
 }: QuizEngineProps) {
   const totalSeconds = durationMinutes * 60
 
@@ -32,6 +36,7 @@ export function QuizEngine({
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
+  const savedRef = useRef(false)
 
   const total = questions.length
   const answeredCount = Object.keys(answers).length
@@ -40,6 +45,21 @@ export function QuizEngine({
   const handleSubmit = useCallback(() => {
     setSubmitted(true)
   }, [])
+
+  // Salva o resultado uma vez ao finalizar (guard contra re-render/auto-submit).
+  useEffect(() => {
+    if (!submitted || savedRef.current || !examId) return
+    savedRef.current = true
+    void submitExamResult({
+      examId,
+      totalQuestions: total,
+      timeSpentSeconds: timeSpent,
+      answers: Object.entries(answers).map(([questionId, optionId]) => ({
+        questionId,
+        optionId,
+      })),
+    })
+  }, [submitted, examId, total, timeSpent, answers])
 
   // Timer regressivo: para ao enviar; auto-envia ao zerar
   useEffect(() => {
@@ -63,6 +83,7 @@ export function QuizEngine({
   )
 
   const handleReset = useCallback(() => {
+    savedRef.current = false
     setAnswers({})
     setSubmitted(false)
     setSecondsLeft(totalSeconds)

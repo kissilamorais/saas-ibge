@@ -12,7 +12,8 @@ import {
   Target,
 } from 'lucide-react'
 
-import { createClient } from '@/lib/supabase/server'
+import { getProfile, hasActiveSubscription } from '@/lib/auth/session'
+import { getDashboardData } from '@/lib/supabase/queries'
 import { DashboardCard } from '@/components/dashboard/DashboardCard'
 import { ProgressWidget } from '@/components/dashboard/ProgressWidget'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
@@ -26,58 +27,33 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
-// TODO: substituir por dados reais do Supabase (study_sessions, progress, schedule)
-const mockData = {
-  examDate: '2026-09-20',
-  daysUntilExam: 93,
-  totalHoursStudied: 142,
-  dailyGoalHours: 4,
-  dailyHoursDone: 2.5,
-  weeklyGoalHours: 25,
-  weeklyHoursDone: 18,
-  syllabusProgress: 64,
-  nextLesson: {
-    module: 'Raciocínio Lógico',
-    title: 'Estruturas Lógicas e Tabelas-Verdade',
-  },
-  nextReview: {
-    module: 'Português',
-    title: 'Concordância Verbal',
-    when: 'Hoje, 19h',
-  },
-  nextExam: {
-    title: 'Simulado 3 - ACA',
-    when: 'Sábado, 09h',
-  },
-}
+// Config sem fonte no banco ainda (não há modelo de metas/data da prova).
+const EXAM_DATE = '2026-09-20'
+const DAILY_GOAL_HOURS = 4
+const WEEKLY_GOAL_HOURS = 25
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const { data: profileData } = user
-    ? await supabase
-        .from('profiles')
-        .select('subscription_status')
-        .eq('id', user.id)
-        .maybeSingle()
-    : { data: null }
-  const profile = profileData as { subscription_status: string | null } | null
-  const hasAccess = profile?.subscription_status === 'active'
+  const [profile, data] = await Promise.all([getProfile(), getDashboardData()])
+  const hasAccess = hasActiveSubscription(profile)
 
+  const daysUntilExam = Math.max(
+    0,
+    Math.ceil((new Date(EXAM_DATE).getTime() - Date.now()) / 86400000)
+  )
+  const dailyGoalHours = DAILY_GOAL_HOURS
+  const weeklyGoalHours = WEEKLY_GOAL_HOURS
   const {
-    daysUntilExam,
     totalHoursStudied,
-    dailyGoalHours,
     dailyHoursDone,
-    weeklyGoalHours,
     weeklyHoursDone,
     syllabusProgress,
+    completedLessons,
+    totalLessons,
+    moduleProgress,
+    studyDays,
     nextLesson,
-    nextReview,
     nextExam,
-  } = mockData
+  } = data
 
   return (
     <div className="space-y-8 p-6 md:p-8">
@@ -160,22 +136,22 @@ export default async function DashboardPage() {
         />
         <DashboardCard
           title="Próxima aula"
-          value={nextLesson.title}
-          subtitle={nextLesson.module}
+          value={nextLesson?.title ?? 'Tudo em dia!'}
+          subtitle={nextLesson?.moduleTitle ?? 'Nenhuma lição pendente'}
           icon={BookOpen}
           accentClassName="text-sky-500 bg-sky-500/10"
         />
         <DashboardCard
-          title="Próxima revisão"
-          value={nextReview.title}
-          subtitle={`${nextReview.module} • ${nextReview.when}`}
+          title="Lições concluídas"
+          value={`${completedLessons}/${totalLessons}`}
+          subtitle={`${syllabusProgress}% do conteúdo`}
           icon={RotateCcw}
           accentClassName="text-orange-500 bg-orange-500/10"
         />
         <DashboardCard
           title="Próximo simulado"
-          value={nextExam.title}
-          subtitle={nextExam.when}
+          value={nextExam?.title ?? 'Todos realizados'}
+          subtitle={nextExam ? 'Ainda não realizado' : 'Parabéns!'}
           icon={FileCheck2}
           accentClassName="text-pink-500 bg-pink-500/10"
         />
@@ -184,8 +160,7 @@ export default async function DashboardPage() {
       {/* Progresso por módulo + metas */}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          {/* Sem props: usa os dados mockados internos do widget */}
-          <ProgressWidget />
+          <ProgressWidget modules={moduleProgress} />
         </div>
 
         <div className="space-y-4">
@@ -232,7 +207,7 @@ export default async function DashboardPage() {
 
       {/* Gráfico de horas + recomendações */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <StudyChart dailyGoalHours={dailyGoalHours} />
+        <StudyChart data={studyDays} dailyGoalHours={dailyGoalHours} />
         <RecommendationCard />
       </div>
     </div>

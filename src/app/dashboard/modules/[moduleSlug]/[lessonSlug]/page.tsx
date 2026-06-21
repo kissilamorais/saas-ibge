@@ -1,5 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+
+import { requireActiveSubscription } from '@/lib/auth/session'
+import {
+  getCompletedLessons,
+  getLessonBySlug,
+  getModuleBySlug,
+  getModuleQuizSample,
+} from '@/lib/supabase/queries'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { LessonViewer, type LessonData } from '@/components/lessons/LessonViewer'
@@ -17,61 +25,62 @@ interface FullLesson extends LessonData {
   next: LessonNav | null
 }
 
-// TODO: substituir por dados reais do Supabase (lesson.content, questions, options, progress)
-const mockLessons: Record<string, FullLesson> = {
-  'concordancia-verbal': {
-    slug: 'concordancia-verbal',
-    moduleSlug: 'portugues',
-    moduleTitle: 'Português',
-    title: 'Concordância Verbal',
-    durationMinutes: 40,
-    content: `A concordância verbal é a relação de harmonia entre o verbo e o seu sujeito. O verbo concorda com o sujeito em número (singular ou plural) e pessoa (primeira, segunda ou terceira).
-Regra geral: o verbo concorda com o núcleo do sujeito. Exemplo: "Os alunos estudaram para a prova" — o verbo "estudaram" está no plural porque o núcleo do sujeito ("alunos") está no plural.
-Sujeito composto: quando o sujeito é composto e vem antes do verbo, o verbo vai para o plural. Exemplo: "João e Maria viajaram".
-Casos especiais: com a expressão "um dos que", o verbo geralmente vai para o plural. Já com o pronome "que", o verbo concorda com o antecedente. Atenção também a sujeitos coletivos e a porcentagens, que pedem análise cuidadosa do contexto.`,
-    quiz: [
-      {
-        id: 'q1',
-        text: 'Assinale a alternativa em que a concordância verbal está correta.',
-        explanation:
-          'Com sujeito composto anteposto ao verbo, o verbo vai para o plural: "O diretor e o professor chegaram".',
-        options: [
-          { id: 'a', text: 'O diretor e o professor chegou cedo.', isCorrect: false },
-          { id: 'b', text: 'O diretor e o professor chegaram cedo.', isCorrect: true },
-          { id: 'c', text: 'Os diretor e o professor chegou cedo.', isCorrect: false },
-          { id: 'd', text: 'O diretor e os professor chegaram cedo.', isCorrect: false },
-        ],
-      },
-      {
-        id: 'q2',
-        text: 'Em "Fazem dois anos que ele partiu", há erro de concordância. A forma correta é:',
-        explanation:
-          'O verbo "fazer" indicando tempo decorrido é impessoal e fica sempre no singular: "Faz dois anos que ele partiu".',
-        options: [
-          { id: 'a', text: 'Fazem dois anos que ele partiu.', isCorrect: false },
-          { id: 'b', text: 'Faz dois anos que ele partiu.', isCorrect: true },
-          { id: 'c', text: 'Faziam dois anos que ele partiu.', isCorrect: false },
-          { id: 'd', text: 'Fazem dois ano que ele partiu.', isCorrect: false },
-        ],
-      },
-    ],
-    prev: { slug: 'acentuacao', title: 'Acentuação Gráfica' },
-    next: { slug: 'concordancia-nominal', title: 'Concordância Nominal' },
-  },
-}
-
-export default function LessonPage({
+export default async function LessonPage({
   params,
 }: {
   params: { moduleSlug: string; lessonSlug: string }
 }) {
-  const lesson = mockLessons[params.lessonSlug]
+  await requireActiveSubscription()
 
-  if (!lesson || lesson.moduleSlug !== params.moduleSlug) {
+  const { moduleSlug } = params
+
+  // Módulo (título + navegação entre lições) e lição (conteúdo + questões).
+  const [moduleData, lessonData, progress] = await Promise.all([
+    getModuleBySlug(moduleSlug),
+    getLessonBySlug(moduleSlug, params.lessonSlug),
+    getCompletedLessons(),
+  ])
+
+  if (!moduleData || !lessonData) {
     notFound()
   }
 
-  const { moduleSlug } = params
+  const siblings = moduleData.lessons
+  const idx = siblings.findIndex((l) => l.slug === params.lessonSlug)
+  const prev =
+    idx > 0 ? { slug: siblings[idx - 1].slug, title: siblings[idx - 1].title } : null
+  const next =
+    idx >= 0 && idx < siblings.length - 1
+      ? { slug: siblings[idx + 1].slug, title: siblings[idx + 1].title }
+      : null
+
+  // Questões da lição: usa as ligadas a ela; se não houver (banco é por módulo),
+  // cai para uma amostra de prática do módulo (ver getModuleQuizSample).
+  const quizSource =
+    lessonData.questions.length > 0
+      ? lessonData.questions
+      : await getModuleQuizSample(moduleData.id, 5)
+
+  const lesson: FullLesson = {
+    slug: lessonData.slug,
+    moduleSlug,
+    moduleTitle: moduleData.title,
+    title: lessonData.title,
+    durationMinutes: lessonData.duration_minutes ?? 0,
+    content: lessonData.content ?? '',
+    quiz: quizSource.map((q) => ({
+      id: q.id,
+      text: q.question_text,
+      explanation: q.explanation ?? '',
+      options: (q.options ?? []).map((o) => ({
+        id: o.id,
+        text: o.text,
+        isCorrect: Boolean(o.is_correct),
+      })),
+    })),
+    prev,
+    next,
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6 md:p-8">
@@ -88,7 +97,15 @@ export default function LessonPage({
       </div>
 
       {/* Conteúdo + quiz */}
-      <LessonViewer lesson={lesson} />
+      <LessonViewer
+        lesson={lesson}
+        completion={{
+          lessonId: lessonData.id,
+          moduleId: moduleData.id,
+          moduleSlug,
+          completed: progress.lessonIds.has(lessonData.id),
+        }}
+      />
 
       {/* Navegação entre lições */}
       <nav className="flex items-center justify-between gap-4 border-t pt-6">

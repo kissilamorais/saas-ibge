@@ -1,59 +1,28 @@
+import { requireActiveSubscription } from '@/lib/auth/session'
+import {
+  getCompletedLessons,
+  getModulesWithLessonCount,
+} from '@/lib/supabase/queries'
 import {
   ModuleCard,
   type ModuleCardData,
 } from '@/components/modules/ModuleCard'
 
-// TODO: substituir por dados reais do Supabase (modules + progress do usuário)
-const mockModules: ModuleCardData[] = [
-  {
-    slug: 'portugues',
-    title: 'Português',
-    description:
-      'Gramática, interpretação de texto, ortografia e redação oficial.',
-    icon: 'languages',
-    completedLessons: 12,
-    totalLessons: 15,
-  },
-  {
-    slug: 'raciocinio-logico',
-    title: 'Raciocínio Lógico',
-    description:
-      'Estruturas lógicas, lógica de argumentação, sequências e probabilidade.',
-    icon: 'brain',
-    completedLessons: 6,
-    totalLessons: 10,
-  },
-  {
-    slug: 'administracao',
-    title: 'Administração',
-    description:
-      'Administração pública, gestão de processos, planejamento e controle.',
-    icon: 'briefcase',
-    completedLessons: 8,
-    totalLessons: 14,
-  },
-  {
-    slug: 'informatica',
-    title: 'Informática',
-    description:
-      'Conceitos de hardware, software, redes, segurança e pacote Office.',
-    icon: 'monitor',
-    completedLessons: 4,
-    totalLessons: 9,
-  },
-  {
-    slug: 'conhecimentos-tecnicos',
-    title: 'Conhecimentos Técnicos',
-    description:
-      'Conteúdo técnico específico do cargo de Analista de Gestão (ACA).',
-    icon: 'book-open',
-    completedLessons: 3,
-    totalLessons: 12,
-  },
-]
+export default async function ModulesPage() {
+  await requireActiveSubscription()
 
-export default function ModulesPage() {
-  const modules = mockModules
+  const [mods, progress] = await Promise.all([
+    getModulesWithLessonCount(),
+    getCompletedLessons(),
+  ])
+  const modules: ModuleCardData[] = mods.map((m) => ({
+    slug: m.slug,
+    title: m.title,
+    description: m.description,
+    icon: m.icon,
+    completedLessons: progress.byModule.get(m.id) ?? 0,
+    totalLessons: m.totalLessons,
+  }))
 
   const totalLessons = modules.reduce((sum, m) => sum + m.totalLessons, 0)
   const completedLessons = modules.reduce(

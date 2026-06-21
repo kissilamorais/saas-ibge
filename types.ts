@@ -58,6 +58,7 @@ export type Database = {
           question_type: 'multiple_choice' | 'true_false' | 'essay'
           difficulty: 'easy' | 'medium' | 'hard' | null
           explanation: string | null
+          source_ref: string | null
           order_index: number | null
           created_at: string
           updated_at: string
@@ -92,6 +93,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['user_progress']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['user_progress']['Row']>
+        Relationships: []
       }
       user_answers: {
         Row: {
@@ -105,6 +107,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['user_answers']['Row'], 'id' | 'created_at' | 'attempted_at'>
         Update: Partial<Database['public']['Tables']['user_answers']['Row']>
+        Relationships: []
       }
       study_sessions: {
         Row: {
@@ -152,6 +155,18 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['user_exam_results']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['user_exam_results']['Row']>
+        Relationships: []
+      }
+      exam_questions: {
+        Row: {
+          id: string
+          exam_id: string
+          question_id: string
+          order_index: number | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['exam_questions']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['exam_questions']['Row']>
       }
     }
     Views: {}
@@ -189,6 +204,9 @@ export type Exam = Database['public']['Tables']['exams']['Row']
 
 // Exam Result
 export type ExamResult = Database['public']['Tables']['user_exam_results']['Row']
+
+// Exam Question (junção)
+export type ExamQuestion = Database['public']['Tables']['exam_questions']['Row']
 
 // Composite types
 export type QuestionWithOptions = Question & {

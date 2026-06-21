@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+
+import { requireActiveSubscription } from '@/lib/auth/session'
+import { getCompletedLessons, getModuleBySlug } from '@/lib/supabase/queries'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -29,37 +32,6 @@ interface ModuleDetail {
   lessons: LessonItem[]
 }
 
-// TODO: substituir por dados reais do Supabase (module + lessons + progress do usuário)
-const mockModules: Record<string, ModuleDetail> = {
-  portugues: {
-    slug: 'portugues',
-    title: 'Português',
-    description:
-      'Gramática, interpretação de texto, ortografia e redação oficial.',
-    lessons: [
-      { slug: 'interpretacao-de-texto', title: 'Interpretação de Texto', durationMinutes: 45, status: 'completed' },
-      { slug: 'ortografia', title: 'Ortografia', durationMinutes: 30, status: 'completed' },
-      { slug: 'acentuacao', title: 'Acentuação Gráfica', durationMinutes: 25, status: 'completed' },
-      { slug: 'concordancia-verbal', title: 'Concordância Verbal', durationMinutes: 40, status: 'in_progress' },
-      { slug: 'concordancia-nominal', title: 'Concordância Nominal', durationMinutes: 35, status: 'not_started' },
-      { slug: 'regencia', title: 'Regência Verbal e Nominal', durationMinutes: 40, status: 'not_started' },
-      { slug: 'crase', title: 'Crase', durationMinutes: 30, status: 'not_started' },
-    ],
-  },
-  'raciocinio-logico': {
-    slug: 'raciocinio-logico',
-    title: 'Raciocínio Lógico',
-    description:
-      'Estruturas lógicas, lógica de argumentação, sequências e probabilidade.',
-    lessons: [
-      { slug: 'proposicoes', title: 'Proposições Lógicas', durationMinutes: 35, status: 'completed' },
-      { slug: 'tabelas-verdade', title: 'Tabelas-Verdade', durationMinutes: 40, status: 'in_progress' },
-      { slug: 'equivalencias', title: 'Equivalências Lógicas', durationMinutes: 30, status: 'not_started' },
-      { slug: 'argumentacao', title: 'Lógica de Argumentação', durationMinutes: 45, status: 'not_started' },
-    ],
-  },
-}
-
 const statusConfig: Record<
   LessonStatus,
   { icon: typeof Circle; className: string; label: string }
@@ -81,15 +53,32 @@ const statusConfig: Record<
   },
 }
 
-export default function ModuleDetailPage({
+export default async function ModuleDetailPage({
   params,
 }: {
   params: { moduleSlug: string }
 }) {
-  const module = mockModules[params.moduleSlug]
+  await requireActiveSubscription()
 
-  if (!module) {
+  const [data, progress] = await Promise.all([
+    getModuleBySlug(params.moduleSlug),
+    getCompletedLessons(),
+  ])
+
+  if (!data) {
     notFound()
+  }
+
+  const module: ModuleDetail = {
+    slug: data.slug,
+    title: data.title,
+    description: data.description ?? '',
+    lessons: data.lessons.map((l) => ({
+      slug: l.slug,
+      title: l.title,
+      durationMinutes: l.duration_minutes ?? 0,
+      status: progress.lessonIds.has(l.id) ? 'completed' : 'not_started',
+    })),
   }
 
   const completed = module.lessons.filter((l) => l.status === 'completed').length
