@@ -35,7 +35,19 @@ export function DashboardCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="font-display text-3xl font-semibold tracking-tight">
+        {/*
+         * O valor serve tanto métrica curta ("42 dias", "0/32") quanto título
+         * longo ("Próxima aula"). Número curto fica grande (Sora display);
+         * texto longo cai pra um tamanho legível e no máx. 2 linhas.
+         */}
+        <div
+          className={cn(
+            'font-display font-semibold tracking-tight',
+            value.length <= 9
+              ? 'text-3xl'
+              : 'line-clamp-2 text-lg leading-snug'
+          )}
+        >
           {value}
         </div>
         {subtitle && (
