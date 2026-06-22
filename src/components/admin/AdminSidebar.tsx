@@ -3,24 +3,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  BookOpen,
-  Dumbbell,
-  FileCheck2,
-  LayoutDashboard,
+  ArrowLeft,
+  Gauge,
+  Gift,
   LogOut,
-  Settings,
-  Shield,
+  UserPlus,
 } from 'lucide-react'
 
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/modules', label: 'Módulos', icon: BookOpen, exact: false },
-  { href: '/dashboard/practice', label: 'Praticar', icon: Dumbbell, exact: false },
-  { href: '/dashboard/exams', label: 'Simulados', icon: FileCheck2, exact: false },
-  { href: '/dashboard/settings', label: 'Configurações', icon: Settings, exact: false },
+  { href: '/admin', label: 'Visão geral', icon: Gauge, exact: true },
+  { href: '/admin/leads', label: 'Leads', icon: UserPlus, exact: false },
+  { href: '/admin/partners', label: 'Parceiros', icon: Gift, exact: false },
 ] as const
 
 function useIsActive() {
@@ -46,18 +42,21 @@ function SignOutButton({ compact = false }: { compact?: boolean }) {
   )
 }
 
-export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+export function AdminSidebar() {
   const isActive = useIsActive()
 
   return (
     <>
-      {/* Desktop: sidebar fixa à esquerda */}
+      {/* Desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-card md:flex">
         <Link
-          href="/dashboard"
-          className="flex items-center border-b px-6 py-5 text-foreground"
+          href="/admin"
+          className="flex items-center gap-2 border-b px-6 py-5 text-foreground"
         >
           <Logo />
+          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
+            Admin
+          </span>
         </Link>
 
         <nav className="flex-1 space-y-1 p-3">
@@ -83,23 +82,24 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         </nav>
 
         <div className="space-y-1 border-t p-3">
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Shield className="h-4 w-4" />
-              Painel admin
-            </Link>
-          )}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao app
+          </Link>
           <SignOutButton />
         </div>
       </aside>
 
-      {/* Mobile: barra superior com navegação horizontal */}
+      {/* Mobile */}
       <div className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-card px-4 py-3 md:hidden">
-        <Link href="/dashboard" className="text-foreground">
+        <Link href="/admin" className="flex items-center gap-2 text-foreground">
           <Logo size="sm" />
+          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
+            Admin
+          </span>
         </Link>
         <nav className="flex items-center gap-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
@@ -121,15 +121,6 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
               </Link>
             )
           })}
-          {isAdmin && (
-            <Link
-              href="/admin"
-              aria-label="Painel admin"
-              className="rounded-lg p-2 text-primary transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Shield className="h-5 w-5" />
-            </Link>
-          )}
           <SignOutButton compact />
         </nav>
       </div>

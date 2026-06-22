@@ -12,7 +12,7 @@ import {
   Target,
 } from 'lucide-react'
 
-import { getProfile, hasActiveSubscription } from '@/lib/auth/session'
+import { getProfile, hasContentAccess } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/supabase/queries'
 import { DashboardCard } from '@/components/dashboard/DashboardCard'
 import { ProgressWidget } from '@/components/dashboard/ProgressWidget'
@@ -29,7 +29,7 @@ import { Progress } from '@/components/ui/progress'
 
 export default async function DashboardPage() {
   const profile = await getProfile()
-  const hasAccess = hasActiveSubscription(profile)
+  const hasAccess = await hasContentAccess()
 
   // Assinante sem trilha escolhida → onboarding (escolha de cargo) no 1º acesso.
   if (hasAccess && !profile?.target_function) redirect('/dashboard/onboarding')

@@ -36,7 +36,9 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname
   const isProtected =
-    path.startsWith('/dashboard') || path.startsWith('/checkout')
+    path.startsWith('/dashboard') ||
+    path.startsWith('/checkout') ||
+    path.startsWith('/admin')
 
   // Sem usuário tentando acessar rota protegida → manda pro login
   if (!user && isProtected) {

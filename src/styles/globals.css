@@ -47,6 +47,13 @@
     --ring: 165 76% 24.5%; /* anel de foco teal */
 
     --radius: 0.625rem; /* 10px — cantos médios */
+
+    /* Paleta de gráficos (admin) — teal sereno em degradê + terracota p/ contraste */
+    --chart-1: 165 76% 24.5%; /* teal primário */
+    --chart-2: 164 57% 45%; /* teal médio */
+    --chart-3: 173 58% 39%; /* teal-azulado */
+    --chart-4: 38 64% 52%; /* âmbar suave (neutro quente) */
+    --chart-5: 15 68% 52%; /* terracota */
   }
 
   .dark {
@@ -83,6 +90,13 @@
     --border: 145 14% 16.5%; /* #243029 */
     --input: 145 14% 16.5%;
     --ring: 164 57% 51.6%;
+
+    /* Gráficos no dark: tons mais vivos para destacar sobre o fundo profundo */
+    --chart-1: 164 57% 51.6%; /* teal vivo */
+    --chart-2: 164 64% 69%; /* teal claro */
+    --chart-3: 173 58% 55%; /* teal-azulado claro */
+    --chart-4: 38 70% 62%; /* âmbar */
+    --chart-5: 17 71% 60%; /* terracota dark */
   }
 }
 

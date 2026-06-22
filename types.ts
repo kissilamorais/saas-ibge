@@ -3,6 +3,9 @@
 // Cargos do edital nº 01/2026 (trilhas de estudo).
 export type FunctionCode = 'aca' | 'aci' | 'aor' | 'acr' | 'acs'
 
+// Estágio do lead no follow-up do admin (CRM básico).
+export type LeadFollowupStatus = 'none' | 'contacted' | 'converted' | 'lost'
+
 export type Database = {
   public: {
     Tables: {
@@ -20,6 +23,13 @@ export type Database = {
           exam_date: string | null
           daily_goal_hours: number
           weekly_goal_hours: number
+          is_admin: boolean
+          utm_source: string | null
+          utm_medium: string | null
+          utm_campaign: string | null
+          lead_followup_status: LeadFollowupStatus
+          lead_followup_note: string | null
+          lead_followup_at: string | null
           created_at: string
           updated_at: string
         }
@@ -32,11 +42,20 @@ export type Database = {
           | 'exam_date'
           | 'daily_goal_hours'
           | 'weekly_goal_hours'
+          | 'is_admin'
+          | 'lead_followup_status'
         > & {
           target_function?: FunctionCode | null
           exam_date?: string | null
           daily_goal_hours?: number
           weekly_goal_hours?: number
+          is_admin?: boolean
+          utm_source?: string | null
+          utm_medium?: string | null
+          utm_campaign?: string | null
+          lead_followup_status?: LeadFollowupStatus
+          lead_followup_note?: string | null
+          lead_followup_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['profiles']['Row']>
         Relationships: []
@@ -211,9 +230,34 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['stripe_events']['Row']>
         Relationships: []
       }
+      complimentary_access: {
+        Row: {
+          id: string
+          email: string
+          note: string | null
+          granted_by: string | null
+          granted_at: string
+          expires_at: string | null
+          revoked_at: string | null
+        }
+        Insert: Omit<
+          Database['public']['Tables']['complimentary_access']['Row'],
+          'id' | 'granted_at'
+        > & {
+          id?: string
+          granted_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['complimentary_access']['Row']>
+        Relationships: []
+      }
     }
     Views: {}
-    Functions: {}
+    Functions: {
+      current_user_has_content_access: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
+    }
     Enums: {}
   }
 }
@@ -250,6 +294,10 @@ export type ExamResult = Database['public']['Tables']['user_exam_results']['Row'
 
 // Exam Question (junção)
 export type ExamQuestion = Database['public']['Tables']['exam_questions']['Row']
+
+// Cortesia de parceiro (acesso grátis concedido pelo admin)
+export type ComplimentaryAccess =
+  Database['public']['Tables']['complimentary_access']['Row']
 
 // Composite types
 export type QuestionWithOptions = Question & {
