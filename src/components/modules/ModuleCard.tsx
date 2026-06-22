@@ -52,13 +52,13 @@ export function ModuleCard({ module }: ModuleCardProps) {
 
   return (
     <Link href={`/dashboard/modules/${module.slug}`} className="group block">
-      <Card className="flex h-full flex-col transition-all hover:border-primary/50 hover:shadow-md">
+      <Card className="flex h-full flex-col transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary text-primary">
             <Icon className="h-6 w-6" />
           </div>
           {isComplete && (
-            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600">
+            <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Concluído
             </span>

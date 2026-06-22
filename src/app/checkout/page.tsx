@@ -45,28 +45,30 @@ export default async function CheckoutPage({
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Libere seu acesso</CardTitle>
+          <CardTitle className="font-display text-2xl font-semibold">
+            Libere seu acesso
+          </CardTitle>
           <CardDescription>
             Pagamento único de R$97 — sem mensalidade.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-bold">R$97</span>
+            <span className="font-display text-4xl font-semibold">R$97</span>
             <span className="text-muted-foreground">à vista</span>
           </div>
 
           <ul className="space-y-2">
             {BENEFITS.map((b) => (
               <li key={b} className="flex items-start gap-2 text-sm">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <span>{b}</span>
               </li>
             ))}
           </ul>
 
           {searchParams.canceled && (
-            <p className="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-600">
+            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
               Pagamento cancelado. Você pode tentar novamente quando quiser.
             </p>
           )}

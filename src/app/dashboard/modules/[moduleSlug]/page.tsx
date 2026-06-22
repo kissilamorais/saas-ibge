@@ -38,7 +38,7 @@ const statusConfig: Record<
 > = {
   completed: {
     icon: CheckCircle2,
-    className: 'text-emerald-500',
+    className: 'text-success',
     label: 'Concluída',
   },
   in_progress: {
@@ -101,7 +101,7 @@ export default async function ModuleDetailPage({
         </Link>
 
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-tight">
             {moduleDetail.title}
           </h1>
           <p className="text-muted-foreground">{moduleDetail.description}</p>

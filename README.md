@@ -1,10 +1,12 @@
-# SaaS IBGE - Estudo para Concurso ACA
+# Aprovus — Estudo para o concurso ACA do IBGE
 
-Plataforma de estudo online para o concurso de Analista de Gestão (ACA) da IBGE.
+Plataforma de estudo online para o concurso de Analista de Gestão (ACA) do IBGE.
+Marca **Aprovus**, assinada pela **Vellum**.
 
 **Status:** MVP integrado (Supabase + Stripe reais) — faltam apenas envs/webhook de produção  
 **Preço:** R$97 (one-time purchase)  
-**Stack:** Next.js 14 | TypeScript | Supabase | Stripe | Tailwind CSS + shadcn/ui
+**Stack:** Next.js 14 | TypeScript | Supabase | Stripe | Tailwind CSS + shadcn/ui  
+**Design:** sistema **"Foco calmo"** — teal sereno, off-white quente, dark mode de 1ª classe; tipografia Inter (corpo) + Sora (títulos). Tokens em `src/styles/globals.css` + `tailwind.config.js`.
 
 > ✅ As telas de estudo consomem **dados reais do Supabase** (sem mocks). Auth (login/signup/recuperação de senha), gate de assinatura por RLS, checkout Stripe R$97 com webhook idempotente, landing pública e layout com Sidebar já estão prontos. Rode `npm test` para os testes dos fluxos críticos. Para ir a produção, veja **Deploy na Vercel** abaixo.
 

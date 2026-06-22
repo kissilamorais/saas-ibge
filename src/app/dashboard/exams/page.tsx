@@ -69,7 +69,9 @@ export default async function ExamsPage() {
     <div className="space-y-8 p-6 md:p-8">
       {/* Cabeçalho */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight">Simulados</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
+          Simulados
+        </h1>
         <p className="text-muted-foreground">
           {exams.length} simulados disponíveis • {completed.length} realizados
           {avgScore !== null && ` • média ${avgScore}%`}
@@ -85,7 +87,7 @@ export default async function ExamsPage() {
           return (
             <Card key={exam.slug} className="flex h-full flex-col">
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary text-primary">
                   <FileText className="h-6 w-6" />
                 </div>
                 {done && (
@@ -93,8 +95,8 @@ export default async function ExamsPage() {
                     className={cn(
                       'flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium',
                       passed
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : 'bg-amber-500/10 text-amber-600'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                     )}
                   >
                     <Trophy className="h-3.5 w-3.5" />
@@ -122,7 +124,7 @@ export default async function ExamsPage() {
 
                 {done && (
                   <p className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                     {exam.attempts}{' '}
                     {exam.attempts === 1 ? 'tentativa' : 'tentativas'}
                   </p>
@@ -134,7 +136,7 @@ export default async function ExamsPage() {
                     'mt-5 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                     done
                       ? 'border hover:bg-accent'
-                      : 'bg-primary text-primary-foreground hover:opacity-90'
+                      : 'bg-primary text-primary-foreground hover:bg-primary-hover'
                   )}
                 >
                   {done ? (

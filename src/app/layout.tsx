@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Sora } from 'next/font/google'
 
 import '@/styles/globals.css'
 
@@ -8,8 +8,15 @@ const inter = Inter({
   variable: '--font-sans',
 })
 
+// Sans display calma para títulos e números grandes — personalidade sem gritar.
+const sora = Sora({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+})
+
 export const metadata: Metadata = {
-  title: 'SaaS IBGE - Estudo para Concurso ACA',
+  title: 'Aprovus — Estudo para o concurso ACA do IBGE',
   description:
     'Plataforma de estudo online para o concurso de Analista de Gestão (ACA) do IBGE.',
 }
@@ -22,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${inter.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} ${sora.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         {children}
       </body>

@@ -93,7 +93,9 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold tracking-tight">Quiz da lição</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">
+              Quiz da lição
+            </h2>
             <span className="text-sm text-muted-foreground">
               {totalQuestions} {totalQuestions === 1 ? 'questão' : 'questões'}
             </span>
@@ -104,7 +106,7 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
             <Card
               className={cn(
                 'border-l-4',
-                scorePercent >= 70 ? 'border-l-emerald-500' : 'border-l-amber-500'
+                scorePercent >= 70 ? 'border-l-success' : 'border-l-muted-foreground/40'
               )}
             >
               <CardContent className="flex items-center justify-between gap-4 py-4">
@@ -144,8 +146,8 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
                 onClick={() => setSubmitted(true)}
                 disabled={!allAnswered}
                 className={cn(
-                  'inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity',
-                  'disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-90'
+                  'inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >
                 Verificar respostas
@@ -172,7 +174,7 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
       {/* Conclusão da lição */}
       <div className="flex items-center gap-3 border-t pt-6">
         {done ? (
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-success">
             <CheckCircle2 className="h-5 w-5" />
             Lição concluída
           </span>
@@ -181,7 +183,7 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
             type="button"
             onClick={handleComplete}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
           >
             <CheckCircle2 className="h-4 w-4" />
             {isPending ? 'Salvando...' : 'Marcar lição como concluída'}

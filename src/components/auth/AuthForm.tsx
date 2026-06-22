@@ -90,7 +90,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">
+          <CardTitle className="font-display text-2xl font-semibold">
             {isLogin ? 'Entrar' : 'Criar conta'}
           </CardTitle>
           <CardDescription>
@@ -158,7 +158,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               <p
                 role="status"
                 aria-live="polite"
-                className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600"
+                className="rounded-md bg-success/10 px-3 py-2 text-sm text-success"
               >
                 {message}
               </p>
@@ -167,7 +167,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {isLogin ? 'Entrar' : 'Criar conta'}

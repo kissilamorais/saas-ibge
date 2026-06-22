@@ -17,10 +17,10 @@ export function DashboardCard({
   value,
   subtitle,
   icon: Icon,
-  accentClassName = 'text-primary bg-primary/10',
+  accentClassName = 'text-primary bg-secondary',
 }: DashboardCardProps) {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -35,7 +35,9 @@ export function DashboardCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="font-display text-3xl font-semibold tracking-tight">
+          {value}
+        </div>
         {subtitle && (
           <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
         )}

@@ -139,7 +139,7 @@ export function QuizEngine({
         <button
           type="button"
           onClick={handleSubmit}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Tentar enviar de novo
         </button>
@@ -166,15 +166,19 @@ export function QuizEngine({
       {/* Barra superior: título, timer */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            {title}
+          </h1>
           <p className="text-sm text-muted-foreground">
             {answeredCount} de {total} respondidas
           </p>
         </div>
         <div
           className={cn(
-            'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium tabular-nums',
-            lowTime && 'border-red-500 text-red-600'
+            'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium tabular-nums transition-colors',
+            lowTime
+              ? 'border-destructive bg-destructive-soft text-destructive'
+              : 'border-border'
           )}
         >
           <Clock className="h-4 w-4" />
@@ -190,12 +194,12 @@ export function QuizEngine({
             type="button"
             onClick={() => setCurrent(p.index)}
             className={cn(
-              'h-8 w-8 rounded-md border text-xs font-medium transition-colors',
+              'h-8 w-8 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               p.active
                 ? 'border-primary bg-primary text-primary-foreground'
                 : p.answered
-                  ? 'border-primary/40 bg-primary/10 text-primary'
-                  : 'hover:bg-accent'
+                  ? 'border-secondary bg-secondary text-secondary-foreground'
+                  : 'border-border hover:bg-accent'
             )}
             aria-label={`Ir para questão ${p.index + 1}`}
           >
@@ -237,7 +241,7 @@ export function QuizEngine({
           <button
             type="button"
             onClick={handleSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <Flag className="h-4 w-4" />
             Finalizar simulado

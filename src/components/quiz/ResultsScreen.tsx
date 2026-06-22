@@ -65,18 +65,25 @@ export function ResultsScreen({
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6 md:p-8">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Resultado</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
+          Resultado
+        </h1>
         <p className="text-muted-foreground">{title}</p>
       </div>
 
       {/* Placar principal */}
-      <Card className={cn('border-l-4', passed ? 'border-l-emerald-500' : 'border-l-amber-500')}>
+      <Card
+        className={cn(
+          'border-l-4',
+          passed ? 'border-l-success' : 'border-l-muted-foreground/40'
+        )}
+      >
         <CardContent className="grid gap-6 py-6 sm:grid-cols-3">
           <div className="flex flex-col items-center justify-center text-center">
             <span
               className={cn(
-                'text-5xl font-bold',
-                passed ? 'text-emerald-600' : 'text-amber-600'
+                'font-display text-5xl font-semibold',
+                passed ? 'text-success' : 'text-foreground'
               )}
             >
               {scorePercent}%
@@ -135,7 +142,7 @@ export function ResultsScreen({
         <button
           type="button"
           onClick={onRetry}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <RotateCcw className="h-4 w-4" />
           Refazer simulado
@@ -151,7 +158,9 @@ export function ResultsScreen({
 
       {/* Revisão das questões */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold tracking-tight">Revisão das questões</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight">
+          Revisão das questões
+        </h2>
         {questions.map((question, i) => (
           <QuestionCard
             key={question.id}

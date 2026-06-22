@@ -25,14 +25,19 @@ interface RecommendationCardProps {
   recommendations: Recommendation[]
 }
 
+// Paleta serena: tudo em teal; terracota só para "fraqueza" (a única
+// categoria que pede atenção). A cor encode significado, não decora.
 const kindConfig: Record<
   RecommendationKind,
   { icon: LucideIcon; className: string }
 > = {
-  revisao: { icon: RotateCcw, className: 'text-orange-500 bg-orange-500/10' },
-  fraqueza: { icon: AlertTriangle, className: 'text-red-500 bg-red-500/10' },
-  ritmo: { icon: TrendingUp, className: 'text-emerald-500 bg-emerald-500/10' },
-  dica: { icon: Lightbulb, className: 'text-amber-500 bg-amber-500/10' },
+  revisao: { icon: RotateCcw, className: 'text-primary bg-secondary' },
+  fraqueza: {
+    icon: AlertTriangle,
+    className: 'text-destructive bg-destructive-soft',
+  },
+  ritmo: { icon: TrendingUp, className: 'text-primary bg-secondary' },
+  dica: { icon: Lightbulb, className: 'text-primary bg-secondary' },
 }
 
 const priorityLabel: Record<RecommendationPriority, string> = {
@@ -42,8 +47,8 @@ const priorityLabel: Record<RecommendationPriority, string> = {
 }
 
 const priorityBadge: Record<RecommendationPriority, string> = {
-  alta: 'text-red-600 bg-red-500/10',
-  media: 'text-amber-600 bg-amber-500/10',
+  alta: 'text-destructive bg-destructive-soft',
+  media: 'text-secondary-foreground bg-secondary',
   baixa: 'text-muted-foreground bg-muted',
 }
 

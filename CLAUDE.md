@@ -1,8 +1,11 @@
-# SaaS IBGE - Estudo para Concurso ACA
+# Aprovus — Estudo para o concurso ACA do IBGE
+
+> Marca **Aprovus**, assinada pela **Vellum**. ("ACA IBGE" só aparece como descrição do concurso, não como marca.)
 
 **Status:** MVP integrado — auth, dados, pagamento e gate de acesso funcionando com Supabase/Stripe reais  
 **Stack:** Next.js 14 (App Router) | TypeScript | Supabase | Stripe | Tailwind + shadcn/ui  
-**Preço:** R$97 (one-time purchase via Stripe)
+**Preço:** R$97 (one-time purchase via Stripe)  
+**Design:** sistema **"Foco calmo"** aplicado em todo o `src/` — teal sereno, off-white quente, dark mode de 1ª classe; Inter (corpo) + Sora (títulos). Tokens semânticos em `src/styles/globals.css` + `tailwind.config.js`. Regra de cor: teal por padrão; terracota só para erro/urgência real; **nunca** cores hard-coded (emerald/red/blue).
 
 > ✅ **Estado atual (jun/2026):** as telas de estudo (dashboard, módulos, lições, simulados) consomem **dados reais do Supabase** — não há mais mocks. Já existem: clients Supabase (browser/server/admin), Supabase Auth (login/signup/recuperação de senha), middleware protegendo `/dashboard` e `/checkout`, gate de assinatura por RLS, checkout Stripe (R$97) com webhook idempotente + fallback na página de sucesso, landing pública de vendas e layout com Sidebar/Footer. Banco já seedado.
 >

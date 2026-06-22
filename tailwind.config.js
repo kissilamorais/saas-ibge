@@ -23,15 +23,22 @@ module.exports = {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
+          hover: 'hsl(var(--primary-hover))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+          soft: 'hsl(var(--success-soft))',
+        },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+          soft: 'hsl(var(--destructive-soft))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -57,6 +64,15 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'sans-serif'],
+      },
+      boxShadow: {
+        // Elevação leve e em camadas — cards tangíveis, sem peso.
+        sm: '0 1px 2px hsl(155 8% 13% / 0.05)',
+        DEFAULT:
+          '0 1px 2px hsl(155 8% 13% / 0.05), 0 4px 14px -6px hsl(155 8% 13% / 0.06)',
+        md: '0 2px 8px -2px hsl(155 8% 13% / 0.06), 0 6px 20px -6px hsl(155 8% 13% / 0.06)',
+        lg: '0 12px 36px -8px hsl(155 8% 13% / 0.12)',
       },
       keyframes: {
         'accordion-down': {

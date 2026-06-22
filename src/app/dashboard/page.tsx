@@ -68,7 +68,9 @@ export default async function DashboardPage() {
     <div className="space-y-8 p-6 md:p-8">
       {/* Cabeçalho */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
+          Dashboard
+        </h1>
         <p className="text-muted-foreground">
           Acompanhe seu progresso rumo ao concurso ACA do IBGE.
         </p>
@@ -88,7 +90,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/checkout"
-            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             Liberar por R$97
           </Link>
@@ -104,56 +106,49 @@ export default async function DashboardPage() {
             examDateLabel ? `Prova em ${examDateLabel}` : 'Defina em Configurações'
           }
           icon={CalendarDays}
-          accentClassName="text-red-500 bg-red-500/10"
+          accentClassName="text-destructive bg-destructive-soft"
         />
         <DashboardCard
           title="Horas estudadas (total)"
           value={`${totalHoursStudied}h`}
           subtitle="Desde o início dos estudos"
           icon={Clock}
-          accentClassName="text-blue-500 bg-blue-500/10"
         />
         <DashboardCard
           title="Meta diária"
           value={`${dailyHoursDone}h / ${dailyGoalHours}h`}
           subtitle={`${Math.round((dailyHoursDone / dailyGoalHours) * 100)}% concluído hoje`}
           icon={Target}
-          accentClassName="text-emerald-500 bg-emerald-500/10"
         />
         <DashboardCard
           title="Meta semanal"
           value={`${weeklyHoursDone}h / ${weeklyGoalHours}h`}
           subtitle={`${Math.round((weeklyHoursDone / weeklyGoalHours) * 100)}% da semana`}
           icon={CalendarClock}
-          accentClassName="text-violet-500 bg-violet-500/10"
         />
         <DashboardCard
           title="Edital concluído"
           value={`${syllabusProgress}%`}
           subtitle="Conteúdo programático coberto"
           icon={GraduationCap}
-          accentClassName="text-amber-500 bg-amber-500/10"
         />
         <DashboardCard
           title="Próxima aula"
           value={nextLesson?.title ?? 'Tudo em dia!'}
           subtitle={nextLesson?.moduleTitle ?? 'Nenhuma lição pendente'}
           icon={BookOpen}
-          accentClassName="text-sky-500 bg-sky-500/10"
         />
         <DashboardCard
           title="Lições concluídas"
           value={`${completedLessons}/${totalLessons}`}
           subtitle={`${syllabusProgress}% do conteúdo`}
           icon={RotateCcw}
-          accentClassName="text-orange-500 bg-orange-500/10"
         />
         <DashboardCard
           title="Próximo simulado"
           value={nextExam?.title ?? 'Todos realizados'}
           subtitle={nextExam ? 'Ainda não realizado' : 'Parabéns!'}
           icon={FileCheck2}
-          accentClassName="text-pink-500 bg-pink-500/10"
         />
       </div>
 

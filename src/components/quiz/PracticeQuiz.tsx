@@ -87,7 +87,9 @@ export function PracticeQuiz({
         </Link>
         <div className="flex items-center gap-2 pt-2">
           <HelpCircle className="h-5 w-5 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight">{moduleTitle}</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            {moduleTitle}
+          </h1>
         </div>
         <p className="text-sm text-muted-foreground">
           {total} {total === 1 ? 'questão' : 'questões'} de prática
@@ -98,7 +100,7 @@ export function PracticeQuiz({
         <Card
           className={cn(
             'border-l-4',
-            scorePercent >= 70 ? 'border-l-emerald-500' : 'border-l-amber-500'
+            scorePercent >= 70 ? 'border-l-success' : 'border-l-muted-foreground/40'
           )}
         >
           <CardContent className="flex items-center justify-between gap-4 py-4">
@@ -139,7 +141,7 @@ export function PracticeQuiz({
               type="button"
               onClick={handleVerify}
               disabled={!allAnswered}
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               Verificar respostas
             </button>
