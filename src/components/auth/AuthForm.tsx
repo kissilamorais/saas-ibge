@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
@@ -42,6 +42,42 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const isLogin = mode === 'login'
 
+  // Captura de origem (UTM): se vier na URL, persiste para usar no cadastro
+  // (mesmo que a pessoa navegue por algumas páginas antes de criar a conta).
+  const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'] as const
+  useEffect(() => {
+    const fromUrl: Record<string, string> = {}
+    for (const k of UTM_KEYS) {
+      const v = searchParams.get(k)
+      if (v) fromUrl[k] = v
+    }
+    if (Object.keys(fromUrl).length > 0) {
+      try {
+        localStorage.setItem('aprovus_utm', JSON.stringify(fromUrl))
+      } catch {
+        /* localStorage indisponível: ignora */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function getUtmData(): Record<string, string> {
+    const data: Record<string, string> = {}
+    for (const k of UTM_KEYS) {
+      const v = searchParams.get(k)
+      if (v) data[k] = v
+    }
+    if (Object.keys(data).length === 0) {
+      try {
+        const stored = localStorage.getItem('aprovus_utm')
+        if (stored) return JSON.parse(stored) as Record<string, string>
+      } catch {
+        /* ignora */
+      }
+    }
+    return data
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -65,6 +101,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+            // Origem (UTM) → user_metadata; o trigger handle_new_user copia
+            // para profiles.utm_* no cadastro.
+            data: getUtmData(),
           },
         })
         if (error) throw error

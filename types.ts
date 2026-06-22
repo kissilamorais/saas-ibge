@@ -240,12 +240,14 @@ export type Database = {
           expires_at: string | null
           revoked_at: string | null
         }
-        Insert: Omit<
-          Database['public']['Tables']['complimentary_access']['Row'],
-          'id' | 'granted_at'
-        > & {
+        Insert: {
           id?: string
+          email: string
+          note?: string | null
+          granted_by?: string | null
           granted_at?: string
+          expires_at?: string | null
+          revoked_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['complimentary_access']['Row']>
         Relationships: []
