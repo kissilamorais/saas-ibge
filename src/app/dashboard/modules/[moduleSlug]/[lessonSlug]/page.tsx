@@ -60,10 +60,12 @@ export default async function LessonPage({
 
   // Questões da lição: usa as ligadas a ela; se não houver (banco é por módulo),
   // cai para uma amostra de prática do módulo (ver getModuleQuizSample).
+  // Seed pela lição → amostra ESTÁVEL: o quiz não re-sorteia a cada render/
+  // revalidação (evita "trocar de questões" ao marcar a lição como concluída).
   const quizSource =
     lessonData.questions.length > 0
       ? lessonData.questions
-      : await getModuleQuizSample(moduleData.id, 5)
+      : await getModuleQuizSample(moduleData.id, 5, lessonData.id)
 
   const lesson: FullLesson = {
     slug: lessonData.slug,
@@ -101,8 +103,17 @@ export default async function LessonPage({
       </div>
 
       {/* Conteúdo + quiz */}
+      {/* key por lição: força remontar o viewer ao navegar entre lições, para
+          que respostas/quiz/conclusão não vazem de uma lição para a outra
+          (mesma rota [lessonSlug] → React reusaria a instância e o estado). */}
       <LessonViewer
+        key={lessonData.id}
         lesson={lesson}
+        nextHref={
+          lesson.next
+            ? `/dashboard/modules/${moduleSlug}/${lesson.next.slug}`
+            : null
+        }
         completion={{
           lessonId: lessonData.id,
           moduleId: moduleData.id,

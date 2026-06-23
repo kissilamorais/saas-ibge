@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { isValidElement, useState, useTransition, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   CheckCircle2,
   Clock,
@@ -8,7 +9,7 @@ import {
   PartyPopper,
   RotateCcw,
 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
@@ -18,6 +19,53 @@ import { markLessonComplete } from '@/lib/actions/study'
 import { cn } from '@/lib/utils'
 
 export type { QuizOption, QuizQuestion } from '@/components/quiz/QuestionCard'
+
+// Texto plano de uma subárvore de nós React (para detectar padrões no conteúdo).
+function nodeText(node: ReactNode): string {
+  if (node == null || node === false) return ''
+  if (typeof node === 'string') return node
+  if (typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(nodeText).join('')
+  if (isValidElement(node)) return nodeText(node.props.children)
+  return ''
+}
+
+/**
+ * Renderizadores do markdown da lição — dão "presença" calma ao conteúdo:
+ * - pre: mapas/esquemas ASCII viram cartão (não "terminal" escuro).
+ * - p: parágrafos de questão comentada ("Q1.", "Q2.") viram cartões.
+ * - strong: o "Gabarito:" ganha destaque em teal.
+ */
+const markdownComponents: Components = {
+  pre: ({ children }) => (
+    <div className="not-prose my-6 flex overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-secondary/60 to-card shadow-sm">
+      <div className="w-1 shrink-0 bg-primary/40" aria-hidden />
+      <pre className="flex-1 overflow-x-auto px-5 py-4 font-mono text-[13px] leading-relaxed text-foreground/90">
+        {children}
+      </pre>
+    </div>
+  ),
+  p: ({ children }) => {
+    // Questão comentada (enunciado + gabarito num único parágrafo) → cartão.
+    const isCommentedQuestion = /^\s*Q\d+\s*[.)]/.test(nodeText(children))
+    if (isCommentedQuestion) {
+      return (
+        <div className="not-prose my-3 rounded-xl border border-border bg-card p-4 text-sm leading-relaxed text-foreground shadow-sm">
+          {children}
+        </div>
+      )
+    }
+    return <p>{children}</p>
+  },
+  strong: ({ children }) => {
+    if (/^\s*gabarito\b/i.test(nodeText(children))) {
+      return (
+        <strong className="font-semibold text-primary">{children}</strong>
+      )
+    }
+    return <strong>{children}</strong>
+  },
+}
 
 export interface LessonData {
   title: string
@@ -29,6 +77,8 @@ export interface LessonData {
 
 interface LessonViewerProps {
   lesson: LessonData
+  /** Destino ao concluir: próxima lição (ou null na última do módulo). */
+  nextHref: string | null
   completion: {
     lessonId: string
     moduleId: string
@@ -37,7 +87,12 @@ interface LessonViewerProps {
   }
 }
 
-export function LessonViewer({ lesson, completion }: LessonViewerProps) {
+export function LessonViewer({
+  lesson,
+  nextHref,
+  completion,
+}: LessonViewerProps) {
+  const router = useRouter()
   // Mapa: questionId -> optionId selecionado
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -52,7 +107,12 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
         completion.moduleSlug,
         lesson.durationMinutes
       )
-      if (res.ok) setDone(true)
+      if (!res.ok) return
+      setDone(true)
+      // Avança automaticamente: próxima lição, ou volta ao módulo na última.
+      router.push(
+        nextHref ?? `/dashboard/modules/${completion.moduleSlug}`
+      )
     })
   }
 
@@ -87,8 +147,16 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
           <span>{lesson.durationMinutes} min de leitura</span>
         </div>
 
-        <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:text-primary prose-table:text-sm">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <div
+          className={cn(
+            'prose prose-sm max-w-none dark:prose-invert',
+            'prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:text-primary prose-table:text-sm',
+            // Código inline: chip discreto, sem as aspas que o plugin adiciona.
+            // (O bloco de código tem render próprio — ver markdownComponents.)
+            'prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:font-medium prose-code:text-secondary-foreground prose-code:before:content-none prose-code:after:content-none'
+          )}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {lesson.content}
           </ReactMarkdown>
         </div>
@@ -197,7 +265,13 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {isPending ? 'Salvando...' : 'Marcar lição como concluída'}
+            {isPending
+              ? nextHref
+                ? 'Avançando…'
+                : 'Salvando…'
+              : nextHref
+                ? 'Concluir e avançar'
+                : 'Concluir lição'}
           </button>
         )}
       </div>
