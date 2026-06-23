@@ -15,13 +15,16 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8 p-6 md:p-10">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          Vamos montar sua trilha
+        </p>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
           Qual cargo você vai prestar?
         </h1>
-        <p className="text-muted-foreground">
-          Escolha sua função no concurso do IBGE. Vamos montar sua trilha de
-          estudo com os módulos e simulados certos para ela. Você pode trocar
-          depois nas configurações.
+        <p className="text-pretty text-muted-foreground">
+          Escolha sua função no concurso do IBGE. A partir dela, montamos sua
+          trilha com os módulos e simulados certos. Dá para trocar depois nas
+          configurações.
         </p>
       </div>
 

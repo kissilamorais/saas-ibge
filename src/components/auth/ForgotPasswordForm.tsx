@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
   CardContent,
@@ -40,10 +41,12 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+    <AuthShell>
+      <Card className="w-full max-w-sm shadow-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Recuperar senha</CardTitle>
+          <CardTitle className="font-display text-2xl font-semibold">
+            Recuperar senha
+          </CardTitle>
           <CardDescription>
             Enviaremos um link para você redefinir sua senha.
           </CardDescription>
@@ -107,6 +110,6 @@ export function ForgotPasswordForm() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   )
 }

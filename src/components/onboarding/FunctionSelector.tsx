@@ -66,15 +66,28 @@ export function FunctionSelector({
               aria-checked={isActive}
               onClick={() => setSelected(fn.code)}
               className={cn(
-                'flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors',
+                'flex flex-col gap-1.5 rounded-xl border p-4 text-left transition-all duration-200 ease-out hover:-translate-y-0.5',
                 isActive
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                  : 'border-input hover:border-primary/50 hover:bg-accent'
+                  ? 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
+                  : 'border-input hover:border-primary/50 hover:shadow-sm'
               )}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-semibold">{fn.short}</span>
-                {isActive && <Check className="h-4 w-4 text-primary" />}
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold tracking-wide',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground'
+                  )}
+                >
+                  {fn.short}
+                </span>
+                {isActive && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                )}
               </div>
               <span className="text-sm font-medium">{fn.name}</span>
               <span className="text-sm text-muted-foreground">

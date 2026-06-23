@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
   CardContent,
@@ -126,16 +127,16 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+    <AuthShell>
+      <Card className="w-full max-w-sm shadow-md">
         <CardHeader className="space-y-1">
           <CardTitle className="font-display text-2xl font-semibold">
-            {isLogin ? 'Entrar' : 'Criar conta'}
+            {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? 'Acesse sua conta para continuar estudando.'
-              : 'Crie sua conta para começar a estudar.'}
+              ? 'Entre para continuar de onde parou.'
+              : 'Leva um minuto — e seu progresso fica salvo para sempre.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -232,6 +233,6 @@ export function AuthForm({ mode }: AuthFormProps) {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   )
 }

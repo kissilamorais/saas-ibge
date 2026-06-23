@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Check } from 'lucide-react'
+import { Check, Infinity as InfinityIcon } from 'lucide-react'
 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
+import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
   CardContent,
@@ -42,20 +43,26 @@ export default async function CheckoutPage({
   if (profile?.subscription_status === 'active') redirect('/dashboard')
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <AuthShell>
+      <Card className="w-full max-w-md shadow-md">
         <CardHeader>
           <CardTitle className="font-display text-2xl font-semibold">
             Libere seu acesso
           </CardTitle>
           <CardDescription>
-            Pagamento único de R$97 — sem mensalidade.
+            Você está a um passo de estudar com método.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-baseline gap-1">
-            <span className="font-display text-4xl font-semibold">R$97</span>
-            <span className="text-muted-foreground">à vista</span>
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft px-3 py-1 text-sm font-medium text-gold">
+              <InfinityIcon className="h-4 w-4" />
+              Acesso vitalício
+            </span>
+            <div className="flex items-baseline gap-1">
+              <span className="font-display text-4xl font-semibold">R$97</span>
+              <span className="text-muted-foreground">à vista, uma vez só</span>
+            </div>
           </div>
 
           <ul className="space-y-2">
@@ -83,6 +90,6 @@ export default async function CheckoutPage({
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   )
 }

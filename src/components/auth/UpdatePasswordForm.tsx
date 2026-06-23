@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
   CardContent,
@@ -45,10 +46,12 @@ export function UpdatePasswordForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+    <AuthShell>
+      <Card className="w-full max-w-sm shadow-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Definir nova senha</CardTitle>
+          <CardTitle className="font-display text-2xl font-semibold">
+            Definir nova senha
+          </CardTitle>
           <CardDescription>
             Escolha uma nova senha para sua conta.
           </CardDescription>
@@ -110,6 +113,6 @@ export function UpdatePasswordForm() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   )
 }
