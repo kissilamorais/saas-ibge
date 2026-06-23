@@ -18,4 +18,4 @@ export function getStripe(): Stripe {
 // Preço do produto: R$97 em centavos.
 export const COURSE_PRICE_CENTS = 9700
 export const COURSE_CURRENCY = 'brl'
-export const COURSE_NAME = 'Aprovus — Acesso vitalício (preparatório ACA IBGE)'
+export const COURSE_NAME = 'Aprovus — Acesso vitalício (preparatório IBGE)'

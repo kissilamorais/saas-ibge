@@ -108,7 +108,13 @@ export function QuestionCard({
                 )}
               >
                 {showCorrect ? (
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2
+                    className={cn(
+                      'h-4 w-4',
+                      // Sua escolha certa ganha um "assentar" calmo de celebração.
+                      isSelected && 'motion-safe:animate-pop'
+                    )}
+                  />
                 ) : showWrong ? (
                   <XCircle className="h-4 w-4" />
                 ) : (

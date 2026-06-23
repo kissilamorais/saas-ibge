@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Clock, RotateCcw, Target } from 'lucide-react'
+import { ArrowLeft, Clock, RotateCcw, Target, Trophy } from 'lucide-react'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
 import {
@@ -75,11 +75,16 @@ export function ResultsScreen({
       <Card
         className={cn(
           'border-l-4',
-          passed ? 'border-l-success' : 'border-l-muted-foreground/40'
+          passed
+            ? 'border-l-gold motion-safe:animate-gold-pulse'
+            : 'border-l-primary'
         )}
       >
         <CardContent className="grid gap-6 py-6 sm:grid-cols-3">
           <div className="flex flex-col items-center justify-center text-center">
+            {passed && (
+              <Trophy className="mb-1 h-6 w-6 text-gold motion-safe:animate-rise-in" />
+            )}
             <span
               className={cn(
                 'font-display text-5xl font-semibold',
@@ -89,7 +94,7 @@ export function ResultsScreen({
               {scorePercent}%
             </span>
             <span className="mt-1 text-sm text-muted-foreground">
-              {passed ? 'Aprovado' : 'Continue estudando'}
+              {passed ? 'Aprovado — mandou muito bem!' : 'Continue estudando'}
             </span>
           </div>
           <div className="flex items-center justify-center gap-2">

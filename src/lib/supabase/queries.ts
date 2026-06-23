@@ -137,6 +137,12 @@ export interface DashboardData {
     totalLessons: number
   }[]
   studyDays: { label: string; hours: number }[]
+  /** Dias seguidos de estudo até hoje (ou ontem, se hoje ainda zerado). */
+  currentStreak: number
+  /** Maior sequência de dias seguidos já alcançada. */
+  bestStreak: number
+  /** Simulados distintos já realizados. */
+  examsTaken: number
   nextLesson: {
     moduleSlug: string
     moduleTitle: string
@@ -149,6 +155,39 @@ export interface DashboardData {
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const round1 = (n: number) => Math.round(n * 10) / 10
+const DAY_MS = 86400000
+
+/**
+ * Sequência de estudo a partir do conjunto de dias estudados (início-do-dia ms).
+ * - `currentStreak`: dias seguidos terminando hoje, ou em ontem se hoje ainda
+ *   estiver zerado (o dia em curso não quebra a sequência antes de acabar).
+ * - `bestStreak`: maior corrida de dias consecutivos no histórico.
+ */
+function computeStreaks(
+  studiedDayMs: Set<number>,
+  todayMs: number
+): { currentStreak: number; bestStreak: number } {
+  if (studiedDayMs.size === 0) return { currentStreak: 0, bestStreak: 0 }
+
+  // Streak atual: anda pra trás a partir de hoje (ou ontem).
+  let cursor = studiedDayMs.has(todayMs) ? todayMs : todayMs - DAY_MS
+  let currentStreak = 0
+  while (studiedDayMs.has(cursor)) {
+    currentStreak += 1
+    cursor -= DAY_MS
+  }
+
+  // Melhor streak: percorre os dias ordenados contando corridas consecutivas.
+  const sorted = Array.from(studiedDayMs).sort((a, b) => a - b)
+  let bestStreak = 1
+  let run = 1
+  for (let i = 1; i < sorted.length; i++) {
+    run = sorted[i] - sorted[i - 1] === DAY_MS ? run + 1 : 1
+    if (run > bestStreak) bestStreak = run
+  }
+
+  return { currentStreak, bestStreak: Math.max(bestStreak, currentStreak) }
+}
 
 /** Agrega tudo que a dashboard precisa (progresso, horas, próximos passos). */
 export async function getDashboardData(): Promise<DashboardData> {
@@ -240,6 +279,8 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
   const weekStart = new Date(startOfToday.getTime() - 6 * 86400000)
   const minutesByDay = new Map<string, number>()
+  // Dias (início-do-dia em ms) com QUALQUER estudo — base da sequência (streak).
+  const studiedDayMs = new Set<number>()
   let totalMin = 0
   let dailyMin = 0
   let weeklyMin = 0
@@ -256,10 +297,20 @@ export async function getDashboardData(): Promise<DashboardData> {
     if (d >= weekStart) weeklyMin += mins
     const k = keyFor(d)
     minutesByDay.set(k, (minutesByDay.get(k) ?? 0) + mins)
+    if (mins > 0) {
+      studiedDayMs.add(
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      )
+    }
   }
   studyDays.forEach((day, i) => {
     day.hours = round1((minutesByDay.get(dayKeys[i]) ?? 0) / 60)
   })
+
+  const { currentStreak, bestStreak } = computeStreaks(
+    studiedDayMs,
+    startOfToday.getTime()
+  )
 
   // Próximo simulado: primeiro ainda não realizado.
   let nextExam: DashboardData['nextExam'] = null
@@ -296,6 +347,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     weeklyHoursDone,
     moduleProgress,
     studyDays,
+    currentStreak,
+    bestStreak,
+    examsTaken: stats.size,
     nextLesson,
     nextExam,
     recommendations,

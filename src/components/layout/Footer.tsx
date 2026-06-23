@@ -8,7 +8,7 @@ export function Footer() {
         <p>
           © {year} Aprovus{' '}
           <span className="text-muted-foreground/70">· por Vellum</span> —
-          preparatório para o concurso ACA do IBGE.
+          preparatório para o concurso do IBGE.
         </p>
         <nav className="flex items-center gap-4">
           <Link href="/dashboard" className="hover:text-foreground">

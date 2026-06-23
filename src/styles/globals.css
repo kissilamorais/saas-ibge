@@ -42,6 +42,12 @@
     --destructive-foreground: 0 0% 100%;
     --destructive-soft: 19 76% 93.5%; /* #FBEAE2 wash */
 
+    /* conquista (âmbar/dourado): SÓ p/ progresso conquistado — streak, meta
+     * batida, marco, acerto celebrado. Nunca decora; sinaliza recompensa. */
+    --gold: 40 72% 38%; /* #A6741C */
+    --gold-foreground: 40 60% 97%; /* #FBF6EC */
+    --gold-soft: 41 74% 92%; /* #FAF0DB wash quente */
+
     --border: 100 6% 91%; /* #E7E9E6 */
     --input: 100 6% 91%;
     --ring: 165 76% 24.5%; /* anel de foco teal */
@@ -87,6 +93,11 @@
     --destructive-foreground: 0 0% 100%;
     --destructive-soft: 17 31% 13%; /* #2C1D17 */
 
+    /* conquista (dourado) — mais vivo p/ brilhar sobre o fundo profundo */
+    --gold: 41 80% 64%; /* #ECC25A */
+    --gold-foreground: 41 45% 10%; /* #241B0B */
+    --gold-soft: 40 42% 14%; /* #322712 */
+
     --border: 145 14% 16.5%; /* #243029 */
     --input: 145 14% 16.5%;
     --ring: 164 57% 51.6%;
@@ -106,5 +117,17 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Acessibilidade: quem pede menos movimento recebe quase nenhum. Rede de
+   * segurança global além dos motion-reduce: pontuais nos componentes. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }

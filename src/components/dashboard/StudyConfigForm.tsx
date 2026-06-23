@@ -66,8 +66,8 @@ export function StudyConfigForm({ initial }: StudyConfigFormProps) {
       <CardHeader>
         <CardTitle className="text-base">Configuração de estudo</CardTitle>
         <CardDescription>
-          Defina a data da prova e suas metas. Isso alimenta o countdown e os
-          medidores de meta da dashboard.
+          Defina a data da sua prova e suas metas. A partir disso, mostramos
+          quanto tempo falta e acompanhamos o seu progresso rumo à aprovação.
         </CardDescription>
       </CardHeader>
       <CardContent>

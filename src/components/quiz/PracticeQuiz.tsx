@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, HelpCircle, RotateCcw } from 'lucide-react'
+import { ArrowLeft, HelpCircle, PartyPopper, RotateCcw } from 'lucide-react'
 
 import { QuestionCard, type QuizQuestion } from '@/components/quiz/QuestionCard'
 import { Card, CardContent } from '@/components/ui/card'
@@ -100,12 +100,17 @@ export function PracticeQuiz({
         <Card
           className={cn(
             'border-l-4',
-            scorePercent >= 70 ? 'border-l-success' : 'border-l-muted-foreground/40'
+            scorePercent >= 70
+              ? 'border-l-gold motion-safe:animate-gold-pulse'
+              : 'border-l-primary'
           )}
         >
           <CardContent className="flex items-center justify-between gap-4 py-4">
             <div>
-              <p className="text-lg font-semibold">
+              <p className="flex items-center gap-2 text-lg font-semibold">
+                {scorePercent >= 70 && (
+                  <PartyPopper className="h-5 w-5 text-gold" />
+                )}
                 Você acertou {correctCount} de {total} ({scorePercent}%)
               </p>
               <p className="text-sm text-muted-foreground">
@@ -113,7 +118,9 @@ export function PracticeQuiz({
                   ? 'Não foi possível salvar este resultado, mas suas respostas estão revisadas abaixo.'
                   : isPending
                     ? 'Salvando seu desempenho…'
-                    : 'Desempenho registrado. Confira a revisão abaixo.'}
+                    : scorePercent >= 70
+                      ? 'Mandou bem! Confira a revisão e siga em frente.'
+                      : 'Bom trabalho. Veja a revisão e tente de novo — você melhora a cada rodada.'}
               </p>
             </div>
             <div className="w-32 shrink-0">

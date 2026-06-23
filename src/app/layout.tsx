@@ -16,9 +16,9 @@ const sora = Sora({
 })
 
 export const metadata: Metadata = {
-  title: 'Aprovus — Estudo para o concurso ACA do IBGE',
+  title: 'Aprovus — Estudo para o concurso do IBGE',
   description:
-    'Plataforma de estudo online para o concurso de Analista de Gestão (ACA) do IBGE.',
+    'Plataforma de estudo online para o concurso do IBGE.',
 }
 
 export default function RootLayout({

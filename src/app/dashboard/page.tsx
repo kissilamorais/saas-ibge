@@ -1,31 +1,26 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
-  BookOpen,
-  CalendarClock,
-  CalendarDays,
   Clock,
   FileCheck2,
   GraduationCap,
   Lock,
   RotateCcw,
-  Target,
 } from 'lucide-react'
 
 import { getProfile, hasContentAccess } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/supabase/queries'
-import { DashboardCard } from '@/components/dashboard/DashboardCard'
+import { buildAchievements } from '@/lib/dashboard/achievements'
+import { AchievementsRow } from '@/components/dashboard/AchievementsRow'
+import { CountdownPanel } from '@/components/dashboard/CountdownPanel'
+import { GoalRing } from '@/components/dashboard/GoalRing'
+import { GreetingHero } from '@/components/dashboard/GreetingHero'
 import { ProgressWidget } from '@/components/dashboard/ProgressWidget'
+import { QuickStats } from '@/components/dashboard/QuickStats'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
+import { StreakCard } from '@/components/dashboard/StreakCard'
 import { StudyChart } from '@/components/dashboard/StudyChart'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { Card } from '@/components/ui/card'
 
 export default async function DashboardPage() {
   const profile = await getProfile()
@@ -59,26 +54,42 @@ export default async function DashboardPage() {
     totalLessons,
     moduleProgress,
     studyDays,
+    currentStreak,
+    bestStreak,
+    examsTaken,
     nextLesson,
     nextExam,
     recommendations,
   } = data
 
+  const achievements = buildAchievements({
+    syllabusProgress,
+    completedLessons,
+    currentStreak,
+    bestStreak,
+    examsTaken,
+    totalHoursStudied,
+  })
+
   return (
-    <div className="space-y-8 p-6 md:p-8">
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Acompanhe seu progresso rumo ao concurso ACA do IBGE.
-        </p>
-      </div>
+    <div className="space-y-6 p-6 md:p-8">
+      {/* Foco caloroso de boas-vindas */}
+      <GreetingHero
+        name={profile?.full_name ?? null}
+        foco={
+          nextLesson
+            ? {
+                title: nextLesson.title,
+                moduleTitle: nextLesson.moduleTitle,
+                href: `/dashboard/${nextLesson.moduleSlug}/${nextLesson.lessonSlug}`,
+              }
+            : null
+        }
+      />
 
       {/* Banner de acesso (aparece enquanto a compra não foi feita) */}
       {!hasAccess && (
-        <div className="flex flex-col items-start justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
             <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
@@ -97,107 +108,65 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Grid de 8 cards de métrica */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard
-          title="Dias restantes para a prova"
-          value={daysUntilExam !== null ? `${daysUntilExam} dias` : '—'}
-          subtitle={
-            examDateLabel ? `Prova em ${examDateLabel}` : 'Defina em Configurações'
-          }
-          icon={CalendarDays}
-          accentClassName="text-destructive bg-destructive-soft"
+      {/* Motivação: contagem regressiva + sequência + metas */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <CountdownPanel
+          daysUntilExam={daysUntilExam}
+          examDateLabel={examDateLabel}
+          weeklyHoursDone={weeklyHoursDone}
+          weeklyGoalHours={weeklyGoalHours}
         />
-        <DashboardCard
-          title="Horas estudadas (total)"
-          value={`${totalHoursStudied}h`}
-          subtitle="Desde o início dos estudos"
-          icon={Clock}
-        />
-        <DashboardCard
-          title="Meta diária"
-          value={`${dailyHoursDone}h / ${dailyGoalHours}h`}
-          subtitle={`${Math.round((dailyHoursDone / dailyGoalHours) * 100)}% concluído hoje`}
-          icon={Target}
-        />
-        <DashboardCard
-          title="Meta semanal"
-          value={`${weeklyHoursDone}h / ${weeklyGoalHours}h`}
-          subtitle={`${Math.round((weeklyHoursDone / weeklyGoalHours) * 100)}% da semana`}
-          icon={CalendarClock}
-        />
-        <DashboardCard
-          title="Edital concluído"
-          value={`${syllabusProgress}%`}
-          subtitle="Conteúdo programático coberto"
-          icon={GraduationCap}
-        />
-        <DashboardCard
-          title="Próxima aula"
-          value={nextLesson?.title ?? 'Tudo em dia!'}
-          subtitle={nextLesson?.moduleTitle ?? 'Nenhuma lição pendente'}
-          icon={BookOpen}
-        />
-        <DashboardCard
-          title="Lições concluídas"
-          value={`${completedLessons}/${totalLessons}`}
-          subtitle={`${syllabusProgress}% do conteúdo`}
-          icon={RotateCcw}
-        />
-        <DashboardCard
-          title="Próximo simulado"
-          value={nextExam?.title ?? 'Todos realizados'}
-          subtitle={nextExam ? 'Ainda não realizado' : 'Parabéns!'}
-          icon={FileCheck2}
-        />
+        <StreakCard currentStreak={currentStreak} bestStreak={bestStreak} />
+        <Card className="flex flex-col justify-center gap-4 p-6">
+          <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            Metas de estudo
+          </h2>
+          <GoalRing value={dailyHoursDone} max={dailyGoalHours} label="Hoje" />
+          <GoalRing
+            value={weeklyHoursDone}
+            max={weeklyGoalHours}
+            label="Esta semana"
+          />
+        </Card>
       </div>
 
-      {/* Progresso por módulo + metas */}
+      {/* Marcos da jornada */}
+      <AchievementsRow achievements={achievements} />
+
+      {/* Progresso por módulo + resumo */}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <ProgressWidget modules={moduleProgress} />
         </div>
-
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Edital concluído</CardTitle>
-              <CardDescription>Conteúdo total coberto</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Progress value={syllabusProgress} />
-              <p className="text-sm text-muted-foreground">
-                {syllabusProgress}% concluído
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Meta diária</CardTitle>
-              <CardDescription>Horas estudadas hoje</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Progress value={(dailyHoursDone / dailyGoalHours) * 100} />
-              <p className="text-sm text-muted-foreground">
-                {dailyHoursDone}h de {dailyGoalHours}h
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Meta semanal</CardTitle>
-              <CardDescription>Horas estudadas na semana</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Progress value={(weeklyHoursDone / weeklyGoalHours) * 100} />
-              <p className="text-sm text-muted-foreground">
-                {weeklyHoursDone}h de {weeklyGoalHours}h
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <QuickStats
+          title="Resumo"
+          items={[
+            {
+              label: 'Edital concluído',
+              value: `${syllabusProgress}%`,
+              icon: GraduationCap,
+            },
+            {
+              label: 'Lições concluídas',
+              value: `${completedLessons}/${totalLessons}`,
+              icon: RotateCcw,
+              href: '/dashboard/modules',
+            },
+            {
+              label: 'Horas estudadas',
+              value: `${totalHoursStudied}h`,
+              icon: Clock,
+            },
+            {
+              label: 'Próximo simulado',
+              value: nextExam ? 'Disponível' : 'Tudo feito',
+              icon: FileCheck2,
+              href: nextExam
+                ? `/dashboard/exams/${nextExam.slug}`
+                : '/dashboard/exams',
+            },
+          ]}
+        />
       </div>
 
       {/* Gráfico de horas + recomendações */}

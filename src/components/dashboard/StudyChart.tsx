@@ -75,8 +75,9 @@ export function StudyChart({
                 <div
                   className={cn(
                     'w-full rounded-t-md transition-all',
+                    // Bater a meta do dia "esquenta" a barra em dourado.
                     metGoal
-                      ? 'bg-primary'
+                      ? 'bg-gold'
                       : 'bg-primary/40 group-hover:bg-primary/60'
                   )}
                   style={{ height: `${heightPercent}%` }}

@@ -13,7 +13,7 @@ import {
 import { Navbar } from '@/components/layout/Navbar'
 
 export const metadata: Metadata = {
-  title: 'Aprovus — Preparatório completo para o concurso ACA do IBGE (R$97)',
+  title: 'Aprovus — Preparatório completo para o concurso do IBGE (R$97)',
   description:
     'Módulos, banco com 1000+ questões comentadas e 8 simulados no estilo da prova. Acesso vitalício por R$97.',
 }
@@ -82,7 +82,7 @@ export default function HomePage() {
         <div className="relative mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center sm:py-32">
           <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground">
             <CheckCircle2 className="h-4 w-4 text-primary" />
-            Preparatório para Analista — Concurso ACA IBGE
+            Preparatório para Analista — Concurso do IBGE
           </span>
           <h1 className="text-balance font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
             Passe no concurso da IBGE com um plano de estudo que cabe no seu dia.
@@ -110,7 +110,7 @@ export default function HomePage() {
           <div className="mt-16 grid w-full max-w-2xl grid-cols-3 gap-6 border-t border-border pt-10">
             {STATS.map((s) => (
               <div key={s.label}>
-                <p className="font-display text-3xl font-semibold text-foreground sm:text-4xl">
+                <p className="font-display text-3xl font-semibold text-primary sm:text-4xl">
                   {s.value}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
@@ -149,7 +149,7 @@ export default function HomePage() {
       {/* Pricing */}
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="mx-auto max-w-md rounded-3xl border border-primary/20 bg-gradient-to-b from-secondary to-transparent p-8 text-center shadow-sm">
-          <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft px-3 py-1 text-sm font-medium text-gold">
             <InfinityIcon className="h-4 w-4" />
             Acesso vitalício
           </div>
@@ -206,7 +206,7 @@ export default function HomePage() {
         <p>
           © {new Date().getFullYear()} Aprovus{' '}
           <span className="text-muted-foreground/70">· por Vellum</span> —
-          preparatório para o concurso ACA do IBGE.
+          preparatório para o concurso do IBGE.
         </p>
         <div className="mt-3 flex justify-center gap-4">
           <Link href="/auth/login" className="hover:text-foreground">

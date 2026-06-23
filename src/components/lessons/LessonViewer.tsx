@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { CheckCircle2, Clock, HelpCircle, RotateCcw } from 'lucide-react'
+import {
+  CheckCircle2,
+  Clock,
+  HelpCircle,
+  PartyPopper,
+  RotateCcw,
+} from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -106,18 +112,23 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
             <Card
               className={cn(
                 'border-l-4',
-                scorePercent >= 70 ? 'border-l-success' : 'border-l-muted-foreground/40'
+                scorePercent >= 70
+                  ? 'border-l-gold motion-safe:animate-gold-pulse'
+                  : 'border-l-primary'
               )}
             >
               <CardContent className="flex items-center justify-between gap-4 py-4">
                 <div>
-                  <p className="text-lg font-semibold">
+                  <p className="flex items-center gap-2 text-lg font-semibold">
+                    {scorePercent >= 70 && (
+                      <PartyPopper className="h-5 w-5 text-gold" />
+                    )}
                     Você acertou {correctCount} de {totalQuestions} ({scorePercent}%)
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {scorePercent >= 70
                       ? 'Bom trabalho! Você domina o conteúdo.'
-                      : 'Revise o conteúdo e tente novamente.'}
+                      : 'Revise o conteúdo e tente novamente — você chega lá.'}
                   </p>
                 </div>
                 <div className="w-32 shrink-0">
@@ -174,9 +185,9 @@ export function LessonViewer({ lesson, completion }: LessonViewerProps) {
       {/* Conclusão da lição */}
       <div className="flex items-center gap-3 border-t pt-6">
         {done ? (
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-success">
-            <CheckCircle2 className="h-5 w-5" />
-            Lição concluída
+          <span className="inline-flex items-center gap-2 rounded-lg bg-gold-soft px-3 py-1.5 text-sm font-medium text-gold motion-safe:animate-rise-in">
+            <PartyPopper className="h-5 w-5" />
+            Lição concluída — você avançou!
           </span>
         ) : (
           <button
