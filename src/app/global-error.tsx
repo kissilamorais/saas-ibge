@@ -1,5 +1,8 @@
 'use client'
 
+// Fallback de último recurso: substitui o root layout, então globals.css/Tailwind
+// não estão disponíveis. Estilos inline com as cores da marca (teal "Foco calmo"),
+// nunca um azul hard-coded.
 export default function GlobalError({
   error,
   reset,
@@ -17,26 +20,29 @@ export default function GlobalError({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '1rem',
+          background: '#FAFAF7',
+          color: '#1F2421',
           fontFamily: 'system-ui, sans-serif',
           textAlign: 'center',
           padding: '1.5rem',
         }}
       >
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>
           Algo deu errado
         </h2>
-        <p style={{ color: '#666', maxWidth: '28rem' }}>
-          {error.message || 'Ocorreu um erro inesperado.'}
+        <p style={{ color: '#5F6B66', maxWidth: '28rem', margin: 0 }}>
+          Tivemos um problema inesperado. Tente novamente — costuma resolver.
         </p>
         <button
           type="button"
           onClick={reset}
           style={{
-            borderRadius: '0.5rem',
-            background: '#2563eb',
+            borderRadius: '0.625rem',
+            background: '#0F6E56',
             color: '#fff',
-            padding: '0.5rem 1rem',
+            padding: '0.625rem 1.25rem',
             fontSize: '0.875rem',
+            fontWeight: 600,
             border: 'none',
             cursor: 'pointer',
           }}
