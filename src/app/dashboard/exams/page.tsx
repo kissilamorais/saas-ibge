@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/card'
 import { requireTargetFunction } from '@/lib/auth/session'
 import { getExams, getUserExamStats } from '@/lib/supabase/queries'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { cn } from '@/lib/utils'
 
 interface ExamItem {
@@ -67,16 +68,23 @@ export default async function ExamsPage() {
 
   return (
     <div className="space-y-8 p-6 md:p-8">
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Simulados
-        </h1>
-        <p className="text-muted-foreground">
-          {exams.length} simulados disponíveis • {completed.length} realizados
-          {avgScore !== null && ` • média ${avgScore}%`}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Provas no estilo da banca"
+        title="Simulados"
+        description={
+          <>
+            {exams.length} simulados disponíveis • {completed.length} realizados
+            {avgScore !== null && (
+              <>
+                {' • '}
+                <span className="font-medium text-foreground">
+                  média {avgScore}%
+                </span>
+              </>
+            )}
+          </>
+        }
+      />
 
       {/* Grid de simulados */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -95,7 +103,7 @@ export default async function ExamsPage() {
                     className={cn(
                       'flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium',
                       passed
-                        ? 'bg-success/10 text-success'
+                        ? 'bg-gold-soft text-gold'
                         : 'bg-muted text-muted-foreground'
                     )}
                   >

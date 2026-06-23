@@ -7,6 +7,9 @@ import {
   ModuleCard,
   type ModuleCardData,
 } from '@/components/modules/ModuleCard'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 
 export default async function ModulesPage() {
   const profile = await requireTargetFunction()
@@ -34,14 +37,24 @@ export default async function ModulesPage() {
 
   return (
     <div className="space-y-8 p-6 md:p-8">
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight">Módulos</h1>
-        <p className="text-muted-foreground">
-          {modules.length} módulos • {completedLessons} de {totalLessons} lições
-          concluídas ({overallPercent}%)
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Seu edital"
+        title="Módulos"
+        description={`${modules.length} módulos • ${completedLessons} de ${totalLessons} lições concluídas`}
+        aside={
+          <Card className="w-full p-4 sm:w-56">
+            <div className="flex items-baseline justify-between">
+              <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Edital concluído
+              </span>
+              <span className="font-display text-lg font-semibold tabular-nums">
+                {overallPercent}%
+              </span>
+            </div>
+            <Progress value={overallPercent} className="mt-2" />
+          </Card>
+        }
+      />
 
       {/* Grid de módulos */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -18,7 +18,11 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
+      // Concluído (100%) "esquenta" para dourado — a barra celebra a conquista.
+      className={cn(
+        'h-full w-full flex-1 transition-all',
+        (value || 0) >= 100 ? 'bg-gold' : 'bg-primary'
+      )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>
