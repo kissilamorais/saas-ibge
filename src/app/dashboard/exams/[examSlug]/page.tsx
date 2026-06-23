@@ -39,6 +39,7 @@ export default async function ExamPlayerPage({
 
   return (
     <QuizEngine
+      key={exam.id}
       examId={exam.id}
       title={exam.title}
       questions={questions}

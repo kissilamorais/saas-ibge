@@ -480,14 +480,30 @@ export async function getLessonBySlug(
   return { ...row, questions }
 }
 
+// Hash estável de string (FNV-1a) — base da seleção determinística por seed.
+function hashString(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
 /**
- * Amostra aleatória de questões de um módulo, para o quiz de prática da lição.
- * (As questões do banco têm `module_id`, não `lesson_id` — ver nota no seed.)
- * Busca os ids do módulo, embaralha e carrega só as escolhidas com opções.
+ * Amostra de questões de um módulo (as questões do banco têm `module_id`, não
+ * `lesson_id` — ver nota no seed).
+ *
+ * - Sem `seed`: amostra ALEATÓRIA (cada chamada muda) — usada na prática avulsa,
+ *   onde cada rodada nova deve trazer questões diferentes.
+ * - Com `seed`: amostra ESTÁVEL e determinística para aquele seed — usada no quiz
+ *   da lição, para o conjunto não re-sortear a cada render/revalidação (senão o
+ *   quiz "troca de questões" quando a página re-renderiza).
  */
 export async function getModuleQuizSample(
   moduleId: string,
-  limit = 5
+  limit = 5,
+  seed?: string
 ): Promise<QuestionWithOptions[]> {
   const supabase = createClient()
 
@@ -499,9 +515,14 @@ export async function getModuleQuizSample(
   if (idError) throw idError
 
   const pool = (idRows ?? []).map((r) => (r as { id: string }).id)
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  if (seed) {
+    // Ordena por hash(id+seed): pseudo-aleatório porém idêntico a cada chamada.
+    pool.sort((a, b) => hashString(a + seed) - hashString(b + seed))
+  } else {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[pool[i], pool[j]] = [pool[j], pool[i]]
+    }
   }
   const pick = pool.slice(0, limit)
   if (pick.length === 0) return []

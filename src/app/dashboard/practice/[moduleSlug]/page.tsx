@@ -37,6 +37,7 @@ export default async function PracticeModulePage({
 
   return (
     <PracticeQuiz
+      key={moduleData.id}
       moduleTitle={moduleData.title}
       questions={questions}
       backHref="/dashboard/practice"

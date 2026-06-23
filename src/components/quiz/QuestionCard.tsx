@@ -1,9 +1,26 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { CheckCircle2, Lightbulb, XCircle } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+
+// Enunciados/alternativas/explicações vêm do banco com markdown leve (ex.: **negrito**).
+// Renderizamos inline: emphasis é aplicado, sem quebrar o layout com <p> de bloco.
+const inlineComponents = {
+  p: ({ children }: { children?: ReactNode }) => <>{children}</>,
+}
+
+function InlineMarkdown({ children }: { children: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={inlineComponents}>
+      {children}
+    </ReactMarkdown>
+  )
+}
 
 export interface QuizOption {
   id: string
@@ -67,7 +84,7 @@ export function QuestionCard({
           )}
         </div>
         <CardTitle className="max-w-[62ch] text-lg font-medium leading-relaxed">
-          {question.text}
+          <InlineMarkdown>{question.text}</InlineMarkdown>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2.5">
@@ -121,7 +138,9 @@ export function QuestionCard({
                   letter
                 )}
               </span>
-              <span className="flex-1">{option.text}</span>
+              <span className="flex-1">
+                <InlineMarkdown>{option.text}</InlineMarkdown>
+              </span>
             </button>
           )
         })}
@@ -133,7 +152,7 @@ export function QuestionCard({
               <span className="font-semibold text-secondary-foreground">
                 Por quê:{' '}
               </span>
-              {question.explanation}
+              <InlineMarkdown>{question.explanation}</InlineMarkdown>
             </p>
           </div>
         )}

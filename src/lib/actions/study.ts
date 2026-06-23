@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/session'
 import { reportError } from '@/lib/observability/log'
-import { computeScore, PASS_PERCENT } from '@/lib/study/scoring'
+import { computeScore } from '@/lib/study/scoring'
 import type { Database } from '@/types'
 
 type ExamResultInsert =
@@ -317,5 +317,3 @@ export async function submitPracticeAnswers(
     return { ok: false, error: 'unexpected_error' }
   }
 }
-
-export { PASS_PERCENT }
