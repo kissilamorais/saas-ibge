@@ -23,6 +23,18 @@ export function trackPixel(
   params?: Record<string, unknown>
 ): void {
   if (!PIXEL_ENABLED) return
-  if (typeof window === 'undefined' || typeof window.fbq !== 'function') return
-  window.fbq('track', event, params)
+  if (typeof window === 'undefined') return
+
+  // O script do pixel (afterInteractive) pode ainda não ter inicializado
+  // quando um evento "ao montar" (ViewContent/Purchase) tenta disparar.
+  // Tentamos novamente por até ~3s para não perder o evento.
+  let attempts = 0
+  const fire = () => {
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', event, params)
+      return
+    }
+    if (attempts++ < 20) setTimeout(fire, 150)
+  }
+  fire()
 }
