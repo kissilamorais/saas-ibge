@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
+import { trackPixel } from '@/lib/analytics/meta-pixel'
+
 export function CheckoutButton() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -10,6 +12,8 @@ export function CheckoutButton() {
   async function handleClick() {
     setLoading(true)
     setError(null)
+    // Intenção de compra → InitiateCheckout (com valor do curso).
+    trackPixel('InitiateCheckout', { value: 97, currency: 'BRL' })
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
       const data = await res.json().catch(() => null)

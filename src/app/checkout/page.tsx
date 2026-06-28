@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Check, Infinity as InfinityIcon } from 'lucide-react'
 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
+import { PixelEvent } from '@/components/analytics/PixelEvent'
 import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
@@ -44,6 +45,14 @@ export default async function CheckoutPage({
 
   return (
     <AuthShell>
+      <PixelEvent
+        event="ViewContent"
+        params={{
+          content_name: 'Aprovus — Acesso vitalício',
+          value: 97,
+          currency: 'BRL',
+        }}
+      />
       <Card className="w-full max-w-md shadow-md">
         <CardHeader>
           <CardTitle className="font-display text-2xl font-semibold">

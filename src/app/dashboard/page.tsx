@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import {
   Clock,
   FileCheck2,
@@ -20,6 +21,7 @@ import { QuickStats } from '@/components/dashboard/QuickStats'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
 import { StreakCard } from '@/components/dashboard/StreakCard'
 import { StudyChart } from '@/components/dashboard/StudyChart'
+import { PurchaseTracker } from '@/components/analytics/PurchaseTracker'
 import { Card } from '@/components/ui/card'
 
 export default async function DashboardPage() {
@@ -73,6 +75,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 p-6 md:p-8">
+      {/* Purchase (Meta Pixel) ao chegar de /checkout/success?welcome=1 */}
+      <Suspense fallback={null}>
+        <PurchaseTracker />
+      </Suspense>
+
       {/* Foco caloroso de boas-vindas */}
       <GreetingHero
         name={profile?.full_name ?? null}

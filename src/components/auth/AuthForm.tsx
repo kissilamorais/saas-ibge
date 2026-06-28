@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { trackPixel } from '@/lib/analytics/meta-pixel'
 import { AuthShell } from '@/components/auth/AuthShell'
 import {
   Card,
@@ -109,6 +110,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           },
         })
         if (error) throw error
+
+        // Conta criada com sucesso → Lead (sem dados pessoais, só o evento).
+        trackPixel('Lead')
 
         // Se a confirmação de e-mail estiver desativada, já vem sessão → entra direto
         if (data.session) {
