@@ -31,8 +31,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Você já tem acesso.' }, { status: 400 })
   }
 
+  // Base para success/cancel URLs. Preferimos o host real da requisição
+  // (via headers de proxy da Vercel) para não depender de NEXT_PUBLIC_APP_URL
+  // estar correta em produção — se ela apontar pra localhost, o redirect
+  // pós-pagamento quebra. Só caímos no env/origin como último recurso.
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
+    forwardedHost && !forwardedHost.includes('localhost')
+      ? `${forwardedProto}://${forwardedHost}`
+      : process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 
   try {
     const session = await getStripe().checkout.sessions.create({
