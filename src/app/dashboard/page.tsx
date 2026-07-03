@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
 import {
   Clock,
   FileCheck2,
@@ -21,15 +20,26 @@ import { QuickStats } from '@/components/dashboard/QuickStats'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
 import { StreakCard } from '@/components/dashboard/StreakCard'
 import { StudyChart } from '@/components/dashboard/StudyChart'
-import { PurchaseTracker } from '@/components/analytics/PurchaseTracker'
 import { Card } from '@/components/ui/card'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { welcome?: string }
+}) {
   const profile = await getProfile()
   const hasAccess = await hasContentAccess()
 
   // Assinante sem trilha escolhida → onboarding (escolha de cargo) no 1º acesso.
-  if (hasAccess && !profile?.target_function) redirect('/dashboard/onboarding')
+  // Preservamos welcome=1 para o PurchaseTracker (no layout) disparar o Purchase
+  // lá no onboarding — senão o param se perderia neste redirect de servidor.
+  if (hasAccess && !profile?.target_function) {
+    redirect(
+      searchParams?.welcome === '1'
+        ? '/dashboard/onboarding?welcome=1'
+        : '/dashboard/onboarding',
+    )
+  }
 
   const data = await getDashboardData()
 
@@ -75,11 +85,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 p-6 md:p-8">
-      {/* Purchase (Meta Pixel) ao chegar de /checkout/success?welcome=1 */}
-      <Suspense fallback={null}>
-        <PurchaseTracker />
-      </Suspense>
-
       {/* Foco caloroso de boas-vindas */}
       <GreetingHero
         name={profile?.full_name ?? null}
