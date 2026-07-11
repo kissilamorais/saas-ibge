@@ -1,11 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
 
-export function CheckoutButton() {
+const DEFAULT_CLASS =
+  'inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50'
+
+interface CheckoutButtonProps {
+  /** Classes do <button>. Default = estilo usado na página de checkout. */
+  className?: string
+  /** Rótulo do botão. Default = "Liberar acesso por R$97". */
+  children?: ReactNode
+}
+
+export function CheckoutButton({
+  className = DEFAULT_CLASS,
+  children = 'Liberar acesso por R$97',
+}: CheckoutButtonProps = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,10 +46,10 @@ export function CheckoutButton() {
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className={className}
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        Liberar acesso por R$97
+        {children}
       </button>
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">

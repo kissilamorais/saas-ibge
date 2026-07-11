@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
   BarChart3,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import { Navbar } from '@/components/layout/Navbar'
+import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 
 export const metadata: Metadata = {
   title: 'Aprovus — Preparatório completo para o concurso do IBGE (R$97)',
@@ -85,25 +85,16 @@ export default function HomePage() {
             Preparatório para Analista — Concurso do IBGE
           </span>
           <h1 className="text-balance font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-            Passe no concurso da IBGE com um plano de estudo que cabe no seu dia.
+            Passe no concurso do IBGE com um plano de estudo que cabe no seu dia.
           </h1>
           <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">
             Conteúdo completo, mais de mil questões comentadas e simulados no
             estilo da prova — tudo em um só lugar, por um pagamento único.
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
-            <Link
-              href="/auth/signup"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
+            <CheckoutButton className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               Começar agora por R$97
-            </Link>
-            <Link
-              href="/auth/login"
-              className="inline-flex h-12 items-center justify-center rounded-xl border border-border bg-card px-8 text-base font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              Já tenho conta
-            </Link>
+            </CheckoutButton>
           </div>
 
           {/* Stats */}
@@ -174,12 +165,9 @@ export default function HomePage() {
             ))}
           </ul>
 
-          <Link
-            href="/auth/signup"
-            className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
+          <CheckoutButton className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             Liberar meu acesso
-          </Link>
+          </CheckoutButton>
         </div>
       </section>
 
@@ -208,14 +196,6 @@ export default function HomePage() {
           <span className="text-muted-foreground/70">· por Vellum</span> —
           preparatório para o concurso do IBGE.
         </p>
-        <div className="mt-3 flex justify-center gap-4">
-          <Link href="/auth/login" className="hover:text-foreground">
-            Entrar
-          </Link>
-          <Link href="/auth/signup" className="hover:text-foreground">
-            Criar conta
-          </Link>
-        </div>
       </footer>
     </div>
   )

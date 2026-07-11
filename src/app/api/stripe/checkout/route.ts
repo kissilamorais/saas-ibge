@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import type Stripe from 'stripe'
 
 import { reportError } from '@/lib/observability/log'
 import {
@@ -15,20 +16,19 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-  }
+  // Visitante sem conta pode pagar direto (checkout guest). Só rodamos o
+  // bloqueio de "já tem acesso" quando há usuário logado.
+  if (user) {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .maybeSingle()
+    const profile = profileData as { subscription_status: string | null } | null
 
-  // Já tem acesso? Não cria nova cobrança.
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('subscription_status')
-    .eq('id', user.id)
-    .maybeSingle()
-  const profile = profileData as { subscription_status: string | null } | null
-
-  if (profile?.subscription_status === 'active') {
-    return NextResponse.json({ error: 'Você já tem acesso.' }, { status: 400 })
+    if (profile?.subscription_status === 'active') {
+      return NextResponse.json({ error: 'Você já tem acesso.' }, { status: 400 })
+    }
   }
 
   // Base para success/cancel URLs. Preferimos o host real da requisição
@@ -43,9 +43,19 @@ export async function POST(request: Request) {
       : process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 
   try {
+    // Logado: prende o e-mail e amarra o user_id p/ o webhook ativar direto.
+    // Guest: deixa o Stripe coletar o e-mail e marca flow=guest — o webhook
+    // cuida da criação/ativação da conta a partir do e-mail informado.
+    const identity: Pick<
+      Stripe.Checkout.SessionCreateParams,
+      'customer_email' | 'metadata'
+    > = user
+      ? { customer_email: user.email, metadata: { user_id: user.id } }
+      : { metadata: { flow: 'guest' } }
+
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
-      customer_email: user.email,
+      ...identity,
       line_items: [
         {
           quantity: 1,
@@ -56,7 +66,6 @@ export async function POST(request: Request) {
           },
         },
       ],
-      metadata: { user_id: user.id },
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/checkout?canceled=1`,
     })
