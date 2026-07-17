@@ -35,10 +35,18 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
+  // Rotas de checkout que precisam ser públicas: o retorno do pagamento
+  // (`/checkout/success`) e a confirmação do fluxo guest (`/checkout/obrigado`)
+  // são acessadas por quem AINDA não tem sessão (comprou sem conta). Sem esta
+  // exceção o middleware jogaria o comprador pago para o login.
+  const isCheckoutPublic =
+    path.startsWith('/checkout/success') ||
+    path.startsWith('/checkout/obrigado')
   const isProtected =
-    path.startsWith('/dashboard') ||
-    path.startsWith('/checkout') ||
-    path.startsWith('/admin')
+    !isCheckoutPublic &&
+    (path.startsWith('/dashboard') ||
+      path.startsWith('/checkout') ||
+      path.startsWith('/admin'))
 
   // Sem usuário tentando acessar rota protegida → manda pro login
   if (!user && isProtected) {

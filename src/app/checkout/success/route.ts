@@ -21,12 +21,24 @@ export async function GET(request: Request) {
     const session = await getStripe().checkout.sessions.retrieve(sessionId)
     const userId = session.metadata?.user_id
 
-    if (session.payment_status === 'paid' && userId) {
-      await activateUserAccess(userId, {
-        stripeCustomerId:
-          typeof session.customer === 'string' ? session.customer : null,
-      })
-      return NextResponse.redirect(`${origin}/dashboard?welcome=1`)
+    if (session.payment_status === 'paid') {
+      if (userId) {
+        // Fluxo autenticado: já temos conta e sessão → ativa e leva ao
+        // dashboard, disparando o Purchase via `welcome=1`.
+        await activateUserAccess(userId, {
+          stripeCustomerId:
+            typeof session.customer === 'string' ? session.customer : null,
+        })
+        return NextResponse.redirect(`${origin}/dashboard?welcome=1`)
+      }
+
+      // Fluxo guest: sem conta/sessão ainda. A criação da conta e o e-mail de
+      // "definir senha" ficam a cargo do webhook. Aqui só confirmamos o
+      // pagamento e mandamos para a página de obrigado, que dispara o Purchase
+      // (pagamento já confirmado server-side na Stripe → conversão real).
+      return NextResponse.redirect(
+        `${origin}/checkout/obrigado?session_id=${sessionId}`
+      )
     }
   } catch (err) {
     reportError('stripe.checkout.success', err, { sessionId })
