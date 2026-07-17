@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Sora } from 'next/font/google'
 
 import { MetaPixel } from '@/components/analytics/MetaPixel'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 import '@/styles/globals.css'
 
 const inter = Inter({
@@ -58,6 +59,7 @@ export default function RootLayout({
         className={`${inter.variable} ${sora.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <MetaPixel />
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
