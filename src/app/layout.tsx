@@ -16,10 +16,35 @@ const sora = Sora({
   variable: '--font-display',
 })
 
+const siteUrl = 'https://aprovus-ibge.vercel.app'
+const title = 'Aprovus — Estudo para o concurso do IBGE'
+const description = 'Plataforma de estudo online para o concurso do IBGE.'
+const ogImage = {
+  url: '/og-image.png',
+  width: 1200,
+  height: 630,
+  alt: 'Aprovus — teoria, 1000+ questões comentadas e 8 simulados para o concurso do IBGE',
+}
+
 export const metadata: Metadata = {
-  title: 'Aprovus — Estudo para o concurso do IBGE',
-  description:
-    'Plataforma de estudo online para o concurso do IBGE.',
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: 'Aprovus',
+    images: [ogImage],
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+    images: [ogImage.url],
+  },
 }
 
 export default function RootLayout({
