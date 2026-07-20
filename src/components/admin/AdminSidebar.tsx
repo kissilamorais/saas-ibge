@@ -7,6 +7,7 @@ import {
   Gauge,
   Gift,
   LogOut,
+  ShoppingCart,
   UserPlus,
 } from 'lucide-react'
 
@@ -16,6 +17,12 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   { href: '/admin', label: 'Visão geral', icon: Gauge, exact: true },
   { href: '/admin/leads', label: 'Leads', icon: UserPlus, exact: false },
+  {
+    href: '/admin/abandonos',
+    label: 'Abandonos',
+    icon: ShoppingCart,
+    exact: false,
+  },
   { href: '/admin/partners', label: 'Parceiros', icon: Gift, exact: false },
 ] as const
 

@@ -300,6 +300,7 @@ Todos os módulos e questões já foram gerados e estão em markdown (.md):
 - [x] Supabase real (client/server/admin + queries tipadas) + seed
 - [x] Landing pública de vendas (`app/page.tsx`)
 - [x] Testes dos fluxos críticos (correção de simulado + gate de acesso)
+- [x] Rastreamento de checkout abandonado (recovery da Stripe + `/admin/abandonos`) — requer `migrations/0010` e inscrever `checkout.session.expired` no webhook da Stripe
 - [ ] Admin panel (upload/manage)
 - [ ] Analytics avançadas
 - [ ] Deploy em Vercel (envs + webhook de produção)
