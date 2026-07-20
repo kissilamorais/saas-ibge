@@ -68,6 +68,20 @@ export async function POST(request: Request) {
       ],
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/checkout?canceled=1`,
+      // Recuperação de checkout abandonado: quando a sessão expira sem
+      // pagamento, a Stripe dispara checkout.session.expired com uma
+      // recovery.url anexada. Abrir essa URL cria uma nova sessão, cópia
+      // desta. O webhook grava o abandono em abandoned_checkouts e o admin
+      // dispara o contato manualmente (ver /admin/abandonos).
+      after_expiration: {
+        recovery: { enabled: true, allow_promotion_codes: true },
+      },
+      // Consentimento para e-mail promocional. Atenção: a Stripe só exibe a
+      // caixa quando a empresa E o cliente estão nos EUA. Sendo a Aprovus BR
+      // com clientes BR, isto é hoje um no-op e session.consent.promotions
+      // chega sempre null — que significa "não coletado", NÃO "recusado".
+      // Fica declarado para ativar sozinho caso um dia vendamos pros EUA.
+      consent_collection: { promotions: 'auto' },
     })
 
     return NextResponse.json({ url: session.url })

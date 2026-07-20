@@ -6,6 +6,11 @@ export type FunctionCode = 'aca' | 'aci' | 'aor' | 'acr' | 'acs'
 // Estágio do lead no follow-up do admin (CRM básico).
 export type LeadFollowupStatus = 'none' | 'contacted' | 'converted' | 'lost'
 
+// Consentimento de e-mail promocional coletado pela Stripe no checkout.
+// null = NÃO COLETADO (≠ recusado). A Stripe só exibe a caixa quando empresa
+// e cliente estão nos EUA, então em BR o valor é sempre null.
+export type PromoConsentStatus = 'opt_in' | 'opt_out' | null
+
 export type Database = {
   public: {
     Tables: {
@@ -252,6 +257,38 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['complimentary_access']['Row']>
         Relationships: []
       }
+      abandoned_checkouts: {
+        Row: {
+          id: string
+          session_id: string
+          email: string
+          full_name: string | null
+          recovery_url: string | null
+          recovery_expires_at: string | null
+          consent_status: PromoConsentStatus
+          amount_cents: number | null
+          currency: string
+          expired_at: string
+          recovered_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          email: string
+          full_name?: string | null
+          recovery_url?: string | null
+          recovery_expires_at?: string | null
+          consent_status?: PromoConsentStatus
+          amount_cents?: number | null
+          currency?: string
+          expired_at: string
+          recovered_at?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['abandoned_checkouts']['Row']>
+        Relationships: []
+      }
     }
     Views: {}
     Functions: {
@@ -300,6 +337,10 @@ export type ExamQuestion = Database['public']['Tables']['exam_questions']['Row']
 // Cortesia de parceiro (acesso grátis concedido pelo admin)
 export type ComplimentaryAccess =
   Database['public']['Tables']['complimentary_access']['Row']
+
+// Checkout abandonado (sessão da Stripe expirada sem pagamento)
+export type AbandonedCheckout =
+  Database['public']['Tables']['abandoned_checkouts']['Row']
 
 // Composite types
 export type QuestionWithOptions = Question & {

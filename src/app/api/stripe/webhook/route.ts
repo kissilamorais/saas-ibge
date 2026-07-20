@@ -8,8 +8,13 @@ import { log, reportError } from '@/lib/observability/log'
 
 /**
  * Webhook da Stripe (robustez em produção). Verifica a assinatura, deduplica o
- * evento (idempotência) e ativa o acesso em checkout.session.completed.
+ * evento (idempotência) e processa:
+ *   - checkout.session.completed → ativa o acesso (+ fecha o abandono, se houver)
+ *   - checkout.session.expired   → registra o checkout abandonado
+ *
  * Configure o endpoint no dashboard da Stripe e STRIPE_WEBHOOK_SECRET no env.
+ * O endpoint precisa estar inscrito NOS DOIS eventos — `expired` não vem por
+ * padrão em endpoints criados antes desta feature.
  */
 export async function POST(request: Request) {
   const body = await request.text()
@@ -69,6 +74,15 @@ export async function POST(request: Request) {
           event.id
         )
       }
+
+      // Fecha o ciclo de recuperação (métrica). Nunca lança: falha aqui é de
+      // rastreamento e não pode impedir a liberação do acesso já pago.
+      await markAbandonedCheckoutRecovered(admin, session, event.id)
+    }
+
+    if (event.type === 'checkout.session.expired') {
+      const session = event.data.object as Stripe.Checkout.Session
+      await recordAbandonedCheckout(admin, session, event.id)
     }
   } catch (err) {
     // Falhou ao processar: remove o registro para permitir reprocessar na
@@ -191,5 +205,161 @@ async function handleGuestCheckout(
       eventId,
       userId,
     })
+  }
+}
+
+/** E-mail do comprador/visitante numa sessão, na ordem de confiabilidade. */
+function sessionEmail(session: Stripe.Checkout.Session): string | null {
+  return session.customer_details?.email ?? session.customer_email ?? null
+}
+
+/**
+ * Checkout abandonado: a sessão atingiu `expires_at` sem pagamento. Grava a
+ * linha em abandoned_checkouts para o admin acompanhar e disparar o contato
+ * MANUALMENTE (não há envio automático de e-mail nesta fase).
+ *
+ * Guards, em ordem — qualquer um retorna cedo:
+ *   1. sem e-mail → não há como contatar;
+ *   2. payment_status 'paid' → não é abandono de verdade;
+ *   3. e-mail já é de cliente pagante → não faz sentido recuperar.
+ *
+ * Idempotência em duas camadas: o insert em stripe_events (topo do handler)
+ * barra reentrega do MESMO evento; o unique em session_id barra gravar a
+ * mesma sessão duas vezes por qualquer outro caminho.
+ */
+async function recordAbandonedCheckout(
+  admin: AdminClient,
+  session: Stripe.Checkout.Session,
+  eventId: string
+): Promise<void> {
+  const email = sessionEmail(session)
+  if (!email) {
+    log.info('stripe.webhook.abandoned_skipped', {
+      eventId,
+      reason: 'no_email',
+    })
+    return
+  }
+
+  if (session.payment_status === 'paid') {
+    log.info('stripe.webhook.abandoned_skipped', { eventId, reason: 'paid' })
+    return
+  }
+
+  const { data: payer } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('email', email.toLowerCase())
+    .not('purchase_date', 'is', null)
+    .maybeSingle()
+  if (payer) {
+    log.info('stripe.webhook.abandoned_skipped', {
+      eventId,
+      reason: 'already_customer',
+    })
+    return
+  }
+
+  // `consent.promotions` é null sempre que a Stripe não exibiu a caixa — o que
+  // inclui todo o público BR (o recurso é restrito a empresa+cliente nos EUA).
+  // Guardamos como null, que significa "não coletado", nunca "recusado".
+  const consent = session.consent?.promotions ?? null
+  const recovery = session.after_expiration?.recovery ?? null
+
+  const { error } = await admin.from('abandoned_checkouts').insert({
+    session_id: session.id,
+    email: email.toLowerCase(),
+    full_name: session.customer_details?.name ?? null,
+    recovery_url: recovery?.url ?? null,
+    recovery_expires_at: recovery?.expires_at
+      ? new Date(recovery.expires_at * 1000).toISOString()
+      : null,
+    consent_status: consent,
+    amount_cents: session.amount_total,
+    currency: session.currency ?? 'brl',
+    expired_at: new Date((session.expires_at ?? Date.now() / 1000) * 1000).toISOString(),
+  })
+
+  if (error) {
+    // 23505 = sessão já registrada. Reentregar não muda nada → reconhece.
+    if (error.code === '23505') {
+      log.info('stripe.webhook.abandoned_duplicate', {
+        eventId,
+        sessionId: session.id,
+      })
+      return
+    }
+    throw error
+  }
+
+  log.info('stripe.webhook.abandoned_recorded', {
+    eventId,
+    sessionId: session.id,
+    hasRecoveryUrl: !!recovery?.url,
+  })
+}
+
+/**
+ * Compra concluída: fecha o abandono correspondente marcando `recovered_at`,
+ * para medir a taxa de recuperação.
+ *
+ * Casamos primeiro por `recovered_from` — a Stripe preenche esse campo na
+ * sessão criada a partir da recovery URL, apontando para a sessão expirada
+ * original. É o vínculo exato. Sem ele (a pessoa voltou pelo site em vez do
+ * link), caímos no e-mail: fecha o abandono pendente mais recente.
+ *
+ * Nunca lança: isto é métrica, e falhar aqui não pode derrubar o webhook e
+ * bloquear o acesso de quem já pagou.
+ */
+async function markAbandonedCheckoutRecovered(
+  admin: AdminClient,
+  session: Stripe.Checkout.Session,
+  eventId: string
+): Promise<void> {
+  try {
+    const now = new Date().toISOString()
+
+    if (session.recovered_from) {
+      const { data } = await admin
+        .from('abandoned_checkouts')
+        .update({ recovered_at: now })
+        .eq('session_id', session.recovered_from)
+        .is('recovered_at', null)
+        .select('id')
+      if (data && data.length > 0) {
+        log.info('stripe.webhook.abandoned_recovered', {
+          eventId,
+          via: 'recovered_from',
+          sessionId: session.recovered_from,
+        })
+        return
+      }
+    }
+
+    const email = sessionEmail(session)
+    if (!email) return
+
+    // Sem o vínculo direto: fecha o abandono pendente mais recente do e-mail.
+    // Um por compra — não marcamos abandonos antigos em massa.
+    const { data: pending } = await admin
+      .from('abandoned_checkouts')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .is('recovered_at', null)
+      .order('expired_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const pendingId = (pending as { id: string } | null)?.id
+    if (!pendingId) return
+
+    await admin
+      .from('abandoned_checkouts')
+      .update({ recovered_at: now })
+      .eq('id', pendingId)
+
+    log.info('stripe.webhook.abandoned_recovered', { eventId, via: 'email' })
+  } catch (err) {
+    reportError('stripe.webhook.abandoned_recover_mark', err, { eventId })
   }
 }
