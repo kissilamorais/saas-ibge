@@ -87,10 +87,7 @@ export default function HomePage() {
             A prova do IBGE é dia 27/09.
             <br />
             Você vai chegar lá preparado
-            <br />
-            <span className="text-muted-foreground">
-              — ou vai torcer pra cair só o que você viu?
-            </span>
+            <br />— ou vai torcer pra cair só o que você viu?
           </h1>
 
           <div className="mt-10">
