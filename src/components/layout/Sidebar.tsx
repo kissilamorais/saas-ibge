@@ -6,6 +6,7 @@ import {
   BookOpen,
   Dumbbell,
   FileCheck2,
+  Gift,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/modules', label: 'Módulos', icon: BookOpen, exact: false },
   { href: '/dashboard/practice', label: 'Praticar', icon: Dumbbell, exact: false },
   { href: '/dashboard/exams', label: 'Simulados', icon: FileCheck2, exact: false },
+  { href: '/dashboard/bonus', label: 'Bônus', icon: Gift, exact: false },
   { href: '/dashboard/settings', label: 'Configurações', icon: Settings, exact: false },
 ] as const
 
