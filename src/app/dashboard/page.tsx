@@ -11,7 +11,9 @@ import {
 import { getProfile, hasContentAccess } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/supabase/queries'
 import { buildAchievements } from '@/lib/dashboard/achievements'
+import { getBonusViews } from '@/lib/bonuses/access'
 import { AchievementsRow } from '@/components/dashboard/AchievementsRow'
+import { BonusesSection } from '@/components/dashboard/BonusesSection'
 import { CountdownPanel } from '@/components/dashboard/CountdownPanel'
 import { GoalRing } from '@/components/dashboard/GoalRing'
 import { GreetingHero } from '@/components/dashboard/GreetingHero'
@@ -42,6 +44,7 @@ export default async function DashboardPage({
   }
 
   const data = await getDashboardData()
+  const bonuses = await getBonusViews()
 
   // Config do usuário (data da prova + metas) vem do profile; ajustável em
   // /dashboard/settings. Sem data definida → countdown vira "—".
@@ -144,6 +147,9 @@ export default async function DashboardPage({
 
       {/* Marcos da jornada */}
       <AchievementsRow achievements={achievements} />
+
+      {/* Bônus com desbloqueio temporal */}
+      <BonusesSection bonuses={bonuses} />
 
       {/* Progresso por módulo + resumo */}
       <div className="grid gap-4 lg:grid-cols-3">
