@@ -124,14 +124,182 @@ A partir daqui, o foco vira resolver questões da banca IBFC.
 
 **Equipe Aprovus**`,
 
-  // ►►► REVISÃO FINAL INTENSIVA — cole o markdown no lugar do `null`. ◄◄◄
-  // Exemplo do formato esperado:
-  //   'revisao-final': `
-  //   ## Reta final — 7 dias
-  //   - Dia 1: ...
-  //   - Dia 2: ...
-  //   `,
-  'revisao-final': null,
+  // ►►► REVISÃO FINAL INTENSIVA — conteúdo preenchido. ◄◄◄
+  'revisao-final': `# 🔥 Revisão Final Intensiva — Concurso IBGE 2026
+
+**Você chegou na reta final. A prova é em 7 dias.**
+
+> Este material foi montado com um único objetivo: **maximizar seus pontos nos próximos 7 dias.** Não tem teoria nova aqui. Tem o que mais cai, o que a IBFC adora repetir, e o que você precisa ter fresco na cabeça no dia 27/09.
+
+**Regra de ouro daqui pra frente:** não tenta aprender coisa nova. Revisão só. Quem tenta estudar assunto novo na última semana entra na prova confuso. Você já estudou — agora é consolidar.
+
+---
+
+## ⚠️ A REGRA QUE AINDA PODE TE ELIMINAR
+
+Relembre antes de entrar na revisão:
+
+- ✅ Mínimo **18 pontos no total** (de 60)
+- ✅ Mínimo **1 acerto em cada disciplina**
+
+Se você ainda tem insegurança em alguma matéria, **priorize chegar ao 1 ponto mínimo nela antes de tudo.** Garantir o mínimo em todas vale mais do que tirar nota alta em uma só.
+
+---
+
+## 📅 PLANO DE 7 DIAS — o que fazer em cada dia
+
+### DIA 1 (20/09) — Revisão de Português
+**Foco: interpretação de texto + concordância**
+
+A maior fatia de Português é interpretação — e é onde mais se perde ponto por falta de atenção, não por falta de conhecimento.
+
+**O que revisar:**
+- Leia 3 textos e responda as questões de interpretação. Cronometre.
+- Revise concordância verbal e nominal (os casos clássicos que a IBFC cobra)
+- Refaça as questões de Português que você errou nos simulados
+
+**Armadilha da banca:** enunciados com "exceto", "incorreto" e "de acordo com o texto". Leia duas vezes antes de marcar.
+
+---
+
+### DIA 2 (21/09) — Revisão de Raciocínio Lógico
+**Foco: estruturas lógicas + diagramas**
+
+RLQ é a matéria que mais derruba quem não treinou. Mas é também a mais mecânica — os padrões se repetem.
+
+**O que revisar:**
+- Estruturas lógicas: proposições, negação, contrapositiva
+- Diagramas lógicos: os 3 tipos de diagrama que a IBFC usa
+- Aritmética: porcentagem e razão (caem sempre)
+
+**Armadilha da banca:** questões de RLQ com muito texto pra disfarçar o que é simples. Ignore o enfeite, foque na estrutura lógica.
+
+---
+
+### DIA 3 (22/09) — Revisão da sua matéria específica (parte 1)
+**Foco: os tópicos de maior peso do seu cargo**
+
+#### 🟦 Se você é ACA:
+- Funções administrativas: **planejamento, organização, direção, controle** — são 4 funções, mas a banca cobre em dezenas de variações. Saiba o que é cada uma e o que inclui.
+- Motivação: teorias de Maslow e Herzberg (favoritas da IBFC)
+- Atendimento ao público: foco em situações práticas ("o servidor deve...")
+
+#### 🟩 Se você é ACI:
+- Word: formatação, estilos, controle de alterações, mala direta
+- Excel: funções SOMA, MÉDIA, SE, PROCV, formatação condicional
+- Segurança da informação: phishing, backup, senhas, firewall
+
+#### 🟨 Se você é AOR:
+- Situações gerenciais: tomada de decisão, liderança situacional
+- Funções administrativas + trabalho em equipe
+- Noções básicas de informática: não negligencia os 5 pontos
+
+#### 🟧 Se você é ACR ou ACS:
+- Funções administrativas e supervisão de equipe
+- Conhecimentos Técnicos do Censo: metodologia de coleta, categorias do censo agropecuário/florestal/aquícola
+
+---
+
+### DIA 4 (23/09) — Revisão da sua matéria específica (parte 2)
+**Foco: os seus erros, não a teoria**
+
+Hoje não lê teoria nova. Pega os simulados que fez e:
+- Lista os 10 tópicos onde você mais errou
+- Revisa só esses tópicos
+- Refaz as questões erradas
+
+**Por quê:** a banca repete padrões. O tópico onde você errou ontem provavelmente vai aparecer na prova.
+
+---
+
+### DIA 5 (24/09) — SIMULADO COMPLETO CRONOMETRADO
+**Simule as condições reais da prova**
+
+- 60 questões
+- 4 horas (240 minutos) — não para antes
+- Período da tarde (a prova é à tarde — treine no mesmo horário)
+- Sem consulta
+
+Depois do simulado:
+- Anote sua pontuação total e por disciplina
+- Veja se em alguma disciplina você ficou abaixo de 1 acerto — é emergência pra amanhã
+- Revise TODOS os erros com calma
+
+---
+
+### DIA 6 (25/09) — Revisão cirúrgica dos erros do simulado
+**Só o que você errou ontem**
+
+Não tenta estudar tudo. Foca nos erros do simulado do dia 5 e nos pontos de insegurança.
+
+Se zerou alguma disciplina ontem: **dedica 1 hora só a ela.** Garante o 1 ponto mínimo antes de tudo.
+
+---
+
+### DIA 7 (26/09 — véspera da prova) — DESCANSO ATIVO
+**O maior erro da véspera: estudar demais**
+
+Cérebro cansado não recupera na prova o que estudou de última hora. Cérebro descansado recupera tudo que aprendeu nas semanas anteriores.
+
+**O que fazer:**
+- Revisão leve de 1 a 2 horas no máximo (leia os pontos principais do edital esquematizado)
+- Prepare tudo pro dia seguinte: documento, lanche, roupa, como vai chegar no local
+- Durma cedo. Sério.
+
+**O que NÃO fazer:**
+- Estudar assunto novo
+- Fazer simulado longo
+- Ficar acordado tentando "recuperar" o tempo
+
+---
+
+## 🎯 OS TÓPICOS MAIS PROVÁVEIS DE CAIR — o que a IBFC adora
+
+Com base no padrão histórico da banca:
+
+**Português:**
+- Interpretação de texto (sempre cai, sempre a maior fatia)
+- Concordância verbal com sujeito composto
+- Crase (os casos obrigatórios e proibidos)
+
+**Raciocínio Lógico:**
+- Proposições e tabela verdade
+- Silogismo
+- Porcentagem aplicada
+
+**Administração (ACA/AOR/ACR/ACS):**
+- As 4 funções administrativas (variações infindáveis)
+- Teoria das necessidades de Maslow
+- Liderança situacional
+- Comunicação organizacional
+
+**Informática (ACI/AOR):**
+- Excel: função SE e PROCV
+- Segurança: phishing e engenharia social
+- Windows: atalhos de teclado
+
+**Conhecimentos Técnicos (ACR/ACS):**
+- Conceito e objetivos do Censo Agropecuário
+- Unidade de produção agropecuária (UPA)
+- Metodologia de coleta
+
+---
+
+## 🧠 MENTALIDADE DA RETA FINAL
+
+**Você estudou.** As semanas anteriores construíram a base. Agora não é sobre aprender mais — é sobre não estragar o que você já sabe.
+
+Na prova:
+- Responde primeiro o que você sabe com certeza
+- Deixa as dúvidas pro final
+- Não fica mais de 3 minutos numa questão
+- Gerencia o tempo: 4h pra 60 questões = 4 minutos por questão
+
+**Você chegou até aqui. A prova é amanhã. Você está preparado.**
+
+Boa prova. 🎓
+
+**Equipe Aprovus**`,
 }
 
 /**
