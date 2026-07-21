@@ -3,9 +3,11 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Download, Lock, Send } from 'lucide-react'
 
 import { PageHeader } from '@/components/layout/PageHeader'
+import { BonusMarkdown } from '@/components/bonuses/BonusMarkdown'
 import { Card } from '@/components/ui/card'
 import { requireActiveSubscription } from '@/lib/auth/session'
 import { getBonus } from '@/lib/bonuses/config'
+import { getBonusContent } from '@/lib/bonuses/content'
 import { isUnlocked, daysUntilUnlock, unlockDate, formatUnlockDate } from '@/lib/bonuses/unlock'
 
 /**
@@ -69,7 +71,10 @@ export default async function BonusPage({
     )
   }
 
-  // Liberado: entrega por tipo. Conteúdo real virá depois — placeholders abaixo.
+  // Liberado: entrega por tipo. Bônus de página buscam o markdown colado em
+  // content.ts (null enquanto não fornecido → placeholder "em preparação").
+  const pageContent = bonus.delivery === 'page' ? getBonusContent(bonus.slug) : null
+
   return (
     <div className="space-y-6 p-6 md:p-8">
       <BackLink />
@@ -80,15 +85,23 @@ export default async function BonusPage({
       />
 
       <Card className="space-y-4 p-6">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
-            <Icon className="h-5 w-5" />
-          </span>
-          <p className="text-sm text-muted-foreground">
-            {/* TODO(conteúdo): substituir o placeholder pelo conteúdo real do bônus. */}
-            Conteúdo em preparação. Assim que estiver pronto, aparece aqui.
-          </p>
-        </div>
+        {/*
+          Conteúdo de página (cronograma, revisão): renderiza o markdown colado
+          em src/lib/bonuses/content.ts. Enquanto o slot estiver `null`, cai no
+          placeholder "em preparação". NÃO cole conteúdo aqui — cole no content.ts.
+        */}
+        {bonus.delivery === 'page' && pageContent ? (
+          <BonusMarkdown source={pageContent} />
+        ) : (
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <Icon className="h-5 w-5" />
+            </span>
+            <p className="text-sm text-muted-foreground">
+              Conteúdo em preparação. Assim que estiver pronto, aparece aqui.
+            </p>
+          </div>
+        )}
 
         {bonus.delivery === 'download' && (
           <a
