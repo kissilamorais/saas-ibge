@@ -76,12 +76,6 @@ export async function POST(request: Request) {
       after_expiration: {
         recovery: { enabled: true, allow_promotion_codes: true },
       },
-      // Consentimento para e-mail promocional. Atenção: a Stripe só exibe a
-      // caixa quando a empresa E o cliente estão nos EUA. Sendo a Aprovus BR
-      // com clientes BR, isto é hoje um no-op e session.consent.promotions
-      // chega sempre null — que significa "não coletado", NÃO "recusado".
-      // Fica declarado para ativar sozinho caso um dia vendamos pros EUA.
-      consent_collection: { promotions: 'auto' },
     })
 
     return NextResponse.json({ url: session.url })
