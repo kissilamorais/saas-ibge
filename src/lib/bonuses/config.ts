@@ -94,7 +94,7 @@ export const BONUSES: Bonus[] = [
     icon: FileText,
     unlock: { type: 'purchase-offset', days: 7 },
     delivery: 'download',
-    resourceUrl: null,
+    resourceUrl: 'https://aprovus-ibge.vercel.app/edital-esquematizado.pdf',
   },
   {
     slug: 'grupo-telegram',
