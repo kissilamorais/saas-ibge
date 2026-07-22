@@ -7,6 +7,8 @@ interface LogoProps {
   size?: 'sm' | 'md'
   /** Mostra só o símbolo, sem o wordmark "Aprovus". */
   iconOnly?: boolean
+  /** Cor do símbolo. Default `text-primary` (usado na Sidebar e na navbar sólida). */
+  iconClassName?: string
   className?: string
 }
 
@@ -17,7 +19,12 @@ interface LogoProps {
  * TODO(logo): substituir o ícone `GraduationCap` pela logo oficial da Vellum
  * (SVG em `public/`). Manter `text-primary` se a arte herdar `currentColor`.
  */
-export function Logo({ size = 'md', iconOnly = false, className }: LogoProps) {
+export function Logo({
+  size = 'md',
+  iconOnly = false,
+  iconClassName,
+  className,
+}: LogoProps) {
   return (
     <span
       className={cn(
@@ -26,7 +33,10 @@ export function Logo({ size = 'md', iconOnly = false, className }: LogoProps) {
       )}
     >
       <GraduationCap
-        className={cn('text-primary', size === 'sm' ? 'h-5 w-5' : 'h-6 w-6')}
+        className={cn(
+          iconClassName ?? 'text-primary',
+          size === 'sm' ? 'h-5 w-5' : 'h-6 w-6'
+        )}
         aria-hidden
       />
       {!iconOnly && <span>Aprovus</span>}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Sora } from 'next/font/google'
+import { Fraunces, Inter, Sora } from 'next/font/google'
 
 import { MetaPixel } from '@/components/analytics/MetaPixel'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
@@ -15,6 +15,15 @@ const sora = Sora({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
   variable: '--font-display',
+})
+
+// Serifada de peso para a landing — ar institucional, de curso sério. Inclui
+// itálico para as palavras-âncora dos títulos. Usada só via `font-serif`.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 })
 
 const siteUrl = 'https://aprovus-ibge.vercel.app'
@@ -56,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${sora.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} ${sora.variable} ${fraunces.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <MetaPixel />
         <GoogleAnalytics />

@@ -77,6 +77,8 @@ module.exports = {
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         display: ['var(--font-display)', 'var(--font-sans)', 'sans-serif'],
+        // Serifada institucional — usada na landing (títulos h1/h2).
+        serif: ['var(--font-serif)', 'Georgia', 'Cambria', 'serif'],
       },
       boxShadow: {
         // Elevação leve e em camadas — cards tangíveis, sem peso.
