@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
+import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
 
@@ -87,6 +88,19 @@ export async function POST(request: Request) {
       where: 'infinitepay.webhook',
     })
 
+    // Purchase server-side (Conversions API). Fire-and-forget: não bloqueia o
+    // 200 pro InfinitePay. Dedup com o pixel do browser via event_id=order_nsu.
+    // Obs.: aqui o request é server-to-server do InfinitePay, então IP/UA/fbp
+    // não são do comprador — o match forte vem do e-mail hasheado. O disparo
+    // com os sinais do browser acontece na /checkout/obrigado.
+    sendMetaPurchaseEvent({
+      email,
+      orderId: orderNsu,
+      eventSourceUrl: resolveAppUrl(request),
+      fbp: readCookie(request.headers.get('cookie'), '_fbp'),
+      fbc: readCookie(request.headers.get('cookie'), '_fbc'),
+    })
+
     log.info('infinitepay.webhook.processed', { orderNsu })
     return NextResponse.json({ received: true })
   } catch (err) {
@@ -107,6 +121,16 @@ function emailFromPayload(payload: Record<string, unknown>): string | null {
   const candidates = [customer?.email, payload.email, payload.customer_email]
   for (const c of candidates) {
     if (typeof c === 'string' && c.includes('@')) return c
+  }
+  return null
+}
+
+/** Lê um cookie do header `Cookie` (raw). Retorna null se ausente. */
+function readCookie(cookieHeader: string | null, name: string): string | null {
+  if (!cookieHeader) return null
+  for (const part of cookieHeader.split(';')) {
+    const [k, ...v] = part.trim().split('=')
+    if (k === name) return decodeURIComponent(v.join('=')) || null
   }
   return null
 }

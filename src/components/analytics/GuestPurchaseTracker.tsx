@@ -7,6 +7,7 @@ import { trackPixel } from '@/lib/analytics/meta-pixel'
 // Valor do curso (espelha COURSE_PRICE_CENTS = 9700 em lib/stripe/server.ts).
 const COURSE_VALUE_BRL = 97
 const COURSE_CURRENCY = 'BRL'
+const CONTENT_IDS = ['aprovus-ibge-2026']
 
 /**
  * Dispara o Purchase do Meta Pixel na página de obrigado do fluxo guest.
@@ -35,10 +36,17 @@ export function GuestPurchaseTracker({ sessionId }: { sessionId?: string }) {
     }
 
     fired.current = true
-    trackPixel('Purchase', {
-      value: COURSE_VALUE_BRL,
-      currency: COURSE_CURRENCY,
-    })
+    trackPixel(
+      'Purchase',
+      {
+        value: COURSE_VALUE_BRL,
+        currency: COURSE_CURRENCY,
+        content_ids: CONTENT_IDS,
+        content_type: 'product',
+      },
+      // eventID = order_nsu → dedup com o Purchase enviado pela Conversions API.
+      sessionId ? { eventID: sessionId } : undefined
+    )
   }, [sessionId])
 
   return null
