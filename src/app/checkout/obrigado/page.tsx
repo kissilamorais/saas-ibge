@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import type { Metadata } from 'next'
 import { CheckCircle2, Mail } from 'lucide-react'
 
 import { AuthShell } from '@/components/auth/AuthShell'
 import { GuestPurchaseTracker } from '@/components/analytics/GuestPurchaseTracker'
+import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -51,12 +52,33 @@ export default async function ObrigadoPage({
   const { session_id, order_nsu, transaction_nsu, slug } = searchParams
 
   let confirmedPaid = Boolean(session_id) // Stripe: já verificado upstream.
+  let buyerEmail: string | null = null
   if (order_nsu) {
-    confirmedPaid = await infinitePaySafetyNet({
+    const result = await infinitePaySafetyNet({
       orderNsu: order_nsu,
       transactionNsu: transaction_nsu,
       slug,
       appUrl: resolveAppUrl(),
+    })
+    confirmedPaid = result.paid
+    buyerEmail = result.email
+  }
+
+  // Purchase server-side (Conversions API) com os sinais REAIS do browser
+  // (cookies _fbp/_fbc, IP, user-agent) — o disparo de melhor qualidade. Roda
+  // no servidor, então é imune a ad-blocker. Dedup com o pixel do browser e com
+  // o webhook via event_id=order_nsu; refresh reusa o mesmo id → não reconta.
+  if (confirmedPaid && order_nsu && buyerEmail) {
+    const c = cookies()
+    const h = headers()
+    sendMetaPurchaseEvent({
+      email: buyerEmail,
+      orderId: order_nsu,
+      eventSourceUrl: resolveAppUrl(),
+      clientIpAddress: h.get('x-forwarded-for'),
+      clientUserAgent: h.get('user-agent'),
+      fbp: c.get('_fbp')?.value ?? null,
+      fbc: c.get('_fbc')?.value ?? null,
     })
   }
 
@@ -117,7 +139,8 @@ export default async function ObrigadoPage({
  * Rede de segurança para o InfinitePay: confirma o pagamento diretamente na
  * API caso o webhook não tenha chegado. Idempotente com o webhook (reivindica
  * o pedido via status='pending' → só um vencedor). Nunca lança: a página
- * precisa renderizar de qualquer forma. Retorna se o pagamento está pago.
+ * precisa renderizar de qualquer forma. Retorna se o pagamento está pago e o
+ * e-mail do comprador (para o Purchase server-side).
  */
 async function infinitePaySafetyNet({
   orderNsu,
@@ -129,7 +152,7 @@ async function infinitePaySafetyNet({
   transactionNsu?: string
   slug?: string
   appUrl: string
-}): Promise<boolean> {
+}): Promise<{ paid: boolean; email: string | null }> {
   try {
     const admin = createAdminClient()
 
@@ -143,17 +166,19 @@ async function infinitePaySafetyNet({
       customer_email: string | null
     } | null
 
-    if (!order) return false
-    if (order.status === 'paid') return true // webhook já processou.
+    if (!order) return { paid: false, email: null }
+    if (order.status === 'paid') {
+      return { paid: true, email: order.customer_email } // webhook já processou.
+    }
 
     // Ainda pendente → confirma com o InfinitePay antes de liberar.
-    if (!transactionNsu || !slug) return false
+    if (!transactionNsu || !slug) return { paid: false, email: null }
     const check = await checkInfinitePayPayment({
       orderNsu,
       transactionNsu,
       slug,
     })
-    if (check.paid !== true) return false
+    if (check.paid !== true) return { paid: false, email: null }
 
     // Pago, mas o webhook atrasou: reivindica e faz o onboarding aqui.
     const { data: claimed } = await admin
@@ -174,10 +199,10 @@ async function infinitePaySafetyNet({
         log.warn('infinitepay.safetynet.paid_missing_email', { orderNsu })
       }
     }
-    return true
+    return { paid: true, email: order.customer_email }
   } catch (err) {
     reportError('infinitepay.obrigado.safetynet', err, { orderNsu })
-    return false
+    return { paid: false, email: null }
   }
 }
 
