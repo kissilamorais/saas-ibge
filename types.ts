@@ -289,6 +289,26 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['abandoned_checkouts']['Row']>
         Relationships: []
       }
+      pending_orders: {
+        Row: {
+          id: string
+          order_nsu: string
+          amount: number
+          status: string
+          customer_email: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_nsu: string
+          amount: number
+          status?: string
+          customer_email?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['pending_orders']['Row']>
+        Relationships: []
+      }
     }
     Views: {}
     Functions: {

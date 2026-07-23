@@ -28,7 +28,7 @@ export function CheckoutButton({
     // Intenção de compra → InitiateCheckout (com valor do curso).
     trackPixel('InitiateCheckout', { value: 97, currency: 'BRL' })
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const res = await fetch('/api/infinitepay/checkout', { method: 'POST' })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.url) {
         throw new Error(data?.error || 'Erro ao iniciar pagamento')

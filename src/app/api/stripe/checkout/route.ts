@@ -1,4 +1,24 @@
 import { NextResponse } from 'next/server'
+
+/**
+ * ⚠️ CHECKOUT STRIPE DESATIVADO — mantido como FALLBACK.
+ *
+ * O checkout ativo agora é o InfinitePay (`/api/infinitepay/checkout`), e o CTA
+ * do frontend aponta pra lá. Esta rota fica desligada (responde 410) mas o
+ * código original está preservado no bloco abaixo.
+ *
+ * Para REATIVAR o Stripe: descomente o bloco `ORIGINAL`, remova este stub, e
+ * troque a URL do fetch em `src/components/checkout/CheckoutButton.tsx` de
+ * `/api/infinitepay/checkout` de volta para `/api/stripe/checkout`.
+ */
+export async function POST() {
+  return NextResponse.json(
+    { error: 'Checkout via Stripe desativado. Use o InfinitePay.' },
+    { status: 410 },
+  )
+}
+
+/* ============================ ORIGINAL (FALLBACK) ============================
 import type Stripe from 'stripe'
 
 import { reportError } from '@/lib/observability/log'
@@ -87,3 +107,4 @@ export async function POST(request: Request) {
     )
   }
 }
+============================================================================ */
