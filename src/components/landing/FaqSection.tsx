@@ -24,6 +24,22 @@ const FAQ = [
     q: 'Quanto tempo preciso por dia?',
     a: 'O cronograma foi montado pra quem tem vida. 30 minutos a 1 hora por dia já te coloca na frente de quem não está estudando nada.',
   },
+  {
+    q: 'Como falo com vocês?',
+    a: (
+      <>
+        É só mandar um e-mail para{' '}
+        <a
+          href="mailto:getvellum@gmail.com"
+          className="font-medium text-[#9A6E12] underline underline-offset-2 hover:text-[#0B3D2E]"
+        >
+          getvellum@gmail.com
+        </a>{' '}
+        que a gente responde. Estamos disponíveis para qualquer dúvida sobre o
+        material, a plataforma ou seu acesso.
+      </>
+    ),
+  },
 ]
 
 /**

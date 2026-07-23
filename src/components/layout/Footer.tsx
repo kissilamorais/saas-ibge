@@ -20,6 +20,12 @@ export function Footer() {
           <Link href="/dashboard/exams" className="hover:text-foreground">
             Simulados
           </Link>
+          <a
+            href="mailto:getvellum@gmail.com"
+            className="hover:text-foreground"
+          >
+            Suporte
+          </a>
         </nav>
       </div>
     </footer>

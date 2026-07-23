@@ -66,6 +66,7 @@ export default async function ObrigadoPage({
   return (
     <AuthShell>
       {confirmedPaid && <GuestPurchaseTracker sessionId={trackerId} />}
+      <div className="flex w-full flex-col items-center">
       <Card className="w-full max-w-md shadow-md">
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
@@ -97,6 +98,17 @@ export default async function ObrigadoPage({
           </p>
         </CardContent>
       </Card>
+
+        <p className="mt-6 max-w-md text-center text-sm text-muted-foreground">
+          Algum problema com seu acesso? Fale com a gente:{' '}
+          <a
+            href="mailto:getvellum@gmail.com"
+            className="font-medium text-primary underline underline-offset-2"
+          >
+            getvellum@gmail.com
+          </a>
+        </p>
+      </div>
     </AuthShell>
   )
 }

@@ -41,6 +41,15 @@ export default function HomePage() {
           <span className="text-[#5F6B66]/70">· por Vellum</span> —
           preparatório para o concurso do IBGE.
         </p>
+        <p className="mt-2">
+          Dúvidas?{' '}
+          <a
+            href="mailto:getvellum@gmail.com"
+            className="font-medium text-[#9A6E12] underline-offset-2 hover:underline"
+          >
+            getvellum@gmail.com
+          </a>
+        </p>
       </footer>
     </div>
   )
