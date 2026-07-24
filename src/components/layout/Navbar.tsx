@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 import { Logo } from '@/components/layout/Logo'
+import { createClient } from '@/lib/supabase/client'
 
 /**
  * Navbar pública (landing). Transparente sobre o hero escuro no topo e vira
@@ -12,6 +13,7 @@ import { Logo } from '@/components/layout/Logo'
  */
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -19,6 +21,36 @@ export function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Estado de login → decide o destino do CTA principal (painel vs. checkout
+  // guest na landing). Default guest evita "piscar" o link errado antes de saber.
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setLoggedIn(!!data.user))
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) =>
+      setLoggedIn(!!session?.user)
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Guest: rola até o campo de e-mail do hero (fluxo de checkout guest) em vez
+  // de mandar para /auth/signup. Fallback sem JS: o href="#hero" ainda ancora.
+  const scrollToHeroCta = (e: React.MouseEvent) => {
+    const hero = document.getElementById('hero')
+    if (!hero) return // sem âncora, deixa o href="#hero" agir
+    e.preventDefault()
+    const email = hero.querySelector<HTMLInputElement>('input[type="email"]')
+    ;(email ?? hero).scrollIntoView({ behavior: 'smooth', block: 'center' })
+    email?.focus({ preventScroll: true })
+  }
+
+  const ctaClass =
+    'rounded-lg px-4 py-2 font-semibold text-[#0B3D2E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A017] focus-visible:ring-offset-2 bg-[#D4A017] hover:bg-[#E3B341] ' +
+    (scrolled
+      ? 'focus-visible:ring-offset-background'
+      : 'focus-visible:ring-offset-[#E8EFEC]')
 
   return (
     <header
@@ -48,17 +80,15 @@ export function Navbar() {
           >
             Entrar
           </Link>
-          <Link
-            href="/auth/signup"
-            className={
-              'rounded-lg px-4 py-2 font-semibold text-[#0B3D2E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A017] focus-visible:ring-offset-2 ' +
-              (scrolled
-                ? 'bg-[#D4A017] hover:bg-[#E3B341] focus-visible:ring-offset-background'
-                : 'bg-[#D4A017] hover:bg-[#E3B341] focus-visible:ring-offset-[#E8EFEC]')
-            }
-          >
-            Começar agora
-          </Link>
+          {loggedIn ? (
+            <Link href="/dashboard" className={ctaClass}>
+              Ir para o painel
+            </Link>
+          ) : (
+            <a href="#hero" onClick={scrollToHeroCta} className={ctaClass}>
+              Começar agora
+            </a>
+          )}
         </nav>
       </div>
     </header>

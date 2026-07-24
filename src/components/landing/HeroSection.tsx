@@ -18,7 +18,10 @@ const TRUST = [
  */
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#E8EFEC] text-[#0B3D2E]">
+    <section
+      id="hero"
+      className="relative overflow-hidden bg-[#E8EFEC] text-[#0B3D2E]"
+    >
       {/* Brilho dourado no topo + trama de pontos em petróleo (baixa opacidade). */}
       <div
         aria-hidden
