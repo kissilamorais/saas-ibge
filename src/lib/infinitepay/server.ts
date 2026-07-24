@@ -9,8 +9,35 @@ export const INFINITEPAY_API_BASE = 'https://api.checkout.infinitepay.io'
 export const INFINITEPAY_HANDLE =
   process.env.INFINITEPAY_HANDLE || 'grupovellum'
 
+// Teto de espera por chamada. Sem isso, um InfinitePay lento segura a função
+// da Vercel até o timeout dela — no checkout, deixa o comprador no spinner.
+const INFINITEPAY_TIMEOUT_MS = 8000
+
 // Preço/descrição vêm da mesma fonte do Stripe para não divergir.
 export { COURSE_NAME, COURSE_PRICE_CENTS }
+
+/**
+ * `fetch` com timeout duro (AbortController). Em estouro, lança um erro
+ * DESCRITIVO ("InfinitePay timeout após 8s") — o catch das rotas de
+ * checkout/webhook trata e vira 500/erro amigável, sem pendurar a requisição.
+ */
+async function fetchInfinitePay(
+  url: string,
+  init: RequestInit
+): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), INFINITEPAY_TIMEOUT_MS)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('InfinitePay timeout após 8s')
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 interface CreateLinkParams {
   orderNsu: string
@@ -47,7 +74,7 @@ export async function createInfinitePayLink({
     body.customer = { email: customerEmail }
   }
 
-  const res = await fetch(`${INFINITEPAY_API_BASE}/links`, {
+  const res = await fetchInfinitePay(`${INFINITEPAY_API_BASE}/links`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -98,7 +125,7 @@ export async function checkInfinitePayPayment({
   transactionNsu,
   slug,
 }: PaymentCheckParams): Promise<PaymentCheckResult> {
-  const res = await fetch(`${INFINITEPAY_API_BASE}/payment_check`, {
+  const res = await fetchInfinitePay(`${INFINITEPAY_API_BASE}/payment_check`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

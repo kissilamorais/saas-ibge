@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server'
 
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
+import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
 import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
 
 /**
  * Webhook do InfinitePay: pagamento aprovado. O InfinitePay NÃO assina o
- * payload nem devolve o e-mail do comprador, então:
- *   - confiamos apenas em `order_nsu` que NÓS emitimos (existe em
- *     pending_orders) — um id desconhecido é no-op;
- *   - idempotência: se o pedido já está `paid`, devolve 200 sem reprocessar;
- *   - o e-mail vem de pending_orders.customer_email (gravado no checkout);
- *     como fallback, tentamos qualquer campo de e-mail do payload.
+ * payload, então "recebi um POST" NÃO é prova de pagamento — antes de liberar
+ * qualquer acesso confirmamos o pagamento direto na API (payment_check), usando
+ * `transaction_nsu` + `invoice_slug` que vêm no próprio payload. Isso fecha a
+ * porta de acesso grátis via webhook forjado.
  *
- * Responde 200 rápido (< 1s): faz só o trabalho essencial de DB + onboarding.
- * A confirmação forte (payment_check) é a rede de segurança da /checkout/obrigado.
+ *   - `order_nsu` deve existir em pending_orders (emitido por nós) — id
+ *     desconhecido é no-op;
+ *   - confirmação forte: payment_check tem que devolver `paid === true`;
+ *   - o e-mail vem SÓ de pending_orders.customer_email (gravado no checkout).
+ *     Sem e-mail não provisionamos: erro crítico, pedido segue pending;
+ *   - idempotência: claim atômico `status: pending -> paid` (1 vencedor).
  */
 export async function POST(request: Request) {
   let payload: Record<string, unknown>
@@ -32,6 +35,11 @@ export async function POST(request: Request) {
     // Sem order_nsu não há o que fazer; 200 para não gerar retry infinito.
     return NextResponse.json({ received: true, skipped: 'no_order_nsu' })
   }
+
+  const transactionNsu =
+    typeof payload.transaction_nsu === 'string' ? payload.transaction_nsu : null
+  const slug =
+    typeof payload.invoice_slug === 'string' ? payload.invoice_slug : null
 
   const admin = createAdminClient()
 
@@ -60,8 +68,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    // Marca pago antes do onboarding: barra reprocessamento em reentregas
-    // concorrentes (a condição status='pending' garante 1 vencedor).
+    // O e-mail é obrigatório e vem só do NOSSO pedido. Sem ele não há como
+    // provisionar — erro crítico (não silencioso), pedido segue pending.
+    const email = order.customer_email
+    if (!email) {
+      reportError(
+        'infinitepay.webhook.paid_missing_email',
+        new Error('pending_orders.customer_email ausente'),
+        { orderNsu },
+      )
+      return NextResponse.json({ error: 'missing_email' }, { status: 500 })
+    }
+
+    // Confirmação forte do pagamento ANTES de reivindicar/provisionar. Sem os
+    // dados para consultar, ou se não estiver pago, não liberamos nada.
+    if (!transactionNsu || !slug) {
+      reportError(
+        'infinitepay.webhook.unverifiable',
+        new Error('transaction_nsu/invoice_slug ausentes no payload'),
+        { orderNsu },
+      )
+      return NextResponse.json({ error: 'unverifiable' }, { status: 400 })
+    }
+    const check = await checkInfinitePayPayment({ orderNsu, transactionNsu, slug })
+    if (check.paid !== true) {
+      // Webhook sem pagamento real confirmado (possível forja). Não provisiona;
+      // 200 para não entrar em loop de retry, mas registra alto para alertar.
+      reportError(
+        'infinitepay.webhook.payment_not_confirmed',
+        new Error('payment_check não retornou paid=true'),
+        { orderNsu },
+      )
+      return NextResponse.json({ received: true, skipped: 'not_paid' })
+    }
+
+    // Pagamento confirmado. Marca pago antes do onboarding: barra
+    // reprocessamento em reentregas concorrentes (status='pending' → 1 vencedor).
     const { data: claimed, error: updErr } = await admin
       .from('pending_orders')
       .update({ status: 'paid' })
@@ -72,15 +114,6 @@ export async function POST(request: Request) {
     if (!claimed || claimed.length === 0) {
       // Outra reentrega já reivindicou → idempotente.
       return NextResponse.json({ received: true, duplicate: true })
-    }
-
-    // Resolve o e-mail: pending_orders primeiro, payload como fallback.
-    const email = order.customer_email ?? emailFromPayload(payload)
-    if (!email) {
-      // Pago, mas sem e-mail não há como provisionar a conta. Fica registrado
-      // como paid; o acesso pode ser liberado manualmente (admin) depois.
-      log.warn('infinitepay.webhook.paid_missing_email', { orderNsu })
-      return NextResponse.json({ received: true, warning: 'missing_email' })
     }
 
     await onboardGuestByEmail(admin, email, {
@@ -113,16 +146,6 @@ export async function POST(request: Request) {
     reportError('infinitepay.webhook.process', err, { orderNsu })
     return NextResponse.json({ error: 'process_failed' }, { status: 500 })
   }
-}
-
-/** Tenta extrair um e-mail do payload do InfinitePay (formato não garantido). */
-function emailFromPayload(payload: Record<string, unknown>): string | null {
-  const customer = payload.customer as { email?: unknown } | undefined
-  const candidates = [customer?.email, payload.email, payload.customer_email]
-  for (const c of candidates) {
-    if (typeof c === 'string' && c.includes('@')) return c
-  }
-  return null
 }
 
 /** Lê um cookie do header `Cookie` (raw). Retorna null se ausente. */

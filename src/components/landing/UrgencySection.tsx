@@ -60,8 +60,8 @@ export function UrgencySection() {
           A prova é 27/09. Cada dia que passa é um dia a menos de preparação.
         </p>
 
-        <div className="mt-10">
-          <CheckoutButton className={CTA_PRIMARY}>
+        <div className="mt-10 w-full max-w-sm">
+          <CheckoutButton collectEmail className={CTA_PRIMARY}>
             Começar agora por R$97
           </CheckoutButton>
         </div>
