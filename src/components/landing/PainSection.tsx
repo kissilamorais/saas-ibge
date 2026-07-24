@@ -14,7 +14,7 @@ const PAINS = [
 export function PainSection() {
   return (
     <section className="bg-[#FAFAF7] text-[#1F2421]">
-      <div className="mx-auto max-w-3xl px-6 py-20 sm:py-28">
+      <div className="mx-auto max-w-3xl px-6 pb-14 pt-20 sm:pb-16 sm:pt-28">
         <h2 className="text-balance text-center font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           Estudar pra concurso sem direção é jogar fora o seu tempo — e a sua
           aprovação.

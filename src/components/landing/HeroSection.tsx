@@ -64,11 +64,11 @@ export function HeroSection() {
           </CheckoutButton>
         </div>
 
-        <div className="mt-12 flex flex-col items-center gap-3">
-          <p className="text-sm font-medium uppercase tracking-widest text-[#0B3D2E]/70">
+        <div className="mt-10 flex flex-col items-center gap-2.5">
+          <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
             Preço sobe pra R$147 em
           </p>
-          <CountdownTimer targetDate={PRICE_DEADLINE} size="md" />
+          <CountdownTimer targetDate={PRICE_DEADLINE} size="sm" />
         </div>
 
         <ul className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
