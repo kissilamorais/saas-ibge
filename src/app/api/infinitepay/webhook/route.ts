@@ -129,12 +129,15 @@ export async function POST(request: Request) {
       where: 'infinitepay.webhook',
     })
 
-    // Purchase server-side (Conversions API). Fire-and-forget: não bloqueia o
-    // 200 pro InfinitePay. Dedup com o pixel do browser via event_id=order_nsu.
+    // Purchase server-side (Conversions API). AWAITED de propósito: em serverless
+    // a instância pode congelar logo após o return, matando um fetch em voo — daí
+    // o "fetch failed" esporádico. Aguardar garante o envio antes de responder.
+    // sendMetaPurchaseEvent nunca rejeita (timeout/erro viram log/alerta), então
+    // isto NÃO afeta o 200 pro InfinitePay. Dedup com o browser via event_id.
     // Obs.: aqui o request é server-to-server do InfinitePay, então IP/UA/fbp
     // não são do comprador — o match forte vem do e-mail hasheado. O disparo
     // com os sinais do browser acontece na /checkout/obrigado.
-    sendMetaPurchaseEvent({
+    await sendMetaPurchaseEvent({
       email,
       orderId: orderNsu,
       eventSourceUrl: resolveAppUrl(request),

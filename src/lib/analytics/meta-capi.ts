@@ -56,12 +56,18 @@ export interface MetaPurchaseInput {
 }
 
 /**
- * Envia um Purchase para a Conversions API. Fire-and-forget: NUNCA bloqueia o
- * chamador (retorna void na hora) e nunca lança — falha só vira log. Logs com
- * prefixo `meta.conversions.api:` para facilitar o grep nos logs da Vercel.
+ * Envia um Purchase para a Conversions API. Retorna uma Promise que NUNCA
+ * rejeita (falha só vira log/alerta) — o chamador escolhe:
+ *   - `await`: garante que o evento saia antes da função serverless congelar
+ *     (usado no webhook, onde o teardown pós-return matava o fetch em voo);
+ *   - sem await (fire-and-forget): não bloqueia a resposta (usado na /obrigado,
+ *     onde o pixel do browser já cobre a conversão).
+ * Logs com prefixo `meta.conversions.api:` para facilitar o grep na Vercel.
  */
-export function sendMetaPurchaseEvent(input: MetaPurchaseInput): void {
-  if (!CAPI_ENABLED) return
+export function sendMetaPurchaseEvent(
+  input: MetaPurchaseInput,
+): Promise<void> {
+  if (!CAPI_ENABLED) return Promise.resolve()
 
   const userData: Record<string, unknown> = {
     em: [hashEmail(input.email)],
@@ -102,10 +108,16 @@ export function sendMetaPurchaseEvent(input: MetaPurchaseInput): void {
 
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PIXEL_ID}/events`
 
-  void fetch(url, {
+  // Timeout duro de 8s: sem isso, um graph.facebook.com lento pode pendurar o
+  // await do webhook até o timeout da função. AbortError vira mensagem clara.
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 8000)
+
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    signal: controller.signal,
   })
     .then(async (res) => {
       if (res.ok) {
@@ -122,7 +134,12 @@ export function sendMetaPurchaseEvent(input: MetaPurchaseInput): void {
         body,
       })
     })
-    .catch((err) =>
-      reportError('meta.conversions.api', err, { orderId: input.orderId }),
-    )
+    .catch((err) => {
+      const error =
+        err instanceof Error && err.name === 'AbortError'
+          ? new Error('Meta CAPI timeout após 8s')
+          : err
+      reportError('meta.conversions.api', error, { orderId: input.orderId })
+    })
+    .finally(() => clearTimeout(timer))
 }
