@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Download, Lock, Send } from 'lucide-react'
+import { ArrowLeft, Download, Lock, Mail } from 'lucide-react'
 
 import { PageHeader } from '@/components/layout/PageHeader'
 import { BonusMarkdown } from '@/components/bonuses/BonusMarkdown'
@@ -114,12 +114,18 @@ export default async function BonusPage({
         )}
 
         {bonus.delivery === 'external' && (
+          // mailto vai direto (não há segredo a proteger e um 302→mailto é
+          // frágil); demais externos passam pelo gate de /api/bonus.
           <a
-            href={`/api/bonus/${bonus.slug}`}
+            href={
+              bonus.resourceUrl?.startsWith('mailto:')
+                ? bonus.resourceUrl
+                : `/api/bonus/${bonus.slug}`
+            }
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            <Send className="h-4 w-4" />
-            Entrar no grupo
+            <Mail className="h-4 w-4" />
+            Enviar e-mail
           </a>
         )}
       </Card>

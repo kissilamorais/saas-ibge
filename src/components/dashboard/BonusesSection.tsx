@@ -62,28 +62,43 @@ export function BonusesSection({ bonuses }: BonusesSectionProps) {
           const Icon = bonus.icon
 
           if (unlocked) {
+            // Suporte por e-mail abre o cliente de e-mail em 1 clique (sem
+            // passar pela página do bônus). Os demais vão para a página do bônus.
+            const isMailto =
+              bonus.delivery === 'external' &&
+              !!bonus.resourceUrl?.startsWith('mailto:')
+            const cardClass =
+              'group flex h-full items-start gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4 transition-colors hover:border-primary/50 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+            const inner = (
+              <>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium">{bonus.title}</p>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {bonus.description}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-primary">
+                    {isMailto ? 'Liberado — enviar e-mail' : 'Liberado — acessar'}
+                  </p>
+                </div>
+              </>
+            )
             return (
               <li key={bonus.slug}>
-                <Link
-                  href={`/dashboard/bonus/${bonus.slug}`}
-                  className="group flex h-full items-start gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4 transition-colors hover:border-primary/50 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium">{bonus.title}</p>
-                      <ArrowRight className="h-4 w-4 shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {bonus.description}
-                    </p>
-                    <p className="mt-2 text-xs font-medium text-primary">
-                      Liberado — acessar
-                    </p>
-                  </div>
-                </Link>
+                {isMailto ? (
+                  <a href={bonus.resourceUrl!} className={cardClass}>
+                    {inner}
+                  </a>
+                ) : (
+                  <Link href={`/dashboard/bonus/${bonus.slug}`} className={cardClass}>
+                    {inner}
+                  </Link>
+                )}
               </li>
             )
           }
