@@ -68,7 +68,7 @@ export function HeroSection() {
           <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
             Preço sobe pra R$147 em
           </p>
-          <CountdownTimer targetDate={PRICE_DEADLINE} size="sm" />
+          <CountdownTimer targetDate={PRICE_DEADLINE} size="md" />
         </div>
 
         <ul className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
