@@ -5,6 +5,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
 import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 /**
  * Webhook do InfinitePay: pagamento aprovado. O InfinitePay NÃO assina o
@@ -21,6 +22,13 @@ import { log, reportError } from '@/lib/observability/log'
  *   - idempotência: claim atômico `status: pending -> paid` (1 vencedor).
  */
 export async function POST(request: Request) {
+  // Rate limit por IP: 30/min (folgado — o InfinitePay pode reenviar). 429 faz
+  // o InfinitePay tentar de novo mais tarde, sem perder o pagamento.
+  const rl = await rateLimit('infinitepay-webhook', clientIp(request), 30, 60)
+  if (!rl.success) {
+    return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+  }
+
   let payload: Record<string, unknown>
   try {
     payload = (await request.json()) as Record<string, unknown>

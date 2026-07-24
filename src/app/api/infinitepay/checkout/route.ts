@@ -6,12 +6,23 @@ import { reportError } from '@/lib/observability/log'
 import { createInfinitePayLink, COURSE_PRICE_CENTS } from '@/lib/infinitepay/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 // Formato de e-mail simples (obrigatório no fluxo guest). Espelha a validação
 // do CheckoutButton — o cliente valida por UX, o servidor por segurança.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(request: Request) {
+  // Rate limit por IP: 10 criações de checkout por minuto (barra flood de
+  // pending_orders). Nunca lança — se o backend falhar, libera.
+  const rl = await rateLimit('infinitepay-checkout', clientIp(request), 10, 60)
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Muitas tentativas. Aguarde um instante e tente de novo.' },
+      { status: 429 },
+    )
+  }
+
   const supabase = createClient()
   const {
     data: { user },
