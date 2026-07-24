@@ -153,8 +153,8 @@ export function OfferSection() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center">
-          <CheckoutButton className={CTA_PRIMARY_ON_LIGHT}>
+        <div className="mt-12 flex w-full max-w-sm flex-col items-center">
+          <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
             Quero me preparar por R$97
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </CheckoutButton>

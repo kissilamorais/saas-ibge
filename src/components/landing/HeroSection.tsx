@@ -58,8 +58,8 @@ export function HeroSection() {
           </span>
         </h1>
 
-        <div className="mt-10">
-          <CheckoutButton className={CTA_PRIMARY_ON_LIGHT}>
+        <div className="mt-10 w-full max-w-sm">
+          <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
             Começar agora por R$97
           </CheckoutButton>
         </div>

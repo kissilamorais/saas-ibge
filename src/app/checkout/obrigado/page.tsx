@@ -196,7 +196,12 @@ async function infinitePaySafetyNet({
           where: 'infinitepay.safetynet',
         })
       } else {
-        log.warn('infinitepay.safetynet.paid_missing_email', { orderNsu })
+        // Mesmo evento que perde dinheiro do webhook: registra alto p/ alertar.
+        reportError(
+          'infinitepay.safetynet.paid_missing_email',
+          new Error('pending_orders.customer_email ausente'),
+          { orderNsu },
+        )
       }
     }
     return { paid: true, email: order.customer_email }
