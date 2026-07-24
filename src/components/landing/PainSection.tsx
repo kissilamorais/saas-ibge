@@ -37,6 +37,15 @@ export function PainSection() {
           <span className="text-[#D85A30]">A prova do IBGE não espera.</span>
         </p>
       </div>
+
+      {/* Emenda com a Solução: degradê do off-white da Dor para a lavagem teal
+          onde a Solução começa (#EEF6F1). Faz a virada dor→solução parecer
+          intencional, não uma quebra em branco. */}
+      <div
+        aria-hidden
+        className="h-24 sm:h-32"
+        style={{ background: 'linear-gradient(180deg, #FAFAF7 0%, #EEF6F1 100%)' }}
+      />
     </section>
   )
 }

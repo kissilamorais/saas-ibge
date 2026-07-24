@@ -38,7 +38,7 @@ export function SolutionSection() {
   return (
     <section
       className="text-[#1F2421]"
-      style={{ background: 'linear-gradient(180deg, #FAFAF7 0%, #EEF6F1 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #EEF6F1 0%, #EAF1EC 100%)' }}
     >
       <div className="mx-auto max-w-5xl px-6 pb-20 pt-14 sm:pb-28 sm:pt-16">
         <h2 className="mx-auto max-w-3xl text-balance text-center font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
