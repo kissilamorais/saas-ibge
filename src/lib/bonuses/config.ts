@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { CalendarClock, FileText, Send, Sparkles } from 'lucide-react'
+import { CalendarClock, FileText, Mail, Sparkles } from 'lucide-react'
 
 /**
  * Bônus com desbloqueio temporal. Cada bônus abre num momento diferente por
@@ -18,6 +18,14 @@ import { CalendarClock, FileText, Send, Sparkles } from 'lucide-react'
 
 /** Data oficial da prova ACA IBGE (America/Sao_Paulo). Formato YYYY-MM-DD. */
 export const EXAM_DATE = '2026-09-27'
+
+/**
+ * Bucket PRIVADO do Supabase Storage onde ficam os arquivos de bônus (ex.: PDF
+ * do edital). Privado de propósito: o arquivo só sai por /api/bonus/[slug], que
+ * revalida pagamento + janela temporal antes de servir os bytes (service_role).
+ * NUNCA colocar esses arquivos em public/ — lá ficariam baixáveis sem gate.
+ */
+export const BONUS_STORAGE_BUCKET = 'bonuses'
 
 /** Dias antes da prova em que a revisão final intensiva abre para todos. */
 export const FINAL_REVIEW_DAYS_BEFORE_EXAM = 7
@@ -50,13 +58,20 @@ export interface Bonus {
    */
   delivery: 'page' | 'download' | 'external'
   /**
-   * Placeholder do recurso real. Preenchido quando o conteúdo chegar:
-   *  - download → caminho/URL do PDF
-   *  - external → URL do convite do Telegram
+   * Recurso real para entregas que redirecionam:
+   *  - external → URL de destino (ex.: `mailto:` do suporte)
    *  - page → null (o conteúdo vira JSX na página do bônus)
-   * `null` aqui = "conteúdo ainda não disponibilizado".
+   *  - download → null (o arquivo vem de `storagePath`, NÃO daqui)
+   * `null` aqui = "sem URL de redirect" (para download, veja `storagePath`).
    */
   resourceUrl: string | null
+  /**
+   * Só para `delivery: 'download'`: caminho do arquivo DENTRO do bucket privado
+   * `BONUS_STORAGE_BUCKET`. A rota /api/bonus/[slug] baixa por aqui com
+   * service_role e faz stream dos bytes — o arquivo nunca fica público.
+   * `null`/ausente = "arquivo ainda não disponibilizado".
+   */
+  storagePath?: string | null
 }
 
 /**
@@ -94,16 +109,20 @@ export const BONUSES: Bonus[] = [
     icon: FileText,
     unlock: { type: 'purchase-offset', days: 7 },
     delivery: 'download',
-    resourceUrl: '/edital-esquematizado.pdf',
+    resourceUrl: null,
+    // Objeto no bucket privado `bonuses` — servido só via /api/bonus/[slug].
+    storagePath: 'edital-esquematizado.pdf',
   },
   {
+    // Slug mantido por estabilidade da rota/links; o card virou suporte por
+    // e-mail (acesso imediato), não mais o grupo do Telegram.
     slug: 'grupo-telegram',
-    title: 'Grupo no Telegram',
-    description: 'Comunidade de estudo com avisos e tira-dúvidas.',
-    icon: Send,
-    unlock: { type: 'purchase-offset', days: 7 },
+    title: 'Suporte por e-mail',
+    description: 'Tire dúvidas sobre o material ou sua conta direto com a gente.',
+    icon: Mail,
+    unlock: { type: 'purchase-offset', days: 0 },
     delivery: 'external',
-    resourceUrl: null,
+    resourceUrl: 'mailto:getvellum@gmail.com',
   },
   {
     slug: 'revisao-final',

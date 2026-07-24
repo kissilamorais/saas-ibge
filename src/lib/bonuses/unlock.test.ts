@@ -45,28 +45,30 @@ describe('spCalendarDate', () => {
   })
 })
 
-describe('isUnlocked — cronograma (imediato na compra)', () => {
+describe('isUnlocked — cronograma e suporte (imediato na compra)', () => {
   const purchase = '2026-06-10T15:00:00Z'
 
   it('libera no mesmo dia da compra', () => {
     expect(isUnlocked(cronograma, purchase, at('2026-06-10T18:00:00Z'))).toBe(
       true,
     )
+    // Suporte por e-mail (slug legado grupo-telegram) também abre na compra.
+    expect(isUnlocked(telegram, purchase, at('2026-06-10T18:00:00Z'))).toBe(
+      true,
+    )
   })
 
   it('fica bloqueado sem data de compra', () => {
     expect(isUnlocked(cronograma, null, at('2026-06-10T18:00:00Z'))).toBe(false)
+    expect(isUnlocked(telegram, null, at('2026-06-10T18:00:00Z'))).toBe(false)
   })
 })
 
-describe('isUnlocked — edital/telegram (7 dias após a compra)', () => {
+describe('isUnlocked — edital (7 dias após a compra)', () => {
   const purchase = '2026-06-10T15:00:00Z' // dia 10 em SP
 
   it('bloqueado no dia da compra', () => {
     expect(isUnlocked(edital, purchase, at('2026-06-10T20:00:00Z'))).toBe(false)
-    expect(isUnlocked(telegram, purchase, at('2026-06-10T20:00:00Z'))).toBe(
-      false,
-    )
   })
 
   it('bloqueado no 6º dia', () => {
@@ -75,9 +77,6 @@ describe('isUnlocked — edital/telegram (7 dias após a compra)', () => {
 
   it('libera exatamente no 7º dia (17/06)', () => {
     expect(isUnlocked(edital, purchase, at('2026-06-17T09:00:00Z'))).toBe(true)
-    expect(isUnlocked(telegram, purchase, at('2026-06-17T09:00:00Z'))).toBe(
-      true,
-    )
     expect(unlockDate(edital, purchase)).toBe('2026-06-17')
   })
 
