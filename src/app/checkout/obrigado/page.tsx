@@ -71,7 +71,10 @@ export default async function ObrigadoPage({
   if (confirmedPaid && order_nsu && buyerEmail) {
     const c = cookies()
     const h = headers()
-    sendMetaPurchaseEvent({
+    // Fire-and-forget de propósito: aqui o pixel do browser já cobre a
+    // conversão, então não seguramos a renderização. `void` marca a promise
+    // solta explicitamente (a função nunca rejeita).
+    void sendMetaPurchaseEvent({
       email: buyerEmail,
       orderId: order_nsu,
       eventSourceUrl: resolveAppUrl(),
