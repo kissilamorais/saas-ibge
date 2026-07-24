@@ -92,7 +92,7 @@ export default async function CheckoutPage({
           <CheckoutButton />
 
           <p className="text-center text-xs text-muted-foreground">
-            Pagamento processado com segurança pela Stripe.{' '}
+            Pagamento processado com segurança pela InfinitePay.{' '}
             <Link href="/dashboard" className="underline">
               Voltar
             </Link>

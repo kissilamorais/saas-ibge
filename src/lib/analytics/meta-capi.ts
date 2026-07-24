@@ -25,7 +25,6 @@ const CAPI_ENABLED =
 const COURSE_VALUE_BRL = 97
 const COURSE_CURRENCY = 'BRL'
 const CONTENT_IDS = ['aprovus-ibge-2026']
-const DEFAULT_SOURCE_URL = 'https://aprovus-ibge.vercel.app'
 
 /** SHA256 do e-mail normalizado (lowercase + trim), como a Meta exige. */
 function hashEmail(email: string): string {
@@ -73,6 +72,11 @@ export function sendMetaPurchaseEvent(input: MetaPurchaseInput): void {
   if (input.fbp) userData.fbp = input.fbp
   if (input.fbc) userData.fbc = input.fbc
 
+  // Nunca hardcoded: a URL real vem do caller (derivada da requisição); se ele
+  // não passar, cai em NEXT_PUBLIC_APP_URL. Se nem isso, omitimos o campo (a
+  // Meta aceita Purchase sem event_source_url) — melhor ausente que errado.
+  const eventSourceUrl = input.eventSourceUrl || process.env.NEXT_PUBLIC_APP_URL
+
   const payload = {
     data: [
       {
@@ -80,7 +84,7 @@ export function sendMetaPurchaseEvent(input: MetaPurchaseInput): void {
         event_time: Math.floor(Date.now() / 1000),
         event_id: input.orderId, // dedup browser <-> server
         action_source: 'website',
-        event_source_url: input.eventSourceUrl || DEFAULT_SOURCE_URL,
+        ...(eventSourceUrl ? { event_source_url: eventSourceUrl } : {}),
         user_data: userData,
         custom_data: {
           value: COURSE_VALUE_BRL,
