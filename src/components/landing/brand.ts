@@ -12,7 +12,7 @@
  */
 
 /** Momento em que o preço sobe de R$97 para R$147 (America/Sao_Paulo). */
-export const PRICE_DEADLINE = '2026-07-24T23:59:00-03:00'
+export const PRICE_DEADLINE = '2026-08-08T23:59:00-03:00'
 
 /**
  * CTA principal — dourado, texto petróleo, micro-interação no hover (eleva +
