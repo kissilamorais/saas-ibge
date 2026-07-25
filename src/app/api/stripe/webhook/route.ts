@@ -6,6 +6,7 @@ import { activateUserAccess } from '@/lib/stripe/activate'
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
+import { resolveAppUrl } from '@/lib/url/resolve-app-url'
 
 /**
  * Webhook da Stripe (robustez em produção). Verifica a assinatura, deduplica o
@@ -67,13 +68,7 @@ export async function POST(request: Request) {
         log.info('stripe.webhook.access_activated', { userId })
       } else {
         // Fluxo guest: sem user_id, resolvemos a conta pelo e-mail do pagamento.
-        await handleGuestCheckout(
-          request,
-          admin,
-          session,
-          stripeCustomerId,
-          event.id
-        )
+        await handleGuestCheckout(admin, session, stripeCustomerId, event.id)
       }
 
       // Fecha o ciclo de recuperação (métrica). Nunca lança: falha aqui é de
@@ -99,24 +94,11 @@ export async function POST(request: Request) {
 type AdminClient = ReturnType<typeof createAdminClient>
 
 /**
- * Base para os links do e-mail. Mesma lógica do checkout: preferimos o host
- * real da requisição (proxy da Vercel) e caímos no env/origin como fallback.
- */
-function resolveAppUrl(request: Request): string {
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
-  return forwardedHost && !forwardedHost.includes('localhost')
-    ? `${forwardedProto}://${forwardedHost}`
-    : process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
-}
-
-/**
  * Checkout de visitante (sem conta prévia): resolve ou cria a conta pelo
  * e-mail do pagamento e ativa o acesso, delegando ao onboarding compartilhado
  * (o MESMO usado pelo webhook do InfinitePay).
  */
 async function handleGuestCheckout(
-  request: Request,
   admin: AdminClient,
   session: Stripe.Checkout.Session,
   stripeCustomerId: string | null,
@@ -131,7 +113,7 @@ async function handleGuestCheckout(
   }
 
   await onboardGuestByEmail(admin, email, {
-    appUrl: resolveAppUrl(request),
+    appUrl: resolveAppUrl(),
     where: 'stripe.webhook',
     stripeCustomerId,
   })

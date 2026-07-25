@@ -10,6 +10,7 @@ import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
+import { resolveAppUrl } from '@/lib/url/resolve-app-url'
 import {
   Card,
   CardContent,
@@ -212,14 +213,4 @@ async function infinitePaySafetyNet({
     reportError('infinitepay.obrigado.safetynet', err, { orderNsu })
     return { paid: false, email: null }
   }
-}
-
-/** Base para os links do e-mail, a partir dos headers da requisição. */
-function resolveAppUrl(): string {
-  const h = headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host')
-  const proto = h.get('x-forwarded-proto') ?? 'https'
-  return host && !host.includes('localhost')
-    ? `${proto}://${host}`
-    : process.env.NEXT_PUBLIC_APP_URL || ''
 }

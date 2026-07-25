@@ -6,6 +6,7 @@ import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
+import { resolveAppUrl } from '@/lib/url/resolve-app-url'
 
 /**
  * Webhook do InfinitePay: pagamento aprovado. O InfinitePay NÃO assina o
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     }
 
     await onboardGuestByEmail(admin, email, {
-      appUrl: resolveAppUrl(request),
+      appUrl: resolveAppUrl(),
       where: 'infinitepay.webhook',
     })
 
@@ -140,7 +141,7 @@ export async function POST(request: Request) {
     await sendMetaPurchaseEvent({
       email,
       orderId: orderNsu,
-      eventSourceUrl: resolveAppUrl(request),
+      eventSourceUrl: resolveAppUrl(),
       fbp: readCookie(request.headers.get('cookie'), '_fbp'),
       fbc: readCookie(request.headers.get('cookie'), '_fbc'),
     })
@@ -167,13 +168,4 @@ function readCookie(cookieHeader: string | null, name: string): string | null {
     if (k === name) return decodeURIComponent(v.join('=')) || null
   }
   return null
-}
-
-/** Base para os links do e-mail. Mesma lógica do checkout/webhook Stripe. */
-function resolveAppUrl(request: Request): string {
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
-  return forwardedHost && !forwardedHost.includes('localhost')
-    ? `${forwardedProto}://${forwardedHost}`
-    : process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 }
