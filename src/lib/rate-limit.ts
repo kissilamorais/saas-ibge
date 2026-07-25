@@ -28,6 +28,15 @@ const redis =
 /** Qual backend está ativo — útil para logar/avisar em produção. */
 export const RATE_LIMIT_BACKEND: 'redis' | 'memory' = redis ? 'redis' : 'memory'
 
+// Em produção o fallback de memória protege muito pouco (por instância, zera em
+// cold start). Avisa no boot para que a ausência de Redis/KV não passe silenciosa.
+if (RATE_LIMIT_BACKEND === 'memory' && process.env.NODE_ENV === 'production') {
+  console.error(
+    '[rate-limit] backend em MEMÓRIA em produção — rate limit por IP é ineficaz. ' +
+      'Configure UPSTASH_REDIS_REST_URL/TOKEN ou KV_REST_API_URL/TOKEN.',
+  )
+}
+
 export interface RateLimitResult {
   success: boolean
   remaining: number
@@ -108,9 +117,12 @@ export async function rateLimit(
   return memLimit(name, id, max, windowSec)
 }
 
-/** Primeiro IP de `x-forwarded-for` (o real); fallback estável se ausente. */
+/** IP confiável do cliente.
+ *  Na Vercel, x-real-ip é setado pelo proxy e não é sobrescritível pelo cliente.
+ *  XFF fica só como fallback — é spoofável via header forjado. */
 export function clientIp(request: Request): string {
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  if (realIp) return realIp
   const xff = request.headers.get('x-forwarded-for')
-  const ip = xff?.split(',')[0]?.trim()
-  return ip || 'unknown'
+  return xff?.split(',')[0]?.trim() || 'unknown'
 }
