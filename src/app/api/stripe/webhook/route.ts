@@ -11,12 +11,18 @@ import { resolveAppUrl } from '@/lib/url/resolve-app-url'
 /**
  * Webhook da Stripe (robustez em produção). Verifica a assinatura, deduplica o
  * evento (idempotência) e processa:
- *   - checkout.session.completed → ativa o acesso (+ fecha o abandono, se houver)
- *   - checkout.session.expired   → registra o checkout abandonado
+ *   - checkout.session.completed               → ativa o acesso (se pago)
+ *   - checkout.session.async_payment_succeeded → ativa após pagamento assíncrono
+ *                                                (boleto/Pix, que completam unpaid)
+ *   - checkout.session.expired                 → registra o checkout abandonado
  *
  * Configure o endpoint no dashboard da Stripe e STRIPE_WEBHOOK_SECRET no env.
- * O endpoint precisa estar inscrito NOS DOIS eventos — `expired` não vem por
- * padrão em endpoints criados antes desta feature.
+ * O endpoint precisa estar inscrito NOS TRÊS eventos — nenhum deles vem por
+ * padrão em endpoints criados antes destas features.
+ *
+ * TODO: registrar checkout.session.async_payment_succeeded no Stripe Dashboard
+ * (Webhooks → Selecionar eventos → adicionar esse evento), senão a Stripe não o
+ * envia e boleto/Pix pagos depois nunca ativam o acesso pela via do webhook.
  */
 export async function POST(request: Request) {
   const body = await request.text()
@@ -56,8 +62,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    if (event.type === 'checkout.session.completed') {
+    if (
+      event.type === 'checkout.session.completed' ||
+      event.type === 'checkout.session.async_payment_succeeded'
+    ) {
       const session = event.data.object as Stripe.Checkout.Session
+
+      // Métodos assíncronos (boleto/Pix) disparam `completed` com
+      // payment_status='unpaid' e só depois viram 'paid' via
+      // `async_payment_succeeded`. Nunca liberar acesso antes do pagamento real.
+      if (session.payment_status !== 'paid') {
+        log.info('stripe.webhook.completed_unpaid', {
+          eventId: event.id,
+          paymentStatus: session.payment_status,
+        })
+        return NextResponse.json({ received: true, skipped: 'unpaid' })
+      }
+
       const stripeCustomerId =
         typeof session.customer === 'string' ? session.customer : null
 
