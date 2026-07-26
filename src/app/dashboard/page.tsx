@@ -18,7 +18,7 @@ import { BonusesSection } from '@/components/dashboard/BonusesSection'
 import { CountdownPanel } from '@/components/dashboard/CountdownPanel'
 import { GoalRing } from '@/components/dashboard/GoalRing'
 import { GreetingHero } from '@/components/dashboard/GreetingHero'
-import { ProgressWidget } from '@/components/dashboard/ProgressWidget'
+import { ModulesWithMode } from '@/components/dashboard/ModulesWithMode'
 import { QuickStats } from '@/components/dashboard/QuickStats'
 import { RecommendationCard } from '@/components/dashboard/RecommendationCard'
 import { StreakCard } from '@/components/dashboard/StreakCard'
@@ -156,7 +156,7 @@ export default async function DashboardPage({
       {/* Progresso por módulo + resumo */}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <ProgressWidget modules={moduleProgress} />
+          <ModulesWithMode modules={moduleProgress} />
         </div>
         <QuickStats
           title="Resumo"

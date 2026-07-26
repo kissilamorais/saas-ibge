@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 
 export interface ModuleProgress {
   id: string
+  slug: string
   name: string
   /** Lições concluídas */
   completedLessons: number
@@ -22,27 +23,37 @@ interface ProgressWidgetProps {
 
 // TODO: substituir por dados reais do Supabase (modules + progress do usuário)
 const mockModules: ModuleProgress[] = [
-  { id: 'portugues', name: 'Português', completedLessons: 12, totalLessons: 15 },
+  {
+    id: 'portugues',
+    slug: 'portugues',
+    name: 'Português',
+    completedLessons: 12,
+    totalLessons: 15,
+  },
   {
     id: 'raciocinio-logico',
+    slug: 'raciocinio-logico',
     name: 'Raciocínio Lógico',
     completedLessons: 6,
     totalLessons: 10,
   },
   {
     id: 'administracao',
+    slug: 'administracao',
     name: 'Administração',
     completedLessons: 8,
     totalLessons: 14,
   },
   {
     id: 'informatica',
+    slug: 'informatica',
     name: 'Informática',
     completedLessons: 4,
     totalLessons: 9,
   },
   {
     id: 'conhecimentos-tecnicos',
+    slug: 'conhecimentos-tecnicos',
     name: 'Conhecimentos Técnicos',
     completedLessons: 3,
     totalLessons: 12,

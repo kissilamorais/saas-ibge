@@ -132,6 +132,7 @@ export interface DashboardData {
   weeklyHoursDone: number
   moduleProgress: {
     id: string
+    slug: string
     name: string
     completedLessons: number
     totalLessons: number
@@ -244,6 +245,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     completedLessons += done
     return {
       id: m.id,
+      slug: m.slug,
       name: m.title,
       completedLessons: done,
       totalLessons: lessons.length,
