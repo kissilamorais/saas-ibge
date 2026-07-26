@@ -2,6 +2,7 @@ import { CalendarDays, CreditCard, Infinity as InfinityIcon, ShieldCheck } from 
 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CountdownTimer } from '@/components/CountdownTimer'
+import { DaysUntilExam } from './DaysUntilExam'
 
 import {
   FULL_PRICE_CENTS,
@@ -10,6 +11,8 @@ import {
   isLaunchPeriod,
 } from '@/lib/pricing'
 
+import { examPhase } from '@/lib/bonuses/unlock'
+
 import { CTA_PRIMARY_ON_LIGHT, PRICE_DEADLINE } from './brand'
 
 const TRUST = [
@@ -17,6 +20,35 @@ const TRUST = [
   { icon: InfinityIcon, label: 'Acesso vitalício' },
   { icon: CreditCard, label: 'Pagamento único' },
 ]
+
+/**
+ * Conteúdo do <h1>, que muda com a fase do ciclo da prova. Antes dela, o
+ * headline de venda com a contagem regressiva; no dia e depois, uma mensagem
+ * estática — a contagem zerada ("Faltam 0 dias") não diria nada.
+ *
+ * Server component como o resto da seção: a fase sai do relógio do servidor,
+ * e a landing revalida a cada 5 min (`revalidate` em `app/page.tsx`).
+ */
+function Headline() {
+  switch (examPhase()) {
+    case 'exam-day':
+      return <>Hoje é a prova do IBGE. Boa sorte.</>
+    case 'after':
+      return <>A prova de 27/09 já passou. O próximo ciclo começa em breve.</>
+    default:
+      return (
+        <>
+          Faltam <DaysUntilExam /> dias pro IBGE.
+          <br />
+          Você não precisa ver o edital inteiro.
+          <br />
+          <span className="italic text-[#0B3D2E]">
+            Precisa revisar o que a IBFC realmente cobra.
+          </span>
+        </>
+      )
+  }
+}
 
 /**
  * Hero — fundo petróleo bem claro (#E8EFEC) com brilho dourado sutil no topo e
@@ -59,13 +91,7 @@ export function HeroSection() {
         </span>
 
         <h1 className="mt-8 text-balance font-serif text-4xl font-semibold leading-[1.08] tracking-tight text-[#0B3D2E] sm:text-6xl">
-          A prova do IBGE é dia 27/09.
-          <br />
-          Você vai chegar lá preparado
-          <br />
-          <span className="italic text-[#0B3D2E]">
-            — ou vai torcer pra cair só o que você viu?
-          </span>
+          <Headline />
         </h1>
 
         <div className="mt-10 w-full max-w-sm">

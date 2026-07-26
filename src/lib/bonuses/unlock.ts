@@ -1,4 +1,5 @@
 import type { Bonus } from './config'
+import { EXAM_DATE } from './config'
 
 /**
  * Lógica de desbloqueio temporal dos bônus — pura e testável. Todos os cálculos
@@ -102,6 +103,29 @@ export function daysUntilUnlock(
   if (!unlock) return null
   const today = spCalendarDate(now)
   return Math.max(0, diffCalendarDays(today, unlock))
+}
+
+/**
+ * Quantos dias-calendário faltam para a prova, contados em São Paulo — o mesmo
+ * critério de "dia" usado no desbloqueio dos bônus. Nunca negativo: passada a
+ * data, retorna 0 e a copy que depende disso precisa sair do ar.
+ */
+export function daysUntilExam(now: Date = new Date()): number {
+  return Math.max(0, diffCalendarDays(spCalendarDate(now), EXAM_DATE))
+}
+
+/** Em que momento do ciclo da prova estamos (dia-calendário em São Paulo). */
+export type ExamPhase = 'before' | 'exam-day' | 'after'
+
+/**
+ * Fase do ciclo da prova. Existe porque `daysUntilExam` satura em 0 e não
+ * separa "hoje é a prova" de "a prova já passou" — dois estados com copy
+ * diferente na landing.
+ */
+export function examPhase(now: Date = new Date()): ExamPhase {
+  const today = spCalendarDate(now)
+  if (today < EXAM_DATE) return 'before'
+  return today === EXAM_DATE ? 'exam-day' : 'after'
 }
 
 /** Formata YYYY-MM-DD como dd/mm/aaaa para exibição. */
