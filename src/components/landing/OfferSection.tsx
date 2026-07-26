@@ -39,7 +39,7 @@ const BONUSES: Bonus[] = [
   {
     icon: Flame,
     title: 'Simulação Final',
-    desc: 'Os tópicos que mais caem, concentrados e revisados na reta final. Para você chegar no dia 27/09 afiado.',
+    desc: 'Revisão cirúrgica do que mais cai + simulado completo no formato real da prova. Desbloqueia automaticamente 7 dias antes de 27/09.',
     badge: 'Libera 7 dias antes da prova',
     immediate: false,
   },

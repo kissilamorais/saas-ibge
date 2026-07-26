@@ -18,7 +18,7 @@ const FAQ = [
   },
   {
     q: 'Vou ter acesso a tudo de uma vez?',
-    a: 'O cronograma e a plataforma completa são imediatos. O edital esquematizado libera no dia 7. A revisão final libera 7 dias antes da prova, quando você mais precisa.',
+    a: 'O cronograma e a plataforma completa são imediatos. O edital esquematizado libera no dia 7. A Simulação Final desbloqueia 7 dias antes da prova, quando você mais precisa.',
   },
   {
     q: 'Quanto tempo preciso por dia?',

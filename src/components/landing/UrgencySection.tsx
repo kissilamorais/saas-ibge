@@ -53,7 +53,7 @@ export function UrgencySection() {
                   {currentPriceLabel()}
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-white/60">
-                  + cronograma, edital e revisão final
+                  + cronograma, edital e Simulação Final
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-transparent px-6 py-6">

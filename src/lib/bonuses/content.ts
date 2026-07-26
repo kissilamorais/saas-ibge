@@ -102,8 +102,8 @@ A partir daqui, o foco vira resolver questões da banca IBFC.
 - O objetivo agora não é aprender coisa nova — é **ajustar ritmo, marcação e resistência mental** pras 4 horas
 - Revise TODOS os erros acumulados
 
-### 🔵 SEMANA 10 (reta final) — REVISÃO FINAL + descanso estratégico
-- 🔓 *Nesta fase você desbloqueou a REVISÃO FINAL INTENSIVA (7 dias antes da prova).*
+### 🔵 SEMANA 10 (reta final) — SIMULAÇÃO FINAL + descanso estratégico
+- 🔓 *Nesta fase você desbloqueou a SIMULAÇÃO FINAL (7 dias antes da prova).*
 - Foque nos tópicos que mais caem (estão na revisão final)
 - Refaça só as questões que você errou antes
 - **Nos 2 dias antes da prova: descanse.** Cérebro cansado não rende. Revisão leve, sono bom.
