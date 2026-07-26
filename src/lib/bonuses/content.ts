@@ -104,7 +104,7 @@ A partir daqui, o foco vira resolver questões da banca IBFC.
 
 ### 🔵 SEMANA 10 (reta final) — SIMULAÇÃO FINAL + descanso estratégico
 - 🔓 *Nesta fase você desbloqueou a SIMULAÇÃO FINAL (7 dias antes da prova).*
-- Foque nos tópicos que mais caem (estão na revisão final)
+- Foque nos tópicos que mais caem (estão na Simulação Final)
 - Refaça só as questões que você errou antes
 - **Nos 2 dias antes da prova: descanse.** Cérebro cansado não rende. Revisão leve, sono bom.
 
