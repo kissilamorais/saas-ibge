@@ -31,7 +31,7 @@ const BONUSES: Bonus[] = [
   },
   {
     icon: Map,
-    title: 'Edital esquematizado',
+    title: 'Resumo Estratégico',
     desc: 'O mapa visual de tudo que mais cai na prova do IBGE. Estude o que importa, ignore o que não vai aparecer.',
     badge: 'Libera no dia 7',
     immediate: false,

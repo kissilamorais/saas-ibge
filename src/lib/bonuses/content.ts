@@ -242,7 +242,7 @@ Se zerou alguma disciplina ontem: **dedica 1 hora só a ela.** Garante o 1 ponto
 Cérebro cansado não recupera na prova o que estudou de última hora. Cérebro descansado recupera tudo que aprendeu nas semanas anteriores.
 
 **O que fazer:**
-- Revisão leve de 1 a 2 horas no máximo (leia os pontos principais do edital esquematizado)
+- Revisão leve de 1 a 2 horas no máximo (leia os pontos principais do Resumo Estratégico)
 - Prepare tudo pro dia seguinte: documento, lanche, roupa, como vai chegar no local
 - Durma cedo. Sério.
 

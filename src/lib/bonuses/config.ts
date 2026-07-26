@@ -104,7 +104,7 @@ export const BONUSES: Bonus[] = [
   },
   {
     slug: 'edital-esquematizado',
-    title: 'Edital esquematizado',
+    title: 'Resumo Estratégico',
     description: 'O edital destrinchado em tópicos, do jeito que a banca cobra.',
     icon: FileText,
     unlock: { type: 'purchase-offset', days: 7 },
