@@ -126,8 +126,8 @@ export const BONUSES: Bonus[] = [
   },
   {
     slug: 'revisao-final',
-    title: 'Revisão final intensiva',
-    description: 'A reta final concentrada, liberada para todos na semana da prova.',
+    title: 'Simulação Final',
+    description: 'O ensaio geral antes da prova — revisão cirúrgica do que mais cai + simulado no formato real. Desbloqueia automaticamente 7 dias antes de 27/09.',
     icon: Sparkles,
     unlock: { type: 'fixed', date: FINAL_REVIEW_DATE },
     delivery: 'page',
