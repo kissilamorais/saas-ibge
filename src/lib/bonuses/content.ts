@@ -125,7 +125,7 @@ A partir daqui, o foco vira resolver questões da banca IBFC.
 **Equipe Aprovus**`,
 
   // ►►► REVISÃO FINAL INTENSIVA — conteúdo preenchido. ◄◄◄
-  'revisao-final': `# 🔥 Revisão Final Intensiva — Concurso IBGE 2026
+  'revisao-final': `# 🔥 Simulação Final — Concurso IBGE 2026
 
 **Você chegou na reta final. A prova é em 7 dias.**
 

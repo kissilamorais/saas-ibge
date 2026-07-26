@@ -38,7 +38,7 @@ const BONUSES: Bonus[] = [
   },
   {
     icon: Flame,
-    title: 'Revisão final intensiva',
+    title: 'Simulação Final',
     desc: 'Os tópicos que mais caem, concentrados e revisados na reta final. Para você chegar no dia 27/09 afiado.',
     badge: 'Libera 7 dias antes da prova',
     immediate: false,
