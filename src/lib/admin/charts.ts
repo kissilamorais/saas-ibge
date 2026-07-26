@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { COURSE_PRICE_CENTS } from '@/lib/stripe/server'
+import { getCurrentPriceCents } from '@/lib/pricing'
 import type { AdminPeriod } from '@/lib/admin/queries'
 import { FUNCTIONS } from '@/lib/functions'
 
@@ -130,7 +130,8 @@ export interface AdminCharts {
 export async function getAdminCharts(period: AdminPeriod): Promise<AdminCharts> {
   const admin = createAdminClient()
   const buckets = await buildBuckets(admin, period)
-  const price = COURSE_PRICE_CENTS / 100
+  // Mesma aproximação de `getAdminOverview` — ver nota lá.
+  const price = getCurrentPriceCents() / 100
   const windowStart = buckets[0]?.start ?? null
   const startIso = windowStart ? windowStart.toISOString() : null
 

@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { currentPriceLabel, getCurrentPriceBRL } from '@/lib/pricing'
 import { createClient } from '@/lib/supabase/server'
 
 const BENEFITS = [
@@ -49,7 +50,7 @@ export default async function CheckoutPage({
         event="ViewContent"
         params={{
           content_name: 'Aprovus — Acesso vitalício',
-          value: 97,
+          value: getCurrentPriceBRL(),
           currency: 'BRL',
         }}
       />
@@ -69,7 +70,9 @@ export default async function CheckoutPage({
               Acesso vitalício
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="font-display text-4xl font-semibold">R$97</span>
+              <span className="font-display text-4xl font-semibold">
+                {currentPriceLabel()}
+              </span>
               <span className="text-muted-foreground">à vista, uma vez só</span>
             </div>
           </div>
@@ -89,7 +92,7 @@ export default async function CheckoutPage({
             </p>
           )}
 
-          <CheckoutButton />
+          <CheckoutButton>Liberar acesso por {currentPriceLabel()}</CheckoutButton>
 
           <p className="text-center text-xs text-muted-foreground">
             Pagamento processado com segurança pela InfinitePay.{' '}

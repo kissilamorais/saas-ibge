@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { COURSE_PRICE_CENTS } from '@/lib/stripe/server'
+import { getCurrentPriceCents } from '@/lib/pricing'
 
 /**
  * Queries agregadas do painel admin. SEMPRE no servidor, via service_role
@@ -173,7 +173,12 @@ export async function getAdminOverview(
 ): Promise<AdminOverview> {
   const admin = createAdminClient()
   const { start, end, prevStart, prevEnd } = ranges(period)
-  const price = COURSE_PRICE_CENTS / 100
+  // APROXIMAÇÃO: receita = nº de vendas × preço ATUAL. Com preço variável
+  // (lançamento vs. cheio) isso reprecifica o histórico — vendas feitas a R$67
+  // passam a ser contadas a R$97 depois da virada. Corrigir exige guardar o
+  // valor pago por venda (`profiles` só tem `purchase_date`, sem coluna de
+  // valor); ver nota no topo de `lib/pricing.ts`.
+  const price = getCurrentPriceCents() / 100
   const hasComparison = prevStart !== null
 
   const [

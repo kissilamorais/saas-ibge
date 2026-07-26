@@ -8,6 +8,7 @@ import {
   RotateCcw,
 } from 'lucide-react'
 
+import { currentPriceLabel } from '@/lib/pricing'
 import { getProfile, hasContentAccess } from '@/lib/auth/session'
 import { getDashboardData } from '@/lib/supabase/queries'
 import { buildAchievements } from '@/lib/dashboard/achievements'
@@ -110,7 +111,8 @@ export default async function DashboardPage({
             <div>
               <p className="font-medium">Seu acesso ainda não está liberado</p>
               <p className="text-sm text-muted-foreground">
-                Pagamento único de R$97 desbloqueia todas as lições e simulados.
+                Pagamento único de {currentPriceLabel()} desbloqueia todas as
+                lições e simulados.
               </p>
             </div>
           </div>
@@ -118,7 +120,7 @@ export default async function DashboardPage({
             href="/checkout"
             className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            Liberar por R$97
+            Liberar por {currentPriceLabel()}
           </Link>
         </div>
       )}

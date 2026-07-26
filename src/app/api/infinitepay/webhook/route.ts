@@ -55,7 +55,10 @@ export async function POST(request: Request) {
   try {
     const { data: orderData, error: findErr } = await admin
       .from('pending_orders')
-      .select('order_nsu, status, customer_email')
+      // `amount` entra aqui para o Purchase reportar o valor REALMENTE pago —
+      // com preço promocional, o preço vigente na hora do webhook pode já ser
+      // outro que não o gravado quando o pedido nasceu.
+      .select('order_nsu, status, customer_email, amount')
       .eq('order_nsu', orderNsu)
       .maybeSingle()
     if (findErr) throw findErr
@@ -64,6 +67,7 @@ export async function POST(request: Request) {
       order_nsu: string
       status: string
       customer_email: string | null
+      amount: number | null
     } | null
 
     if (!order) {
@@ -144,6 +148,7 @@ export async function POST(request: Request) {
       eventSourceUrl: resolveAppUrl(),
       fbp: readCookie(request.headers.get('cookie'), '_fbp'),
       fbc: readCookie(request.headers.get('cookie'), '_fbc'),
+      valueBRL: order.amount != null ? order.amount / 100 : undefined,
     })
 
     log.info('infinitepay.webhook.processed', { orderNsu })

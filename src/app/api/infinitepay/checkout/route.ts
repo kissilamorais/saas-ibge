@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 
 import { reportError } from '@/lib/observability/log'
-import { createInfinitePayLink, COURSE_PRICE_CENTS } from '@/lib/infinitepay/server'
+import { createInfinitePayLink } from '@/lib/infinitepay/server'
+import { getCurrentPriceCents } from '@/lib/pricing'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
@@ -75,13 +76,17 @@ export async function POST(request: Request) {
   // link do InfinitePay e volta no webhook/redirect para reconciliação.
   const orderNsu = randomUUID()
 
+  // Resolvido UMA vez e reusado no insert e no link — ver nota em
+  // `createInfinitePayLink`.
+  const priceCents = getCurrentPriceCents()
+
   try {
     // 1) Registra o pedido pendente ANTES de criar o link — assim o webhook
     //    sempre encontra a linha, mesmo que a resposta do /links se perca.
     const admin = createAdminClient()
     const { error: insertErr } = await admin.from('pending_orders').insert({
       order_nsu: orderNsu,
-      amount: COURSE_PRICE_CENTS,
+      amount: priceCents,
       status: 'pending',
       customer_email: customerEmail,
     })
@@ -93,6 +98,7 @@ export async function POST(request: Request) {
       redirectUrl: `${appUrl}/checkout/obrigado`,
       webhookUrl: `${appUrl}/api/infinitepay/webhook`,
       customerEmail,
+      priceCents,
     })
 
     return NextResponse.json({ url })

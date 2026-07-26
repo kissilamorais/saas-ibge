@@ -15,7 +15,10 @@ export function getStripe(): Stripe {
   return _stripe
 }
 
-// Preço do produto: R$97 em centavos.
-export const COURSE_PRICE_CENTS = 9700
+// Preço do produto: varia com o prazo de lançamento — ver `lib/pricing.ts`.
+// Reexportado aqui só por conveniência dos módulos de pagamento; a definição
+// mora fora deste arquivo porque client components também precisam dela e não
+// podem importar um módulo que carrega a secret key da Stripe.
+export { getCurrentPriceCents } from '@/lib/pricing'
 export const COURSE_CURRENCY = 'brl'
 export const COURSE_NAME = 'Aprovus - Preparatório IBGE'

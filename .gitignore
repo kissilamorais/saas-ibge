@@ -32,3 +32,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# criativos de campanha (vídeos de 100MB+ — acima do limite do GitHub) e
+# screenshots de revisão da landing. Ficam só no disco local.
+/ads
+/public/screenshots

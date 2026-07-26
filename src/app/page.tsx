@@ -9,11 +9,22 @@ import { OfferSection } from '@/components/landing/OfferSection'
 import { GuaranteeSection } from '@/components/landing/GuaranteeSection'
 import { UrgencySection } from '@/components/landing/UrgencySection'
 import { FaqSection } from '@/components/landing/FaqSection'
+import { currentPriceLabel } from '@/lib/pricing'
 
-export const metadata: Metadata = {
-  title: 'Aprovus — Preparatório completo para o concurso do IBGE (R$97)',
-  description:
-    'Módulos, banco com 1000+ questões comentadas e 8 simulados no estilo da prova. Acesso vitalício por R$97.',
+/**
+ * A página é estática, então o preço exibido seria assado no build e ficaria
+ * congelado depois que a oferta de lançamento vencer — anunciando um valor
+ * enquanto o checkout (que roda por request) cobra outro. O ISR curto fecha
+ * essa janela: na virada do prazo, a página se regenera em poucos minutos.
+ */
+export const revalidate = 300
+
+export function generateMetadata(): Metadata {
+  const price = currentPriceLabel()
+  return {
+    title: `Aprovus — Preparatório completo para o concurso do IBGE (${price})`,
+    description: `Módulos, banco com 1000+ questões comentadas e 8 simulados no estilo da prova. Acesso vitalício por ${price}.`,
+  }
 }
 
 /**

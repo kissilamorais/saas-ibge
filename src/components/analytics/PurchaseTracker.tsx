@@ -4,9 +4,8 @@ import { useEffect, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
+import { getCurrentPriceBRL } from '@/lib/pricing'
 
-// Valor do curso (espelha COURSE_PRICE_CENTS = 9700 em lib/stripe/server.ts).
-const COURSE_VALUE_BRL = 97
 const COURSE_CURRENCY = 'BRL'
 
 /**
@@ -26,8 +25,10 @@ export function PurchaseTracker() {
     if (searchParams.get('welcome') !== '1') return
 
     fired.current = true
+    // Resolvido dentro do efeito: o componente não renderiza nada, então usar
+    // o relógio do browser aqui não cria divergência de hidratação.
     trackPixel('Purchase', {
-      value: COURSE_VALUE_BRL,
+      value: getCurrentPriceBRL(),
       currency: COURSE_CURRENCY,
     })
 

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
+import { getCurrentPriceBRL } from '@/lib/pricing'
 
 const DEFAULT_CLASS =
   'inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50'
@@ -19,7 +20,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 interface CheckoutButtonProps {
   /** Classes do <button>. Default = estilo usado na página de checkout. */
   className?: string
-  /** Rótulo do botão. Default = "Liberar acesso por R$97". */
+  /**
+   * Rótulo do botão. O default é sem preço de propósito: este é um client
+   * component, e resolver o preço aqui usaria o relógio do device — perto da
+   * virada do prazo isso divergiria do HTML vindo do servidor e quebraria a
+   * hidratação. Quem quiser preço no rótulo passa como children a partir de um
+   * server component.
+   */
   children?: ReactNode
   /**
    * Fluxo guest (landing): coleta o e-mail do comprador ANTES de gerar o link,
@@ -32,7 +39,7 @@ interface CheckoutButtonProps {
 
 export function CheckoutButton({
   className = DEFAULT_CLASS,
-  children = 'Liberar acesso por R$97',
+  children = 'Liberar acesso',
   collectEmail = false,
 }: CheckoutButtonProps = {}) {
   const [loading, setLoading] = useState(false)
@@ -52,8 +59,14 @@ export function CheckoutButton({
     }
 
     setLoading(true)
-    // Intenção de compra → InitiateCheckout (com valor do curso).
-    trackPixel('InitiateCheckout', { value: 97, currency: 'BRL' })
+    // Intenção de compra → InitiateCheckout, com o preço vigente. Resolvido
+    // aqui dentro (e não na renderização) porque isto é um client component:
+    // ler o relógio do device no render divergiria do HTML do servidor perto
+    // da virada do prazo. No click não há hidratação em jogo.
+    trackPixel('InitiateCheckout', {
+      value: getCurrentPriceBRL(),
+      currency: 'BRL',
+    })
     try {
       const res = await fetch('/api/infinitepay/checkout', {
         method: 'POST',

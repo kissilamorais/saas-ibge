@@ -11,8 +11,11 @@
  * valores arbitrários (`bg-[#D4A017]` etc.) no scan dos arquivos.
  */
 
-/** Momento em que o preço sobe de R$97 para R$147 (America/Sao_Paulo). */
-export const PRICE_DEADLINE = '2026-08-08T23:59:00-03:00'
+/**
+ * Prazo da oferta de lançamento. Reexportado de `lib/pricing.ts` — a definição
+ * mora lá junto dos preços, para prazo e valor nunca saírem de sincronia.
+ */
+export { PRICE_DEADLINE } from '@/lib/pricing'
 
 /**
  * CTA principal — dourado, texto petróleo, micro-interação no hover (eleva +

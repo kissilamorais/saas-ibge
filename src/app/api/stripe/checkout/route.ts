@@ -22,12 +22,8 @@ export async function POST() {
 import type Stripe from 'stripe'
 
 import { reportError } from '@/lib/observability/log'
-import {
-  COURSE_CURRENCY,
-  COURSE_NAME,
-  COURSE_PRICE_CENTS,
-  getStripe,
-} from '@/lib/stripe/server'
+import { getCurrentPriceCents } from '@/lib/pricing'
+import { COURSE_CURRENCY, COURSE_NAME, getStripe } from '@/lib/stripe/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
@@ -81,7 +77,9 @@ export async function POST(request: Request) {
           quantity: 1,
           price_data: {
             currency: COURSE_CURRENCY,
-            unit_amount: COURSE_PRICE_CENTS,
+            // Resolvido por request: na virada do prazo o valor cobrado muda
+            // sozinho, sem redeploy.
+            unit_amount: getCurrentPriceCents(),
             product_data: { name: COURSE_NAME },
           },
         },

@@ -3,6 +3,13 @@ import { CalendarDays, CreditCard, Infinity as InfinityIcon, ShieldCheck } from 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CountdownTimer } from '@/components/CountdownTimer'
 
+import {
+  FULL_PRICE_CENTS,
+  currentPriceLabel,
+  formatPriceBRL,
+  isLaunchPeriod,
+} from '@/lib/pricing'
+
 import { CTA_PRIMARY_ON_LIGHT, PRICE_DEADLINE } from './brand'
 
 const TRUST = [
@@ -63,16 +70,20 @@ export function HeroSection() {
 
         <div className="mt-10 w-full max-w-sm">
           <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
-            Começar agora por R$97
+            Começar agora por {currentPriceLabel()}
           </CheckoutButton>
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-2.5">
-          <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
-            Preço sobe pra R$147 em
-          </p>
-          <CountdownTimer targetDate={PRICE_DEADLINE} size="md" />
-        </div>
+        {/* Bloco de urgência some junto com a promoção — um contador zerado ao
+            lado de "preço sobe pra X" é uma promessa que já não se cumpre. */}
+        {isLaunchPeriod() && (
+          <div className="mt-10 flex flex-col items-center gap-2.5">
+            <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
+              Preço sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em
+            </p>
+            <CountdownTimer targetDate={PRICE_DEADLINE} size="md" />
+          </div>
+        )}
 
         <ul className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           {TRUST.map(({ icon: Icon, label }) => (

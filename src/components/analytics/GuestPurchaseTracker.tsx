@@ -3,9 +3,8 @@
 import { useEffect, useRef } from 'react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
+import { getCurrentPriceBRL } from '@/lib/pricing'
 
-// Valor do curso (espelha COURSE_PRICE_CENTS = 9700 em lib/stripe/server.ts).
-const COURSE_VALUE_BRL = 97
 const COURSE_CURRENCY = 'BRL'
 const CONTENT_IDS = ['aprovus-ibge-2026']
 
@@ -20,7 +19,18 @@ const CONTENT_IDS = ['aprovus-ibge-2026']
  * uma nova compra (session_id diferente) conta normalmente. O `useRef` cobre
  * o StrictMode/duplo-mount em dev.
  */
-export function GuestPurchaseTracker({ sessionId }: { sessionId?: string }) {
+export function GuestPurchaseTracker({
+  sessionId,
+  valueBRL,
+}: {
+  sessionId?: string
+  /**
+   * Valor pago em reais. O evento gêmeo da Conversions API já reporta o valor
+   * real do pedido; passe o mesmo aqui quando disponível para os dois lados do
+   * dedup baterem. Sem isso, cai no preço vigente.
+   */
+  valueBRL?: number
+}) {
   const fired = useRef(false)
 
   useEffect(() => {
@@ -39,7 +49,7 @@ export function GuestPurchaseTracker({ sessionId }: { sessionId?: string }) {
     trackPixel(
       'Purchase',
       {
-        value: COURSE_VALUE_BRL,
+        value: valueBRL ?? getCurrentPriceBRL(),
         currency: COURSE_CURRENCY,
         content_ids: CONTENT_IDS,
         content_type: 'product',
@@ -47,7 +57,7 @@ export function GuestPurchaseTracker({ sessionId }: { sessionId?: string }) {
       // eventID = order_nsu → dedup com o Purchase enviado pela Conversions API.
       sessionId ? { eventID: sessionId } : undefined
     )
-  }, [sessionId])
+  }, [sessionId, valueBRL])
 
   return null
 }

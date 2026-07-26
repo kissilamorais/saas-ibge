@@ -4,6 +4,13 @@ import { ArrowRight, CalendarDays, Check, Flame, Lock, Map, Target } from 'lucid
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CountdownTimer } from '@/components/CountdownTimer'
 
+import {
+  FULL_PRICE_CENTS,
+  currentPriceLabel,
+  formatPriceBRL,
+  isLaunchPeriod,
+} from '@/lib/pricing'
+
 import { CTA_PRIMARY_ON_LIGHT, PRICE_DEADLINE } from './brand'
 
 interface Bonus {
@@ -79,7 +86,7 @@ export function OfferSection() {
       <div className="relative mx-auto max-w-5xl px-6 py-20 sm:py-28">
         <h2 className="text-center font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
           Tudo que você recebe por{' '}
-          <span className="text-[#9A6E12]">R$97</span>
+          <span className="text-[#9A6E12]">{currentPriceLabel()}</span>
         </h2>
 
         {/* Núcleo — Plataforma Completa. */}
@@ -144,7 +151,7 @@ export function OfferSection() {
                 Aprovus
               </p>
               <p className="mt-3 font-serif text-4xl font-bold text-[#D4A017] sm:text-5xl">
-                R$97
+                {currentPriceLabel()}
               </p>
               <p className="mt-1 text-sm text-[#5F6B66]">
                 pagamento único · acesso vitalício
@@ -155,15 +162,17 @@ export function OfferSection() {
 
         <div className="mt-12 flex w-full max-w-sm flex-col items-center">
           <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
-            Quero me preparar por R$97
+            Quero me preparar por {currentPriceLabel()}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </CheckoutButton>
-          <div className="mt-8 flex flex-col items-center gap-2.5">
-            <p className="text-xs font-medium uppercase tracking-widest text-[#5F6B66]">
-              Preço sobe pra R$147 em
-            </p>
-            <CountdownTimer targetDate={PRICE_DEADLINE} size="sm" />
-          </div>
+          {isLaunchPeriod() && (
+            <div className="mt-8 flex flex-col items-center gap-2.5">
+              <p className="text-xs font-medium uppercase tracking-widest text-[#5F6B66]">
+                Preço sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em
+              </p>
+              <CountdownTimer targetDate={PRICE_DEADLINE} size="sm" />
+            </div>
+          )}
         </div>
       </div>
     </section>

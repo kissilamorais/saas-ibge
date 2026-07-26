@@ -26,7 +26,7 @@ const fraunces = Fraunces({
   variable: '--font-serif',
 })
 
-const siteUrl = 'https://aprovus-ibge.vercel.app'
+const siteUrl = 'https://portalaprovus.com.br'
 const title = 'Aprovus — Estudo para o concurso do IBGE'
 const description = 'Plataforma de estudo online para o concurso do IBGE.'
 const ogImage = {

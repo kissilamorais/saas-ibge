@@ -7,6 +7,7 @@ import {
   Wallet2,
 } from 'lucide-react'
 
+import { currentPriceLabel } from '@/lib/pricing'
 import { requireAdmin } from '@/lib/auth/session'
 import {
   getAdminOverview,
@@ -139,7 +140,7 @@ export default async function AdminOverviewPage({
       <section className="mt-8 grid gap-4 lg:grid-cols-2">
         <ChartCard
           title="Receita ao longo do tempo"
-          description={`Vendas × R$97 por ${period === '90d' ? 'semana' : period === 'all' ? 'mês' : 'dia'}.`}
+          description={`Vendas × ${currentPriceLabel()} por ${period === '90d' ? 'semana' : period === 'all' ? 'mês' : 'dia'}.`}
           isEmpty={noRevenue}
         >
           <RevenueChart data={charts.timeSeries} />
@@ -187,8 +188,10 @@ export default async function AdminOverviewPage({
       </section>
 
       <p className="mt-6 text-xs text-muted-foreground">
-        Compra única de R$97 (acesso vitalício): não há MRR nem churn
-        recorrente — por isso medimos receita do período e acessos revogados.
+        Compra única de {currentPriceLabel()} (acesso vitalício): não há MRR nem
+        churn recorrente — por isso medimos receita do período e acessos
+        revogados. A receita usa o preço ATUAL para todas as vendas, então
+        períodos que cruzam uma mudança de preço são aproximados.
         A etapa “Visitantes” do funil ainda não é rastreada (depende de
         analytics de pageview na landing).
       </p>

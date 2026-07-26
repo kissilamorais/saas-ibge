@@ -1,4 +1,5 @@
-import { COURSE_NAME, COURSE_PRICE_CENTS } from '@/lib/stripe/server'
+import { getCurrentPriceCents } from '@/lib/pricing'
+import { COURSE_NAME } from '@/lib/stripe/server'
 
 /**
  * Cliente mínimo da API de Checkout do InfinitePay. Os endpoints públicos
@@ -14,7 +15,8 @@ export const INFINITEPAY_HANDLE =
 const INFINITEPAY_TIMEOUT_MS = 8000
 
 // Preço/descrição vêm da mesma fonte do Stripe para não divergir.
-export { COURSE_NAME, COURSE_PRICE_CENTS }
+export { COURSE_NAME }
+export { getCurrentPriceCents }
 
 /**
  * `fetch` com timeout duro (AbortController). Em estouro, lança um erro
@@ -44,11 +46,18 @@ interface CreateLinkParams {
   redirectUrl: string
   webhookUrl: string
   customerEmail?: string | null
+  /**
+   * Preço em centavos. Recebido pronto (em vez de resolvido aqui) para que o
+   * valor gravado no `pending_order` e o cobrado no link venham da MESMA
+   * leitura do relógio — senão um pedido criado na virada do prazo grava um
+   * preço e cobra outro.
+   */
+  priceCents: number
 }
 
 /**
  * Cria um link de pagamento no InfinitePay e devolve a URL do checkout
- * hospedado. `items` (sem "e" — grafia da API) leva 1 item de R$97 em centavos.
+ * hospedado. `items` (sem "e" — grafia da API) leva 1 item em centavos.
  * Lança se a API responder com erro ou sem URL.
  */
 export async function createInfinitePayLink({
@@ -56,6 +65,7 @@ export async function createInfinitePayLink({
   redirectUrl,
   webhookUrl,
   customerEmail,
+  priceCents,
 }: CreateLinkParams): Promise<string> {
   const body: Record<string, unknown> = {
     handle: INFINITEPAY_HANDLE,
@@ -65,7 +75,7 @@ export async function createInfinitePayLink({
     items: [
       {
         quantity: 1,
-        price: COURSE_PRICE_CENTS,
+        price: priceCents,
         description: COURSE_NAME,
       },
     ],

@@ -8,6 +8,7 @@
 import crypto from 'node:crypto'
 
 import { log, reportError } from '@/lib/observability/log'
+import { getCurrentPriceBRL } from '@/lib/pricing'
 
 const GRAPH_VERSION = 'v19.0'
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
@@ -21,8 +22,6 @@ const CAPI_ENABLED =
   Boolean(PIXEL_ID) &&
   Boolean(ACCESS_TOKEN)
 
-// Espelha COURSE_PRICE_CENTS (9700) e o produto anunciado no pixel do browser.
-const COURSE_VALUE_BRL = 97
 const COURSE_CURRENCY = 'BRL'
 const CONTENT_IDS = ['aprovus-ibge-2026']
 
@@ -53,6 +52,13 @@ export interface MetaPurchaseInput {
   fbp?: string | null
   /** cookie _fbc do browser, se disponível (melhora o match). */
   fbc?: string | null
+  /**
+   * Valor pago em reais. Passe o valor REAL da transação sempre que tiver
+   * (ex.: `session.amount_total` da Stripe): com preço promocional, o preço
+   * corrente pode já não ser o que o comprador pagou, e reportar o número
+   * errado distorce o ROAS. Sem isso, cai no preço vigente agora.
+   */
+  valueBRL?: number
 }
 
 /**
@@ -93,7 +99,7 @@ export function sendMetaPurchaseEvent(
         ...(eventSourceUrl ? { event_source_url: eventSourceUrl } : {}),
         user_data: userData,
         custom_data: {
-          value: COURSE_VALUE_BRL,
+          value: input.valueBRL ?? getCurrentPriceBRL(),
           currency: COURSE_CURRENCY,
           content_ids: CONTENT_IDS,
           content_type: 'product',
