@@ -11,21 +11,21 @@ interface Pillar {
 const PILLARS: Pillar[] = [
   {
     icon: BookOpen,
-    highlight: 'Teoria',
-    title: 'organizada de verdade',
-    desc: 'Conteúdo por módulo e por cargo — você sabe exatamente o que estudar em cada etapa.',
+    highlight: 'Conteúdo',
+    title: 'organizado por matéria',
+    desc: 'Teoria em módulos, sem enrolação. Você sabe exatamente onde está e o que falta.',
   },
   {
     icon: ListChecks,
-    highlight: '1.000',
-    title: 'questões comentadas',
-    desc: 'No estilo da banca IBFC, com explicação em cada alternativa pra fixar o padrão da prova.',
+    highlight: '1.000+',
+    title: 'questões no padrão IBFC',
+    desc: 'Todas comentadas. Você entende o erro e não repete.',
   },
   {
     icon: ClipboardCheck,
     highlight: '8',
-    title: 'simulados completos',
-    desc: 'Provas inteiras pra você treinar como se fosse o dia 27/09 — e chegar sem susto.',
+    title: 'simulados com gabarito na hora',
+    desc: 'Treine a prova antes da prova. Sem surpresa no dia.',
   },
 ]
 
@@ -42,8 +42,8 @@ export function SolutionSection() {
     >
       <div className="mx-auto max-w-5xl px-6 pb-20 pt-14 sm:pb-28 sm:pt-16">
         <h2 className="mx-auto max-w-3xl text-balance text-center font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-          O Aprovus reúne tudo que você precisa para passar no IBGE — num só
-          lugar.
+          Pare de adivinhar o que cai. O Aprovus foi construído em cima do
+          padrão real da IBFC.
         </h2>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-3">
@@ -69,7 +69,7 @@ export function SolutionSection() {
         <p className="mx-auto mt-14 max-w-2xl text-center font-serif text-xl font-medium leading-snug tracking-tight sm:text-2xl">
           Direto ao ponto. Sem enrolação.
           <br />
-          Sem videoaula de 4 horas que não te prepara pra nada.
+          Sem videoaulas de 8 horas que não preparam pra nada.
         </p>
       </div>
     </section>

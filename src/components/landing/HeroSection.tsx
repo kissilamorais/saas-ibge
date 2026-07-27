@@ -40,12 +40,10 @@ function Headline() {
     default:
       return (
         <>
-          Faltam <DaysUntilExam /> dias pro IBGE.
-          <br />
-          Você não precisa ver o edital inteiro.
+          A prova do IBGE não perdoa quem estudou o conteúdo errado.
           <br />
           <span className="italic text-[#0B3D2E]">
-            Precisa revisar o que a IBFC realmente cobra.
+            O Aprovus te prepara pelo que a IBFC realmente cobra.
           </span>
         </>
       )
@@ -99,16 +97,16 @@ export function HeroSection() {
         {/* Subhead — o que o produto entrega + âncora de preço. A cláusula do
             aumento sai junto com a promoção; depois do prazo seria falsa. */}
         <p className="mt-6 max-w-2xl text-balance text-base leading-relaxed text-[#0B3D2E]/75 sm:text-lg">
-          Revisão intensiva por módulo, 1.000+ questões comentadas no estilo da
-          banca IBFC e 8 simulados que corrigem na hora. Acesso vitalício por{' '}
+          Mais de 1.000 questões no padrão da banca, 8 simulados completos e um
+          cronograma de 10 semanas que te diz exatamente o que estudar — e o que
+          ignorar. Acesso vitalício por{' '}
           <strong className="font-semibold text-[#0B3D2E]">
             {currentPriceLabel()}
           </strong>
           {isLaunchPeriod() && (
             <>
               {' '}
-              — sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em{' '}
-              {PRICE_DEADLINE_LABEL}
+              — após o lançamento, sobe para {formatPriceBRL(FULL_PRICE_CENTS)}
             </>
           )}
           .
@@ -126,9 +124,12 @@ export function HeroSection() {
         {isLaunchPeriod() && (
           <div className="mt-10 flex flex-col items-center gap-2.5">
             <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
-              Preço sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em
+              O preço de lançamento sai em breve
             </p>
             <CountdownTimer targetDate={PRICE_DEADLINE} size="md" />
+            <p className="text-xs font-medium uppercase tracking-widest text-[#0B3D2E]/60">
+              Após essa data, o acesso passa para {formatPriceBRL(FULL_PRICE_CENTS)}. Sem exceções.
+            </p>
           </div>
         )}
 

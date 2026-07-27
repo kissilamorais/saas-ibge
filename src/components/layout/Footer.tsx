@@ -21,7 +21,7 @@ export function Footer() {
             Simulados
           </Link>
           <a
-            href="mailto:getvellum@gmail.com"
+            href="mailto:suporteaprovus@gmail.com"
             className="hover:text-foreground"
           >
             Suporte

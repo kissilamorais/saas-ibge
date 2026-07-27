@@ -6,37 +6,36 @@ import { ChevronDown } from 'lucide-react'
 const FAQ = [
   {
     q: 'Funciona pra qual cargo?',
-    a: 'Para todos os cargos do concurso IBGE 2026: ACA, ACI, AOR, ACR e ACS. Você escolhe seu cargo na entrada e a plataforma monta sua trilha.',
+    a: 'Para todos os cargos do IBGE 2026 — ACA, ACI, AOR, ACR e ACS. O conteúdo cobre as disciplinas comuns a todos os cargos e você escolhe sua trilha específica dentro da plataforma.',
   },
   {
-    q: 'E se eu não gostar?',
-    a: '7 dias de garantia total. Devolvo tudo, sem pergunta nenhuma.',
+    q: 'Não gostei — como peço o reembolso?',
+    a: 'Manda um e-mail em até 7 dias depois da compra. Sem perguntas, sem burocracia. Devolvo 100% do valor.',
   },
   {
     q: 'Precisa instalar alguma coisa?',
-    a: 'Não. É tudo online, abre no celular ou computador.',
+    a: 'Não. Funciona direto no navegador — computador, celular ou tablet.',
   },
   {
-    q: 'Vou ter acesso a tudo de uma vez?',
-    a: 'O cronograma e a plataforma completa são imediatos. O Resumo Estratégico libera no dia 7. A Simulação Final desbloqueia 7 dias antes da prova, quando você mais precisa.',
+    q: 'Tenho acesso a tudo de uma vez?',
+    a: 'Sim. A plataforma completa é liberada imediatamente. Os bônus têm desbloqueio progressivo para você aproveitar no momento certo da preparação.',
   },
   {
-    q: 'Quanto tempo preciso por dia?',
-    a: 'O cronograma foi montado pra quem tem vida. 30 minutos a 1 hora por dia já te coloca na frente de quem não está estudando nada.',
+    q: 'Consigo estudar com pouco tempo por dia?',
+    a: 'Sim. O cronograma foi montado para quem tem entre 1 e 2 horas por dia. Você não precisa de maratona — precisa de consistência no que cai na prova.',
   },
   {
-    q: 'Como falo com vocês?',
+    q: 'Como entro em contato?',
     a: (
       <>
-        É só mandar um e-mail para{' '}
+        Por e-mail:{' '}
         <a
-          href="mailto:getvellum@gmail.com"
+          href="mailto:suporteaprovus@gmail.com"
           className="font-medium text-[#9A6E12] underline underline-offset-2 hover:text-[#0B3D2E]"
         >
-          getvellum@gmail.com
-        </a>{' '}
-        que a gente responde. Estamos disponíveis para qualquer dúvida sobre o
-        material, a plataforma ou seu acesso.
+          suporteaprovus@gmail.com
+        </a>
+        . Respondemos em até 24 horas.
       </>
     ),
   },

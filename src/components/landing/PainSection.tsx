@@ -1,10 +1,10 @@
 import { X } from 'lucide-react'
 
 const PAINS = [
-  'Você abre o edital e não sabe por onde começar.',
-  'Perde horas em conteúdo que não cai.',
-  'Faz questão sem entender o padrão da banca.',
-  'Chega na prova achando que estudou — e trava.',
+  'Lê o edital inteiro e não sabe por onde começar.',
+  'Gasta horas em conteúdo que a IBFC raramente cobra.',
+  'Não reconhece o padrão de questão da banca — e cai nas pegadinhas.',
+  'Chega na prova achando que estudou, trava, e sai sem entender o que errou.',
 ]
 
 /**
@@ -16,8 +16,8 @@ export function PainSection() {
     <section className="bg-[#FAFAF7] text-[#1F2421]">
       <div className="mx-auto max-w-3xl px-6 pb-14 pt-20 sm:pb-16 sm:pt-28">
         <h2 className="text-balance text-center font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-          Estudar pra concurso sem direção é jogar fora o seu tempo — e a sua
-          aprovação.
+          A maioria reprova não por falta de esforço. Reprova por estudar as
+          coisas erradas.
         </h2>
 
         <ul className="mt-12 divide-y divide-black/[0.06] overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-sm">
@@ -32,9 +32,9 @@ export function PainSection() {
         </ul>
 
         <p className="mt-12 text-center font-serif text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
-          Enquanto isso, o prazo vai correndo.
+          Enquanto isso, o prazo não espera.
           <br />
-          <span className="text-[#D85A30]">A prova do IBGE não espera.</span>
+          <span className="italic text-[#D85A30]">A prova do IBGE não tem segunda chamada.</span>
         </p>
       </div>
 

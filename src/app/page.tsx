@@ -55,10 +55,10 @@ export default function HomePage() {
         <p className="mt-2">
           Dúvidas?{' '}
           <a
-            href="mailto:getvellum@gmail.com"
+            href="mailto:suporteaprovus@gmail.com"
             className="font-medium text-[#9A6E12] underline-offset-2 hover:underline"
           >
-            getvellum@gmail.com
+            suporteaprovus@gmail.com
           </a>
         </p>
       </footer>

@@ -73,7 +73,12 @@ export function UrgencySection() {
         )}
 
         <p className="mt-12 max-w-xl font-serif text-xl font-medium leading-snug tracking-tight sm:text-2xl">
-          A prova é 27/09. Cada dia que passa é um dia a menos de preparação.
+          A prova não muda. O que você faz agora, muda tudo.
+          <br />
+          <span className="text-white/75">
+            Cada semana sem preparação é uma semana que o candidato ao lado está
+            na sua frente.
+          </span>
         </p>
 
         <div className="mt-10 w-full max-w-sm">

@@ -25,23 +25,23 @@ interface Bonus {
 const BONUSES: Bonus[] = [
   {
     icon: CalendarDays,
-    title: 'Cronograma de estudos até 27/09',
-    desc: 'O que estudar em cada semana, do dia da compra até a véspera da prova. Sem se perder, sem desperdiçar tempo.',
+    title: 'Cronograma de 10 semanas',
+    desc: '10 semanas de estudos divididas em 3 fases: base, aprofundamento e revisão. Você abre o Aprovus e sabe o que fazer hoje.',
     badge: 'Acesso imediato',
     immediate: true,
   },
   {
     icon: Map,
     title: 'Resumo Estratégico',
-    desc: 'O mapa visual de tudo que mais cai na prova do IBGE. Estude o que importa, ignore o que não vai aparecer.',
-    badge: 'Libera no dia 7',
+    desc: 'O edital esquematizado pela banca IBFC — só o que importa, sem o que não cai.',
+    badge: 'Libera em 7 dias',
     immediate: false,
   },
   {
     icon: Flame,
     title: 'Simulação Final',
-    desc: 'Revisão cirúrgica do que mais cai + simulado completo no formato real da prova. Desbloqueia automaticamente 7 dias antes de 27/09.',
-    badge: 'Libera 7 dias antes da prova',
+    desc: 'Uma semana de revisão intensiva antes da prova. Liberado automaticamente no momento certo.',
+    badge: 'Libera automaticamente',
     immediate: false,
   },
 ]
@@ -86,8 +86,7 @@ export function OfferSection() {
       />
       <div className="relative mx-auto max-w-5xl px-6 py-20 sm:py-28">
         <h2 className="text-center font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
-          Tudo que você recebe por{' '}
-          <span className="text-[#9A6E12]">{currentPriceLabel()}</span>
+          Tudo que você recebe por <span className="text-[#9A6E12]">R$67</span>
         </h2>
 
         {/* Núcleo — Plataforma Completa. */}
@@ -103,8 +102,8 @@ export function OfferSection() {
               <StatusBadge label="Acesso imediato" immediate />
             </div>
             <p className="mt-2 text-base text-[#5F6B66]">
-              Teoria + 1.000 questões + 8 simulados. Tudo que sustenta a sua
-              preparação, liberado no minuto da compra.
+              Teoria, questões e simulados organizados por cargo. Acesso imediato,
+              vitalício.
             </p>
           </div>
         </div>

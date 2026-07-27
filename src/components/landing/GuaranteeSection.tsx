@@ -26,16 +26,15 @@ export function GuaranteeSection() {
 
           <div className="flex-1">
             <h2 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-              Garantia blindada de 7 dias
+              Garantia total de 7 dias.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-[#5F6B66] sm:text-lg">
-              Entra, testa tudo — plataforma, questões, simulados, cronograma. Se
-              em 7 dias você achar que não é pra você, me manda uma mensagem e
-              devolvo 100% do valor.
+              Acessa tudo. Estuda de verdade. Se em 7 dias você achar que não
+              valeu, devolvo cada centavo — sem formulário, sem justificativa,
+              sem enrolação.
             </p>
             <p className="mt-5 text-base font-semibold text-[#1F2421] sm:text-lg">
-              Sem burocracia. Sem pergunta. Sem enrolação.{' '}
-              <span className="text-[#B8860B]">O risco é todo meu.</span>
+              <span className="text-[#B8860B]">Simples assim.</span>
             </p>
           </div>
         </div>
