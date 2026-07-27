@@ -67,6 +67,17 @@ export function currentPriceLabel(): string {
   return formatPriceBRL(getCurrentPriceCents())
 }
 
+/**
+ * Prazo da promoção como "08/08", para a copy corrida. Derivado de
+ * `PRICE_DEADLINE` (fuso de SP) para a data escrita no texto nunca divergir da
+ * que realmente vira o preço.
+ */
+export const PRICE_DEADLINE_LABEL = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo',
+  day: '2-digit',
+  month: '2-digit',
+}).format(new Date(PRICE_DEADLINE))
+
 /*
  * NOTA — exibição vs. cobrança.
  *

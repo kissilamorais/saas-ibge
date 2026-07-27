@@ -6,6 +6,7 @@ import { DaysUntilExam } from './DaysUntilExam'
 
 import {
   FULL_PRICE_CENTS,
+  PRICE_DEADLINE_LABEL,
   currentPriceLabel,
   formatPriceBRL,
   isLaunchPeriod,
@@ -93,6 +94,24 @@ export function HeroSection() {
         <h1 className="mt-8 text-balance font-serif text-4xl font-semibold leading-[1.08] tracking-tight text-[#0B3D2E] sm:text-6xl">
           <Headline />
         </h1>
+
+        {/* Subhead — o que o produto entrega + âncora de preço. A cláusula do
+            aumento sai junto com a promoção; depois do prazo seria falsa. */}
+        <p className="mt-6 max-w-2xl text-balance text-base leading-relaxed text-[#0B3D2E]/75 sm:text-lg">
+          Revisão intensiva por módulo, 1.000+ questões comentadas no estilo da
+          banca IBFC e 8 simulados que corrigem na hora. Acesso vitalício por{' '}
+          <strong className="font-semibold text-[#0B3D2E]">
+            {currentPriceLabel()}
+          </strong>
+          {isLaunchPeriod() && (
+            <>
+              {' '}
+              — sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em{' '}
+              {PRICE_DEADLINE_LABEL}
+            </>
+          )}
+          .
+        </p>
 
         <div className="mt-10 w-full max-w-sm">
           <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
