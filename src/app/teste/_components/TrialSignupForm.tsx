@@ -20,7 +20,6 @@ function apenasDigitos(valor: string): string {
   return valor.replace(/\D/g, '')
 }
 
-
 export function TrialSignupForm() {
   const router = useRouter()
   const [nome, setNome] = useState('')
@@ -28,7 +27,6 @@ export function TrialSignupForm() {
   const [whatsapp, setWhatsapp] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
-  const [otpEnviado, setOtpEnviado] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,34 +52,39 @@ export function TrialSignupForm() {
     const supabase = createClient()
 
     try {
-      // Magic link OTP: cria usuário novo OU autentica existente, sem password.
-      // shouldCreateUser: true = cria se não existir; ignora se já existe.
-      // O callback vai confirmar o OTP e redirecionar para /teste/cargo com sessão.
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: emailNormalizado,
-        options: {
-          data: { full_name: nome.trim(), whatsapp: digitos, _trial: 'true' },
-          shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=/teste/cargo`,
-        },
+      // 1. Chamar API para criar usuário no servidor (admin.createUser)
+      const signupRes = await fetch('/api/trial/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailNormalizado,
+          full_name: nome.trim(),
+          whatsapp: digitos,
+        }),
       })
 
-      if (error) {
+      const signupData = await signupRes.json().catch(() => null)
+      if (!signupRes.ok || !signupData?.email || !signupData?.password) {
         throw new Error(
-          error.message ||
-            'Não foi possível enviar o link. Tente de novo em alguns instantes.',
+          signupData?.error || 'Não foi possível criar sua conta.',
         )
       }
 
       trackPixel('Lead')
 
-      // OTP mandado com sucesso. Se o usuário é novo, criar com is_trial.
-      // Se já existe, apenas atualizar whatsapp e is_trial.
-      // Como não temos session (fluxo OTP é async via e-mail), fazemos isso
-      // serverside — mas por enquanto, marcamos que OTP foi enviado.
-      // O usuário vai confirmar via link e entrar direto em /teste/cargo.
+      // 2. Autenticar cliente com password temporária (sem e-mail)
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: signupData.email,
+        password: signupData.password,
+      })
 
-      setOtpEnviado(true)
+      if (authError) {
+        throw new Error(authError.message || 'Não foi possível autenticar.')
+      }
+
+      // 3. Redirecionar direto para /teste/cargo (sessão estabelecida)
+      router.push('/teste/cargo')
+      router.refresh()
     } catch (err) {
       setErro(
         err instanceof Error
@@ -90,28 +93,6 @@ export function TrialSignupForm() {
       )
       setLoading(false)
     }
-  }
-
-  if (otpEnviado) {
-    return (
-      <div className="space-y-4 text-center">
-        <div className="rounded-lg bg-[#0B3D2E]/[0.04] px-4 py-3">
-          <p className="text-sm font-medium text-[#0B3D2E]">
-            Enviamos um link para o seu e-mail
-          </p>
-          <p className="mt-1 text-xs text-[#0B3D2E]/70">
-            Clique nele para confirmar sua conta e começar o diagnóstico.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOtpEnviado(false)}
-          className="text-sm text-[#9A6E12] underline hover:text-[#0B3D2E]"
-        >
-          Voltar
-        </button>
-      </div>
-    )
   }
 
   return (

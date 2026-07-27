@@ -8,7 +8,7 @@ import { CargoPicker } from './_components/CargoPicker'
 async function setupTrialProfile(userId: string) {
   const admin = createAdminClient()
 
-  // Buscar user_metadata para extrair whatsapp (passou no signInWithOtp)
+  // Buscar user_metadata para extrair whatsapp (gravado em /api/trial/signup)
   const {
     data: { user },
   } = await admin.auth.admin.getUserById(userId)
