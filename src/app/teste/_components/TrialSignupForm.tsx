@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
+import { Mail, Phone, User, Loader2, ArrowRight } from 'lucide-react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
 import { createClient } from '@/lib/supabase/client'
@@ -22,8 +22,7 @@ function apenasDigitos(valor: string): string {
 
 /**
  * O Supabase não expõe um código estável para "e-mail já cadastrado": a
- * mensagem varia entre versões do GoTrue. Casamos por trecho, e o fallback é
- * benigno — tentar o login com as credenciais que a pessoa acabou de digitar.
+ * mensagem varia entre versões. Casamos por trecho para detectar o caso.
  */
 function pareceEmailJaCadastrado(mensagem: string): boolean {
   const m = mensagem.toLowerCase()
@@ -39,9 +38,9 @@ export function TrialSignupForm() {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
-  const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [otpEnviado, setOtpEnviado] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -58,13 +57,8 @@ export function TrialSignupForm() {
       setErro('Digite um e-mail válido.')
       return
     }
-    // 10 dígitos (fixo com DDD) a 11 (celular com DDD).
     if (digitos.length < 10 || digitos.length > 11) {
       setErro('Digite um WhatsApp válido com DDD.')
-      return
-    }
-    if (senha.length < 6) {
-      setErro('A senha precisa ter pelo menos 6 caracteres.')
       return
     }
 
@@ -72,64 +66,67 @@ export function TrialSignupForm() {
     const supabase = createClient()
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Tenta signUp — com "Confirm email" desligado no Supabase, dispara
+      // e-mail de definição de senha automaticamente (sem password requerida).
+      // O tipo exige password, mas passamos vazio — o GoTrue ignora.
+      const { data, error } = await (
+        supabase.auth.signUp as (opts: {
+          email: string
+          password?: string
+          options?: { data?: { [key: string]: string } }
+        }) => ReturnType<typeof supabase.auth.signUp>
+      )({
         email: emailNormalizado,
-        password: senha,
+        password: '', // Ignorado quando "Confirm email" está desligado
         options: { data: { full_name: nome.trim(), whatsapp: digitos } },
       })
 
-      let sessao = data?.session ?? null
-
       if (error) {
         if (!pareceEmailJaCadastrado(error.message)) throw error
-        // Já tem conta → entra com a senha informada.
-        const { data: loginData, error: loginError } =
-          await supabase.auth.signInWithPassword({
-            email: emailNormalizado,
-            password: senha,
-          })
-        if (loginError) {
+
+        // E-mail já existe — envia magic link (OTP)
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: emailNormalizado,
+          options: {
+            shouldCreateUser: false,
+          },
+        })
+
+        if (otpError) {
           throw new Error(
-            'Esse e-mail já tem conta no Aprovus, mas a senha não confere. Use a senha da sua conta ou recupere o acesso.',
+            'Esse e-mail já tem conta no Aprovus. Enviamos um link para você entrar.',
           )
         }
-        sessao = loginData.session
+
+        setOtpEnviado(true)
+        setErro(null)
+        setLoading(false)
+        return
+      }
+
+      trackPixel('Lead')
+
+      // signUp criou a conta. Agora marca como trial
+      const userId = data.user?.id
+      if (userId) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ whatsapp: digitos, is_trial: true })
+          .eq('id', userId)
+
+        if (profileError) {
+          console.error('Falha ao marcar lead do teste:', profileError.message)
+        }
+      }
+
+      // Sem confirmação de e-mail, a sessão já vem no signUp
+      if (data.session) {
+        router.push('/teste/cargo')
+        router.refresh()
       } else {
-        trackPixel('Lead')
+        // Com confirmação ligada: direcionar pro e-mail
+        setOtpEnviado(true)
       }
-
-      // signUp sem sessão = confirmação de e-mail ligada no projeto Supabase.
-      // Tentamos entrar assim mesmo; se o GoTrue exigir a confirmação, o erro
-      // vira uma instrução clara em vez de um beco sem saída.
-      if (!sessao) {
-        const { data: loginData, error: loginError } =
-          await supabase.auth.signInWithPassword({
-            email: emailNormalizado,
-            password: senha,
-          })
-        if (loginError || !loginData.session) {
-          setErro(
-            'Conta criada! Confirme o e-mail que acabamos de enviar para liberar o diagnóstico.',
-          )
-          setLoading(false)
-          return
-        }
-        sessao = loginData.session
-      }
-
-      // Marca o lead. Falha aqui não interrompe o funil — o diagnóstico não
-      // depende destas colunas, e o WhatsApp já foi para o user_metadata.
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ whatsapp: digitos, is_trial: true })
-        .eq('id', sessao.user.id)
-
-      if (profileError) {
-        console.error('Falha ao marcar lead do teste:', profileError.message)
-      }
-
-      router.push('/teste/cargo')
-      router.refresh()
     } catch (err) {
       setErro(
         err instanceof Error
@@ -140,72 +137,87 @@ export function TrialSignupForm() {
     }
   }
 
+  if (otpEnviado) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="rounded-lg bg-[#0B3D2E]/[0.04] px-4 py-3">
+          <p className="text-sm font-medium text-[#0B3D2E]">
+            Enviamos um link para o seu e-mail
+          </p>
+          <p className="mt-1 text-xs text-[#0B3D2E]/70">
+            Clique nele para confirmar sua conta e começar o diagnóstico.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setOtpEnviado(false)}
+          className="text-sm text-[#9A6E12] underline hover:text-[#0B3D2E]"
+        >
+          Voltar
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       <div className="space-y-1.5">
         <label className={LABEL_CLASS} htmlFor="nome">
           Nome completo
         </label>
-        <input
-          id="nome"
-          type="text"
-          autoComplete="name"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          disabled={loading}
-          className={FIELD_CLASS}
-          placeholder="Maria Silva"
-        />
+        <div className="relative flex items-center">
+          <User className="absolute left-3 h-4 w-4 text-[#0B3D2E]/40" strokeWidth={1.75} />
+          <input
+            id="nome"
+            type="text"
+            autoComplete="name"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            disabled={loading}
+            className={`${FIELD_CLASS} pl-10`}
+            placeholder="Maria Silva"
+          />
+        </div>
       </div>
 
       <div className="space-y-1.5">
         <label className={LABEL_CLASS} htmlFor="email">
           E-mail
         </label>
-        <input
-          id="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-          className={FIELD_CLASS}
-          placeholder="voce@email.com"
-        />
+        <div className="relative flex items-center">
+          <Mail className="absolute left-3 h-4 w-4 text-[#0B3D2E]/40" strokeWidth={1.75} />
+          <input
+            id="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            className={`${FIELD_CLASS} pl-10`}
+            placeholder="voce@email.com"
+          />
+        </div>
       </div>
 
       <div className="space-y-1.5">
         <label className={LABEL_CLASS} htmlFor="whatsapp">
           WhatsApp
         </label>
-        <input
-          id="whatsapp"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel-national"
-          value={whatsapp}
-          onChange={(e) => setWhatsapp(e.target.value)}
-          disabled={loading}
-          className={FIELD_CLASS}
-          placeholder="(21) 99999-9999"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <label className={LABEL_CLASS} htmlFor="senha">
-          Senha
-        </label>
-        <input
-          id="senha"
-          type="password"
-          autoComplete="new-password"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          disabled={loading}
-          className={FIELD_CLASS}
-          placeholder="Mínimo 6 caracteres"
-        />
+        <div className="relative flex items-center">
+          <Phone className="absolute left-3 h-4 w-4 text-[#0B3D2E]/40" strokeWidth={1.75} />
+          <input
+            id="whatsapp"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            disabled={loading}
+            className={`${FIELD_CLASS} pl-10`}
+            placeholder="(21) 99999-9999"
+          />
+        </div>
       </div>
 
       {erro && (
@@ -220,18 +232,21 @@ export function TrialSignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className={`${CTA_PRIMARY_ON_LIGHT} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+        className={`${CTA_PRIMARY_ON_LIGHT} w-full gap-2 disabled:cursor-not-allowed disabled:opacity-60`}
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         Começar o diagnóstico
+        {!loading && <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
       </button>
 
-      <p className="text-center text-xs text-[#0B3D2E]/55">
-        Leva 5 minutos. Sem cartão de crédito.{' '}
-        <Link href="/auth/login" className="underline hover:text-[#0B3D2E]">
-          Já tem conta?
-        </Link>
-      </p>
+      <div className="border-t border-[#0B3D2E]/10 pt-4 text-center">
+        <p className="text-xs text-[#0B3D2E]/55">
+          Já tem conta?{' '}
+          <Link href="/auth/login" className="font-medium underline hover:text-[#0B3D2E]">
+            Entrar aqui
+          </Link>
+        </p>
+      </div>
     </form>
   )
 }
