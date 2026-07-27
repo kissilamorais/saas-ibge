@@ -12,6 +12,7 @@ import {
 } from '@/lib/pricing'
 
 import { CTA_PRIMARY_ON_LIGHT, PRICE_DEADLINE } from './brand'
+import { TrialLink } from './TrialLink'
 
 interface Bonus {
   icon: LucideIcon
@@ -165,6 +166,7 @@ export function OfferSection() {
             Quero me preparar por {currentPriceLabel()}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </CheckoutButton>
+          <TrialLink />
           {isLaunchPeriod() && (
             <div className="mt-8 flex flex-col items-center gap-2.5">
               <p className="text-xs font-medium uppercase tracking-widest text-[#5F6B66]">

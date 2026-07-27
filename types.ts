@@ -1,5 +1,16 @@
 // types/database.ts - Gerado automaticamente do Supabase ou definido manualmente
 
+import type { TrialCargo, TrialStatus } from '@/lib/trial/types'
+
+// Valor JSON arbitrário (colunas jsonb).
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 // Cargos do edital nº 01/2026 (trilhas de estudo).
 export type FunctionCode = 'aca' | 'aci' | 'aor' | 'acr' | 'acs'
 
@@ -35,6 +46,10 @@ export type Database = {
           lead_followup_status: LeadFollowupStatus
           lead_followup_note: string | null
           lead_followup_at: string | null
+          whatsapp: string | null
+          is_trial: boolean
+          trial_cargo: TrialCargo | null
+          trial_status: TrialStatus
           created_at: string
           updated_at: string
         }
@@ -49,7 +64,15 @@ export type Database = {
           | 'weekly_goal_hours'
           | 'is_admin'
           | 'lead_followup_status'
+          | 'whatsapp'
+          | 'is_trial'
+          | 'trial_cargo'
+          | 'trial_status'
         > & {
+          whatsapp?: string | null
+          is_trial?: boolean
+          trial_cargo?: TrialCargo | null
+          trial_status?: TrialStatus
           target_function?: FunctionCode | null
           exam_date?: string | null
           daily_goal_hours?: number
@@ -307,6 +330,31 @@ export type Database = {
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['pending_orders']['Row']>
+        Relationships: []
+      }
+      free_trial_results: {
+        Row: {
+          id: string
+          user_id: string
+          cargo: TrialCargo
+          // Respostas já corrigidas NO SERVIDOR (TrialAnswer[]).
+          answers: Json
+          score_geral: number | null
+          score_por_modulo: Json | null
+          completed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          cargo: TrialCargo
+          answers: Json
+          score_geral?: number | null
+          score_por_modulo?: Json | null
+          completed_at?: string
+        }
+        Update: Partial<
+          Database['public']['Tables']['free_trial_results']['Row']
+        >
         Relationships: []
       }
     }

@@ -11,6 +11,7 @@ import {
 } from '@/lib/pricing'
 
 import { CTA_PRIMARY, PRICE_DEADLINE } from './brand'
+import { TrialLink } from './TrialLink'
 
 /**
  * Urgência — fundo petróleo, o contador no MÁXIMO tamanho da página. Comparação
@@ -79,6 +80,7 @@ export function UrgencySection() {
           <CheckoutButton collectEmail className={CTA_PRIMARY}>
             Começar agora por {currentPriceLabel()}
           </CheckoutButton>
+          <TrialLink tone="dark" />
         </div>
 
         <p className="mt-6 text-sm text-white/60">

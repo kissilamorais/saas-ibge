@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   ArrowLeft,
+  FlaskConical,
   Gauge,
   Gift,
   LogOut,
@@ -17,6 +18,7 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   { href: '/admin', label: 'Visão geral', icon: Gauge, exact: true },
   { href: '/admin/leads', label: 'Leads', icon: UserPlus, exact: false },
+  { href: '/admin/trial', label: 'Trial', icon: FlaskConical, exact: false },
   {
     href: '/admin/abandonos',
     label: 'Abandonos',

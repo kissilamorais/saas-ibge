@@ -29,6 +29,22 @@ export function formatDate(iso: string | null | undefined): string {
   })
 }
 
+/**
+ * Data e hora curtas: "27/07 14:30". Fixado em America/Sao_Paulo — os
+ * timestamps são gravados em UTC e o painel é lido do Brasil, então deixar o
+ * fuso do servidor decidir exibiria horas erradas na Vercel.
+ */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 /** Duração em dias, legível: "—", "hoje", "3 dias", "1 dia". */
 export function formatDays(days: number | null): string {
   if (days === null) return '—'

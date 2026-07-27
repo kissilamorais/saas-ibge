@@ -3,6 +3,7 @@ import { CalendarDays, CreditCard, Infinity as InfinityIcon, ShieldCheck } from 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CountdownTimer } from '@/components/CountdownTimer'
 import { DaysUntilExam } from './DaysUntilExam'
+import { TrialLink } from './TrialLink'
 
 import {
   FULL_PRICE_CENTS,
@@ -117,6 +118,7 @@ export function HeroSection() {
           <CheckoutButton collectEmail className={CTA_PRIMARY_ON_LIGHT}>
             Começar agora por {currentPriceLabel()}
           </CheckoutButton>
+          <TrialLink />
         </div>
 
         {/* Bloco de urgência some junto com a promoção — um contador zerado ao
