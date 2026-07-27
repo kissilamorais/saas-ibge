@@ -20,18 +20,6 @@ function apenasDigitos(valor: string): string {
   return valor.replace(/\D/g, '')
 }
 
-/**
- * O Supabase não expõe um código estável para "e-mail já cadastrado": a
- * mensagem varia entre versões. Casamos por trecho para detectar o caso.
- */
-function pareceEmailJaCadastrado(mensagem: string): boolean {
-  const m = mensagem.toLowerCase()
-  return (
-    m.includes('already registered') ||
-    m.includes('already been registered') ||
-    m.includes('user already exists')
-  )
-}
 
 export function TrialSignupForm() {
   const router = useRouter()
@@ -66,67 +54,34 @@ export function TrialSignupForm() {
     const supabase = createClient()
 
     try {
-      // Tenta signUp — com "Confirm email" desligado no Supabase, dispara
-      // e-mail de definição de senha automaticamente (sem password requerida).
-      // O tipo exige password, mas passamos vazio — o GoTrue ignora.
-      const { data, error } = await (
-        supabase.auth.signUp as (opts: {
-          email: string
-          password?: string
-          options?: { data?: { [key: string]: string } }
-        }) => ReturnType<typeof supabase.auth.signUp>
-      )({
+      // Magic link OTP: cria usuário novo OU autentica existente, sem password.
+      // shouldCreateUser: true = cria se não existir; ignora se já existe.
+      // O callback vai confirmar o OTP e redirecionar para /teste/cargo com sessão.
+      const { data, error } = await supabase.auth.signInWithOtp({
         email: emailNormalizado,
-        password: '', // Ignorado quando "Confirm email" está desligado
-        options: { data: { full_name: nome.trim(), whatsapp: digitos } },
+        options: {
+          data: { full_name: nome.trim(), whatsapp: digitos, _trial: 'true' },
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=/teste/cargo`,
+        },
       })
 
       if (error) {
-        if (!pareceEmailJaCadastrado(error.message)) throw error
-
-        // E-mail já existe — envia magic link (OTP)
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email: emailNormalizado,
-          options: {
-            shouldCreateUser: false,
-          },
-        })
-
-        if (otpError) {
-          throw new Error(
-            'Esse e-mail já tem conta no Aprovus. Enviamos um link para você entrar.',
-          )
-        }
-
-        setOtpEnviado(true)
-        setErro(null)
-        setLoading(false)
-        return
+        throw new Error(
+          error.message ||
+            'Não foi possível enviar o link. Tente de novo em alguns instantes.',
+        )
       }
 
       trackPixel('Lead')
 
-      // signUp criou a conta. Agora marca como trial
-      const userId = data.user?.id
-      if (userId) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ whatsapp: digitos, is_trial: true })
-          .eq('id', userId)
+      // OTP mandado com sucesso. Se o usuário é novo, criar com is_trial.
+      // Se já existe, apenas atualizar whatsapp e is_trial.
+      // Como não temos session (fluxo OTP é async via e-mail), fazemos isso
+      // serverside — mas por enquanto, marcamos que OTP foi enviado.
+      // O usuário vai confirmar via link e entrar direto em /teste/cargo.
 
-        if (profileError) {
-          console.error('Falha ao marcar lead do teste:', profileError.message)
-        }
-      }
-
-      // Sem confirmação de e-mail, a sessão já vem no signUp
-      if (data.session) {
-        router.push('/teste/cargo')
-        router.refresh()
-      } else {
-        // Com confirmação ligada: direcionar pro e-mail
-        setOtpEnviado(true)
-      }
+      setOtpEnviado(true)
     } catch (err) {
       setErro(
         err instanceof Error

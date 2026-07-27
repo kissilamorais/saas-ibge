@@ -1,13 +1,38 @@
 import { redirect } from 'next/navigation'
 
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getProfile, getUser } from '@/lib/auth/session'
 import type { TrialCargo } from '@/lib/trial/types'
 import { CargoPicker } from './_components/CargoPicker'
 
+async function setupTrialProfile(userId: string) {
+  const admin = createAdminClient()
+
+  // Buscar user_metadata para extrair whatsapp (passou no signInWithOtp)
+  const {
+    data: { user },
+  } = await admin.auth.admin.getUserById(userId)
+
+  const whatsapp = (user?.user_metadata?.whatsapp as string) || null
+  const isTrialMarker = user?.user_metadata?._trial === 'true'
+
+  // Se o user marcou como trial no signup, fazer o setup uma única vez
+  if (isTrialMarker && whatsapp) {
+    await admin
+      .from('profiles')
+      .update({ whatsapp, is_trial: true })
+      .eq('id', userId)
+  }
+}
+
 export default async function CargoPage() {
   // /teste/* fica fora do middleware (funil público), então cada etapa checa
   // a sessão por conta própria.
-  if (!(await getUser())) redirect('/teste')
+  const user = await getUser()
+  if (!user) redirect('/teste')
+
+  // Setup do perfil trial se for primeiro acesso
+  await setupTrialProfile(user.id)
 
   const profile = await getProfile()
 
