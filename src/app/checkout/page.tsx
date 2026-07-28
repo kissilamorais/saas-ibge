@@ -22,12 +22,13 @@ const BENEFITS = [
   'Dashboard de desempenho e revisões',
 ]
 
-export default async function CheckoutPage({
-  searchParams,
-}: {
-  searchParams: { canceled?: string }
-}) {
-  const supabase = createClient()
+export default async function CheckoutPage(
+  props: {
+    searchParams: Promise<{ canceled?: string }>
+  }
+) {
+  const searchParams = await props.searchParams
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

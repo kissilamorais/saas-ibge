@@ -23,10 +23,8 @@ import { reportError } from '@/lib/observability/log'
  *   404 — desbloqueado, mas o recurso ainda não foi disponibilizado.
  *   200 — bytes do arquivo (download) OU 302 para o recurso (external).
  */
-export async function GET(
-  _req: Request,
-  { params }: { params: { bonusSlug: string } },
-) {
+export async function GET(_req: Request, props: { params: Promise<{ bonusSlug: string }> }) {
+  const params = await props.params
   const { bonus, canAccess } = await resolveBonusAccess(params.bonusSlug)
 
   if (!bonus) {

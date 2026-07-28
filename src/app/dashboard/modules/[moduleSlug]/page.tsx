@@ -53,11 +53,12 @@ const statusConfig: Record<
   },
 }
 
-export default async function ModuleDetailPage({
-  params,
-}: {
-  params: { moduleSlug: string }
-}) {
+export default async function ModuleDetailPage(
+  props: {
+    params: Promise<{ moduleSlug: string }>
+  }
+) {
+  const params = await props.params
   const profile = await requireTargetFunction()
 
   const [data, progress] = await Promise.all([

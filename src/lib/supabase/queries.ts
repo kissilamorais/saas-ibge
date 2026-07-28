@@ -37,7 +37,7 @@ export async function getCompletedLessons(): Promise<{
   lessonIds: Set<string>
   byModule: Map<string, number>
 }> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   const lessonIds = new Set<string>()
   const byModule = new Map<string, number>()
@@ -67,7 +67,7 @@ export async function getCompletedLessons(): Promise<{
 export async function getUserExamStats(): Promise<
   Map<string, { attempts: number; lastScore: number | null }>
 > {
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   const map = new Map<string, { attempts: number; lastScore: number | null }>()
   if (!user) return map
@@ -97,7 +97,7 @@ export async function getUserExamStats(): Promise<
  * Alimenta as recomendações de "fraqueza". RLS restringe às respostas do usuário.
  */
 export async function getModuleAccuracy(): Promise<ModuleAccuracy[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return []
 
@@ -192,7 +192,7 @@ function computeStreaks(
 
 /** Agrega tudo que a dashboard precisa (progresso, horas, próximos passos). */
 export async function getDashboardData(): Promise<DashboardData> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   // Função-alvo (getProfile é cache()) para filtrar módulos/simulados da trilha.
   const profile = await getProfile()
@@ -363,7 +363,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 export async function getModules(
   functionCode?: FunctionCode | null
 ): Promise<Module[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   let query = supabase
     .from('modules')
     .select('*')
@@ -378,7 +378,7 @@ export async function getModules(
 export async function getModulesWithQuestionCount(
   functionCode?: FunctionCode | null
 ): Promise<(Module & { totalQuestions: number })[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   let query = supabase
     .from('modules')
     .select('*, questions(count)')
@@ -401,7 +401,7 @@ export async function getModulesWithQuestionCount(
 export async function getModulesWithLessonCount(
   functionCode?: FunctionCode | null
 ): Promise<(Module & { totalLessons: number })[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   let query = supabase
     .from('modules')
     .select('*, lessons(count)')
@@ -424,7 +424,7 @@ export async function getModulesWithLessonCount(
 export async function getModuleBySlug(
   slug: string
 ): Promise<(Module & { lessons: Lesson[] }) | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('modules')
     .select('*, lessons(*)')
@@ -445,7 +445,7 @@ export async function getLessonBySlug(
   moduleSlug: string,
   lessonSlug: string
 ): Promise<(Lesson & { questions: QuestionWithOptions[] }) | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Resolve o módulo primeiro para garantir que a lição pertence a ele
   const { data: moduleData, error: moduleError } = await supabase
@@ -507,7 +507,7 @@ export async function getModuleQuizSample(
   limit = 5,
   seed?: string
 ): Promise<QuestionWithOptions[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: idRows, error: idError } = await supabase
     .from('questions')
@@ -548,7 +548,7 @@ export async function getModuleQuizSample(
 export async function getExams(
   functionCode?: FunctionCode | null
 ): Promise<Exam[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   let query = supabase
     .from('exams')
     .select('*')
@@ -562,7 +562,7 @@ export async function getExams(
 }
 
 export async function getExamBySlug(slug: string): Promise<Exam | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('exams')
     .select('*')
@@ -585,7 +585,7 @@ export type ExamQuestionWithModule = QuestionWithOptions & {
 export async function getExamWithQuestions(
   slug: string
 ): Promise<(Exam & { questions: ExamQuestionWithModule[] }) | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('exams')
     .select(

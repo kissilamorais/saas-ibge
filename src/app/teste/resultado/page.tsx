@@ -72,11 +72,12 @@ function ListaModulos({
   )
 }
 
-export default async function ResultadoPage({
-  searchParams,
-}: {
-  searchParams: { id?: string }
-}) {
+export default async function ResultadoPage(
+  props: {
+    searchParams: Promise<{ id?: string }>
+  }
+) {
+  const searchParams = await props.searchParams
   const session = await getTrialSession()
   if (!session) redirect('/teste')
 

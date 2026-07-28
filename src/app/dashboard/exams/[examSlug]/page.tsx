@@ -6,11 +6,12 @@ import { getExamWithQuestions } from '@/lib/supabase/queries'
 import { QuizEngine } from '@/components/quiz/QuizEngine'
 import type { QuizQuestion } from '@/components/quiz/QuestionCard'
 
-export default async function ExamPlayerPage({
-  params,
-}: {
-  params: { examSlug: string }
-}) {
+export default async function ExamPlayerPage(
+  props: {
+    params: Promise<{ examSlug: string }>
+  }
+) {
+  const params = await props.params
   const profile = await requireTargetFunction()
 
   const exam = await getExamWithQuestions(params.examSlug)

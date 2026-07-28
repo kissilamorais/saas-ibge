@@ -25,7 +25,7 @@ import type { UserProfile } from '@/types'
  * JWT no servidor de Auth — só roda uma vez por request.
  */
 export const getUser = cache(async (): Promise<User | null> => {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -36,7 +36,7 @@ export const getProfile = cache(async (): Promise<UserProfile | null> => {
   const user = await getUser()
   if (!user) return null
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data } = await supabase
     .from('profiles')
     .select('*')
@@ -61,7 +61,7 @@ export const hasContentAccess = cache(async (): Promise<boolean> => {
   const user = await getUser()
   if (!user) return false
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.rpc('current_user_has_content_access')
   if (error) return false
   return data === true

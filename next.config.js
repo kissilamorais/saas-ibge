@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  // swcMinify removido no Next 15: a minificação por SWC virou o único caminho,
+  // a flag deixou de ser reconhecida (o build avisava "Unrecognized key").
   typescript: {
     tsconfigPath: './tsconfig.json',
   },

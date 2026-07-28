@@ -37,11 +37,12 @@ export const metadata = { title: 'Visão geral · Admin · Aprovus' }
 // Dados sempre frescos: métricas mudam a cada cadastro/venda.
 export const dynamic = 'force-dynamic'
 
-export default async function AdminOverviewPage({
-  searchParams,
-}: {
-  searchParams: { period?: string }
-}) {
+export default async function AdminOverviewPage(
+  props: {
+    searchParams: Promise<{ period?: string }>
+  }
+) {
+  const searchParams = await props.searchParams
   await requireAdmin()
   const period = resolvePeriod(searchParams.period)
   const [data, charts] = await Promise.all([

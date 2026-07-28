@@ -6,9 +6,13 @@ import type { Database } from '@/types'
 /**
  * Client Supabase para Server Components, Route Handlers e Server Actions.
  * Usa os cookies da requisição (necessário para sessões de auth — item 3).
+ *
+ * Async desde o Next 15: `cookies()` virou Promise. O await tem que acontecer
+ * aqui, antes do closure — `getAll`/`setAll` são síncronos por contrato do
+ * `@supabase/ssr` e não podem esperar o store.
  */
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

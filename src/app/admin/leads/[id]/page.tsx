@@ -31,11 +31,12 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-export default async function LeadDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function LeadDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params
   await requireAdmin()
   const lead = await getLead(params.id)
   if (!lead) notFound()

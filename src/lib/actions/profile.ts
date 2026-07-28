@@ -45,7 +45,7 @@ export async function updateStudyConfig(
     return { ok: false, error: 'weekly_lt_daily' }
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
@@ -77,7 +77,7 @@ export async function updateStudyConfig(
 export async function setTargetFunction(code: string): Promise<ActionResult> {
   if (!isFunctionCode(code)) return { ok: false, error: 'invalid_function' }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
