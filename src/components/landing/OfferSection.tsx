@@ -5,9 +5,7 @@ import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CountdownTimer } from '@/components/CountdownTimer'
 
 import {
-  FULL_PRICE_CENTS,
   currentPriceLabel,
-  formatPriceBRL,
   isLaunchPeriod,
 } from '@/lib/pricing'
 
@@ -169,7 +167,7 @@ export function OfferSection() {
           {isLaunchPeriod() && (
             <div className="mt-8 flex flex-col items-center gap-2.5">
               <p className="text-xs font-medium uppercase tracking-widest text-[#5F6B66]">
-                Preço sobe pra {formatPriceBRL(FULL_PRICE_CENTS)} em
+                O preço de lançamento sai em
               </p>
               <CountdownTimer targetDate={PRICE_DEADLINE} size="sm" />
             </div>
