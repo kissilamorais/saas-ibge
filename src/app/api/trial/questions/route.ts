@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
 import { clientIp, rateLimit } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { getTrialSessionFromRequest } from '@/lib/trial-session'
 import type { TrialQuestion } from '@/lib/trial/types'
 
 /**
@@ -15,7 +15,9 @@ import type { TrialQuestion } from '@/lib/trial/types'
  * removido antes da resposta sair do servidor.
  *
  * Exige sessão mesmo assim: sem isso a rota viraria um raspador anônimo do
- * banco de questões (1.096 itens, ~10 por chamada).
+ * banco de questões (1.096 itens, ~10 por chamada). A sessão aqui é a de
+ * CONVIDADO (cookie assinado do funil), não a do Supabase Auth — o visitante
+ * do teste não tem conta.
  */
 
 const DISTRIBUICAO = [
@@ -52,7 +54,7 @@ type QuestionRow = {
   }[]
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const rl = await rateLimit('trial-questions', clientIp(request), 20, 60)
   if (!rl.success) {
     return NextResponse.json(
@@ -61,10 +63,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const {
-    data: { user },
-  } = await createClient().auth.getUser()
-  if (!user) {
+  if (!(await getTrialSessionFromRequest(request))) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 

@@ -7,9 +7,10 @@ import { isTrialStatus } from '@/lib/trial/types'
 /**
  * PATCH /api/admin/trial/[id]/status — muda o estágio do lead no mini-CRM.
  *
- * Escreve via service_role porque a 0012 revogou `update (trial_status)` de
- * `authenticated`: sem isso o próprio lead poderia se marcar como convertido.
- * O guard de admin é feito aqui, no servidor, antes de qualquer escrita.
+ * `[id]` é o id do lead em `trial_leads` (0013), não mais o do profile: desde a
+ * correção da VUL-001 o teste gratuito não cria conta no Auth. A tabela está
+ * atrás de RLS sem policy nenhuma, então a escrita só existe via service_role —
+ * e o guard de admin é feito aqui, no servidor, antes de qualquer escrita.
  */
 export async function PATCH(
   request: Request,
@@ -30,7 +31,7 @@ export async function PATCH(
   }
 
   const { error } = await createAdminClient()
-    .from('profiles')
+    .from('trial_leads')
     .update({ trial_status: body.trial_status })
     .eq('id', params.id)
 

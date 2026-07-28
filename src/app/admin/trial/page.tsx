@@ -129,7 +129,7 @@ export default async function AdminTrialPage() {
           title="Leads"
           value={formatInt(data.total)}
           icon={Users}
-          subtitle="contas criadas pelo teste"
+          subtitle="cadastros no teste"
         />
         <KpiCard
           title="Completaram"

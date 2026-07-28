@@ -332,10 +332,44 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['pending_orders']['Row']>
         Relationships: []
       }
+      // Lead do teste gratuito. Vive FORA do auth.users: o visitante do trial
+      // não tem conta (ver 0013 e lib/trial-session.ts) — ela só nasce se ele
+      // comprar. Escrita/leitura exclusivamente via service_role.
+      trial_leads: {
+        Row: {
+          id: string
+          email: string
+          full_name: string
+          whatsapp: string | null
+          trial_cargo: TrialCargo | null
+          target_function: FunctionCode | null
+          trial_status: TrialStatus
+          converted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          full_name: string
+          whatsapp?: string | null
+          trial_cargo?: TrialCargo | null
+          target_function?: FunctionCode | null
+          trial_status?: TrialStatus
+          converted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['trial_leads']['Row']>
+        Relationships: []
+      }
       free_trial_results: {
         Row: {
           id: string
-          user_id: string
+          // Exatamente um dos dois é preenchido: user_id nas linhas antigas
+          // (quem tinha conta), lead_id no funil de convidado.
+          user_id: string | null
+          lead_id: string | null
           cargo: TrialCargo
           // Respostas já corrigidas NO SERVIDOR (TrialAnswer[]).
           answers: Json
@@ -345,7 +379,8 @@ export type Database = {
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
+          lead_id?: string | null
           cargo: TrialCargo
           answers: Json
           score_geral?: number | null
@@ -409,6 +444,9 @@ export type ComplimentaryAccess =
 // Checkout abandonado (sessão da Stripe expirada sem pagamento)
 export type AbandonedCheckout =
   Database['public']['Tables']['abandoned_checkouts']['Row']
+
+// Lead do teste gratuito (sem conta no Auth até comprar)
+export type TrialLead = Database['public']['Tables']['trial_leads']['Row']
 
 // Composite types
 export type QuestionWithOptions = Question & {

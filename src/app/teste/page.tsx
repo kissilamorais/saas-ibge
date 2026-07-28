@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { Clock, Target, Shield, Mail, Lock } from 'lucide-react'
 
-import { getUser } from '@/lib/auth/session'
+import { getTrialSession } from '@/lib/trial-session'
 import { TrialSignupForm } from './_components/TrialSignupForm'
 
 const PILLS = [
@@ -17,8 +17,11 @@ const TRUST = [
 ]
 
 export default async function TestePage() {
-  // Quem já está logado pula o cadastro e vai direto escolher o cargo.
-  if (await getUser()) redirect('/teste/cargo')
+  // Quem já começou o teste (cookie do funil válido) retoma de onde parou.
+  // O critério é a sessão de CONVIDADO, não a do Auth: /teste/cargo exige o
+  // cookie, então mandar um usuário logado sem cookie para lá criaria um
+  // pingue-pongue /teste → /teste/cargo → /teste.
+  if (await getTrialSession()) redirect('/teste/cargo')
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAFAF7] text-[#0B3D2E]">
@@ -61,7 +64,7 @@ export default async function TestePage() {
           {/* Formulário */}
           <div className="mt-10 rounded-2xl border border-[#0B3D2E]/10 bg-white p-6 shadow-sm sm:p-10">
             <p className="mb-6 text-center text-sm font-semibold text-[#0B3D2E]">
-              Crie sua conta grátis
+              Comece seu diagnóstico grátis
             </p>
             <TrialSignupForm />
           </div>

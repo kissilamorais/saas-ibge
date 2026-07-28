@@ -1,21 +1,29 @@
-import { randomUUID } from 'crypto'
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
+import { log, reportError } from '@/lib/observability/log'
+import { createTrialSession } from '@/lib/trial-session'
+import type { TrialLead } from '@/types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Janela em que um novo cadastro com o mesmo e-mail reaproveita o lead. */
+const REUSO_LEAD_MS = 2 * 60 * 60 * 1000 // 2h — mesma validade do cookie
+
 /**
- * Cria a conta do teste gratuito já confirmada e devolve a senha gerada no
- * servidor para o cliente logar na hora — o funil não sobrevive a um desvio
- * para a caixa de entrada.
+ * POST /api/trial/signup — entrada do funil do teste gratuito.
  *
- * A senha só é devolvida para contas criadas agora. Se o e-mail já existe,
- * responde 409: resetar a senha de uma conta alheia a partir do e-mail seria
- * takeover de qualquer aluno pagante.
+ * NÃO cria conta no Supabase Auth. Criar uma conta confirmada a partir de um
+ * e-mail apenas digitado era a VUL-001: dava para pré-registrar o endereço de
+ * um futuro comprador e receber o acesso pago no lugar dele. Aqui o visitante
+ * vira só um registro em `trial_leads` + um cookie httpOnly assinado; a conta
+ * real nasce no pagamento (lib/onboarding/guest.ts).
+ *
+ * Como não há conta, também não há como este endpoint revelar quem já é aluno
+ * — o e-mail nunca é consultado no Auth, e a resposta é sempre a mesma.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const rl = await rateLimit('trial-signup', clientIp(request), 5, 60)
   if (!rl.success) {
     return NextResponse.json(
@@ -48,30 +56,73 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient()
-  const password = randomUUID() + randomUUID()
 
-  const { error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName, whatsapp, _trial: 'true' },
-  })
+  // Reaproveita um lead recente do mesmo e-mail (voltou para o /teste, perdeu
+  // o cookie, trocou de aba) em vez de duplicar a linha no CRM. Passada a
+  // janela, um novo cadastro é um novo lead — a pessoa refez o teste.
+  const desde = new Date(Date.now() - REUSO_LEAD_MS).toISOString()
+  const { data: recente } = await admin
+    .from('trial_leads')
+    .select('id, trial_cargo, target_function')
+    .eq('email', email)
+    .gte('created_at', desde)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-  if (error) {
-    const alreadyExists =
-      error.status === 422 || /already|exist|registered/i.test(error.message)
-    if (alreadyExists) {
+  let lead = recente as Pick<
+    TrialLead,
+    'id' | 'trial_cargo' | 'target_function'
+  > | null
+
+  if (lead) {
+    // Nome/WhatsApp podem ter sido corrigidos na segunda tentativa.
+    const { error } = await admin
+      .from('trial_leads')
+      .update({ full_name: fullName, whatsapp })
+      .eq('id', lead.id)
+    if (error) {
+      reportError('trial.signup.update_lead', error)
       return NextResponse.json(
-        { error: 'Esse e-mail já tem conta. Entre com sua senha para continuar.' },
-        { status: 409 },
+        { error: 'Não foi possível iniciar seu teste. Tente de novo.' },
+        { status: 500 },
       )
     }
-    console.error('[trial/signup] createUser falhou:', error.message)
-    return NextResponse.json(
-      { error: 'Não foi possível criar sua conta. Tente de novo.' },
-      { status: 500 },
-    )
+  } else {
+    const { data: criado, error } = await admin
+      .from('trial_leads')
+      .insert({ email, full_name: fullName, whatsapp })
+      .select('id, trial_cargo, target_function')
+      .single()
+
+    if (error || !criado) {
+      reportError(
+        'trial.signup.insert_lead',
+        error ?? new Error('insert retornou vazio'),
+      )
+      return NextResponse.json(
+        { error: 'Não foi possível iniciar seu teste. Tente de novo.' },
+        { status: 500 },
+      )
+    }
+    lead = criado as Pick<TrialLead, 'id' | 'trial_cargo' | 'target_function'>
   }
 
-  return NextResponse.json({ email, password })
+  const response = NextResponse.json({ ok: true })
+  await createTrialSession(
+    {
+      leadId: lead.id,
+      email,
+      fullName,
+      whatsapp,
+      ...(lead.trial_cargo ? { cargo: lead.trial_cargo } : {}),
+      ...(lead.target_function
+        ? { targetFunction: lead.target_function }
+        : {}),
+    },
+    response,
+  )
+
+  log.info('trial.signup.lead_created', { leadId: lead.id, reused: !!recente })
+  return response
 }
