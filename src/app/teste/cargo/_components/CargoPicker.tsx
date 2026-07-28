@@ -4,18 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Loader2 } from 'lucide-react'
 
-import { createClient } from '@/lib/supabase/client'
 import { TRIAL_CARGOS, type TrialCargo } from '@/lib/trial/types'
-import type { FunctionCode } from '@/types'
 
 /**
  * Escolha do cargo do diagnóstico.
  *
- * Grava DOIS campos com o mesmo valor em grafias diferentes:
- *   trial_cargo    ('ACA')  → segmentação do funil / painel do admin
- *   target_function ('aca') → trilha de estudo que o dashboard já lê hoje
- * Assim, quem comprar depois entra no produto com a trilha certa e não precisa
- * escolher o cargo de novo.
+ * A escrita passa por POST /api/trial/cargo em vez de ir direto ao Supabase: o
+ * visitante do teste não tem conta (é uma sessão de convidado), `trial_leads`
+ * só aceita service_role e o cookie do funil precisa ser reemitido com o cargo.
+ * A rota grava as duas grafias do valor (trial_cargo 'ACA' + target_function
+ * 'aca'), como antes.
  */
 export function CargoPicker({
   cargoAtual,
@@ -31,25 +29,19 @@ export function CargoPicker({
     setErro(null)
     setSalvando(cargo)
 
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const res = await fetch('/api/trial/cargo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cargo }),
+    }).catch(() => null)
 
-    if (!user) {
+    // 401 = cookie do funil expirou (2h): recomeça em vez de insistir.
+    if (res?.status === 401) {
       router.push('/teste')
       return
     }
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        trial_cargo: cargo,
-        target_function: cargo.toLowerCase() as FunctionCode,
-      })
-      .eq('id', user.id)
-
-    if (error) {
+    if (!res?.ok) {
       setErro('Não foi possível salvar sua escolha. Tente de novo.')
       setSalvando(null)
       return

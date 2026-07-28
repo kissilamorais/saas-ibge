@@ -35,23 +35,34 @@ interface CheckoutButtonProps {
    * da sessão no servidor.
    */
   collectEmail?: boolean
+  /**
+   * E-mail já conhecido (fim do teste gratuito: o convidado digitou o e-mail no
+   * passo 1 e não tem conta). O pedido nasce com ele, sem pedir de novo — e sem
+   * campo para editar, já que é para esse endereço que o acesso vai.
+   */
+  emailPadrao?: string
 }
 
 export function CheckoutButton({
   className = DEFAULT_CLASS,
   children = 'Liberar acesso',
   collectEmail = false,
+  emailPadrao,
 }: CheckoutButtonProps = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(emailPadrao ?? '')
+
+  // Fluxo guest: com e-mail conhecido não há campo a preencher, mas o pedido
+  // continua tendo de nascer com `customer_email`.
+  const enviaEmail = collectEmail || !!emailPadrao
 
   async function handleClick() {
     setError(null)
 
     // Fluxo guest: exige e-mail válido antes de qualquer chamada / evento.
     const normalizedEmail = email.trim().toLowerCase()
-    if (collectEmail) {
+    if (enviaEmail) {
       if (!EMAIL_RE.test(normalizedEmail)) {
         setError('Digite um e-mail válido para receber seu acesso.')
         return
@@ -71,7 +82,7 @@ export function CheckoutButton({
       const res = await fetch('/api/infinitepay/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(collectEmail ? { email: normalizedEmail } : {}),
+        body: JSON.stringify(enviaEmail ? { email: normalizedEmail } : {}),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.url) {
@@ -86,7 +97,7 @@ export function CheckoutButton({
 
   return (
     <div className="w-full space-y-2">
-      {collectEmail && (
+      {collectEmail && !emailPadrao && (
         <input
           type="email"
           inputMode="email"
@@ -108,9 +119,11 @@ export function CheckoutButton({
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         {children}
       </button>
-      {collectEmail && !error && (
+      {enviaEmail && !error && (
         <p className="text-center text-xs text-[#5F6B66]">
-          Enviaremos o link de acesso para esse e-mail.
+          {emailPadrao
+            ? `Enviaremos o link de acesso para ${emailPadrao}.`
+            : 'Enviaremos o link de acesso para esse e-mail.'}
         </p>
       )}
       {error && (

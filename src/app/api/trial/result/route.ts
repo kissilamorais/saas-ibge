@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
 import { clientIp, rateLimit } from '@/lib/rate-limit'
+import { reportError } from '@/lib/observability/log'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { getTrialSessionFromRequest } from '@/lib/trial-session'
 import { calcularResultado } from '@/lib/trial/scoring'
 import { isTrialCargo, type TrialAnswer } from '@/lib/trial/types'
 import type { Json } from '@/types'
@@ -15,7 +16,7 @@ import type { Json } from '@/types'
  * isso não existe rota de "check" separada — ela seria um oráculo de gabarito.
  */
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const rl = await rateLimit('trial-result', clientIp(request), 10, 60)
   if (!rl.success) {
     return NextResponse.json(
@@ -24,11 +25,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
+  const session = await getTrialSessionFromRequest(request)
+  if (!session) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 
@@ -119,12 +117,14 @@ export async function POST(request: Request) {
 
   const resultado = calcularResultado(answers)
 
-  // Insert pelo client autenticado (não o admin): a policy de RLS
-  // `usuario_insere_proprio_resultado` continua valendo como segunda barreira.
-  const { data: inserted, error: insertError } = await supabase
+  // Insert via service_role: quem responde é um convidado, sem linha em
+  // auth.users para a policy `usuario_insere_proprio_resultado` casar. O dono
+  // do resultado é o lead do cookie assinado — `lead_id` NÃO vem do corpo da
+  // requisição, senão daria para gravar diagnóstico na ficha de outro lead.
+  const { data: inserted, error: insertError } = await admin
     .from('free_trial_results')
     .insert({
-      user_id: user.id,
+      lead_id: session.leadId,
       cargo: body.cargo,
       answers: answers as unknown as Json,
       score_geral: resultado.score_geral,
@@ -134,6 +134,11 @@ export async function POST(request: Request) {
     .single()
 
   if (insertError || !inserted) {
+    reportError(
+      'trial.result.insert',
+      insertError ?? new Error('insert retornou vazio'),
+      { leadId: session.leadId },
+    )
     return NextResponse.json(
       { error: 'Não foi possível salvar seu resultado.' },
       { status: 500 },

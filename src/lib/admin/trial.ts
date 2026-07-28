@@ -4,10 +4,13 @@ import type { TrialCargo, TrialStatus } from '@/lib/trial/types'
 /**
  * Leads do diagnóstico gratuito para o admin. Server-only via service_role.
  *
- * Duas consultas em vez de um select aninhado: a FK de `free_trial_results`
- * aponta para `auth.users(id)`, não para `public.profiles(id)`, então o
- * PostgREST não enxerga relação entre as duas tabelas ("Could not find a
- * relationship"). O join sai aqui, em memória — o volume é de centenas.
+ * A fonte de dados é `trial_leads` (0013), não mais `profiles.is_trial`: desde
+ * a correção da VUL-001 o teste gratuito não cria conta no Auth, então o lead
+ * do funil só existe nessa tabela. Leads antigos (que tinham conta) foram
+ * copiados para lá pelo backfill da própria migration.
+ *
+ * Duas consultas em vez de um select aninhado: mesma razão de antes — o join
+ * sai aqui, em memória, e o volume é de centenas.
  */
 
 /** Módulo abaixo deste score entra em "dificuldades" (igual ao scoring). */
@@ -23,6 +26,7 @@ export interface TrialLeadRow {
   whatsapp: string | null
   trial_cargo: TrialCargo | null
   trial_status: TrialStatus
+  /** Data da compra, casada por e-mail com `profiles`. Null = não comprou. */
   purchase_date: string | null
   created_at: string
   /** Nulos quando o lead se cadastrou mas não terminou o teste. */
@@ -36,24 +40,24 @@ export interface TrialOverview {
   completaram: number
   /** % de leads que terminaram o teste. */
   taxaConclusao: number
-  /** Leads que viraram compra (purchase_date preenchido pelo webhook). */
+  /** Leads que viraram compra (casamento por e-mail com profiles). */
   convertidos: number
   rows: TrialLeadRow[]
 }
 
-type ProfileRow = {
+type LeadRow = {
   id: string
   full_name: string | null
   email: string
   whatsapp: string | null
   trial_cargo: TrialCargo | null
   trial_status: TrialStatus
-  purchase_date: string | null
+  converted_at: string | null
   created_at: string
 }
 
 type ResultRow = {
-  user_id: string
+  lead_id: string
   score_geral: number | string | null
   score_por_modulo: Record<string, number> | null
   completed_at: string
@@ -71,40 +75,69 @@ function extrairDificuldades(
 export async function getTrialOverview(): Promise<TrialOverview> {
   const admin = createAdminClient()
 
-  const { data: profilesData } = await admin
-    .from('profiles')
+  const { data: leadsData } = await admin
+    .from('trial_leads')
     .select(
-      'id, full_name, email, whatsapp, trial_cargo, trial_status, purchase_date, created_at',
+      'id, full_name, email, whatsapp, trial_cargo, trial_status, converted_at, created_at',
     )
-    .eq('is_trial', true)
     .order('created_at', { ascending: false })
     .limit(LIMITE)
 
-  const profiles = (profilesData ?? []) as ProfileRow[]
-  if (profiles.length === 0) {
+  const leads = (leadsData ?? []) as LeadRow[]
+  if (leads.length === 0) {
     return { total: 0, completaram: 0, taxaConclusao: 0, convertidos: 0, rows: [] }
   }
 
   const { data: resultsData } = await admin
     .from('free_trial_results')
-    .select('user_id, score_geral, score_por_modulo, completed_at')
+    .select('lead_id, score_geral, score_por_modulo, completed_at')
     .in(
-      'user_id',
-      profiles.map((p) => p.id),
+      'lead_id',
+      leads.map((l) => l.id),
     )
     .order('completed_at', { ascending: false })
 
-  // Ordenado por completed_at desc: o primeiro de cada usuário é o mais
-  // recente, então quem refez o teste aparece com o resultado atual.
+  // Ordenado por completed_at desc: o primeiro de cada lead é o mais recente,
+  // então quem refez o teste aparece com o resultado atual.
   const ultimoResultado = new Map<string, ResultRow>()
   for (const r of (resultsData ?? []) as ResultRow[]) {
-    if (!ultimoResultado.has(r.user_id)) ultimoResultado.set(r.user_id, r)
+    if (r.lead_id && !ultimoResultado.has(r.lead_id)) {
+      ultimoResultado.set(r.lead_id, r)
+    }
   }
 
-  const rows: TrialLeadRow[] = profiles.map((p) => {
-    const r = ultimoResultado.get(p.id)
+  // Conversão é derivada de `profiles.purchase_date` casando por e-mail, e não
+  // de `trial_leads.converted_at`: quem provisiona a conta paga é o guest.ts, e
+  // ele não conhece a tabela de leads. Assim o KPI reflete a compra real mesmo
+  // sem tocar no fluxo de pagamento. (converted_at fica reservado para quando
+  // o webhook passar a marcar a conversão explicitamente.)
+  const { data: compradoresData } = await admin
+    .from('profiles')
+    .select('email, purchase_date')
+    .in(
+      'email',
+      leads.map((l) => l.email),
+    )
+    .not('purchase_date', 'is', null)
+
+  const compraPorEmail = new Map(
+    ((compradoresData ?? []) as { email: string; purchase_date: string }[]).map(
+      (p) => [p.email.toLowerCase(), p.purchase_date],
+    ),
+  )
+
+  const rows: TrialLeadRow[] = leads.map((l) => {
+    const r = ultimoResultado.get(l.id)
     return {
-      ...p,
+      id: l.id,
+      full_name: l.full_name,
+      email: l.email,
+      whatsapp: l.whatsapp,
+      trial_cargo: l.trial_cargo,
+      trial_status: l.trial_status,
+      purchase_date:
+        compraPorEmail.get(l.email.toLowerCase()) ?? l.converted_at ?? null,
+      created_at: l.created_at,
       // numeric(5,2) pode voltar como string do PostgREST.
       score_geral: r?.score_geral == null ? null : Number(r.score_geral),
       completed_at: r?.completed_at ?? null,

@@ -1,6 +1,8 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
+import { reportError } from '@/lib/observability/log'
+
 /**
  * Rate limiting por IP para as rotas críticas de pagamento. Dois backends:
  *
@@ -95,6 +97,10 @@ function memLimit(
   return { success: true, remaining: max - bucket.count, backend: 'memory' }
 }
 
+// Janela mínima entre dois alertas de degradação do Redis (por instância).
+const DEGRADED_ALERT_INTERVAL_MS = 60_000
+let lastDegradedAlertAt = 0
+
 /**
  * Consome 1 do limite `name` para o identificador `id` (use o IP). Nunca lança:
  * se o Redis falhar, cai no limiter em memória — um problema de infra de rate
@@ -110,7 +116,16 @@ export async function rateLimit(
     try {
       const r = await upstashLimiter(name, max, windowSec).limit(id)
       return { success: r.success, remaining: r.remaining, backend: 'redis' }
-    } catch {
+    } catch (err) {
+      // Não engole silenciosamente: com o Redis fora, o limite passa a ser por
+      // instância (protege muito menos) e a equipe precisa saber disso.
+      // Throttled: numa queda do Redis TODA requisição cai aqui, e um alerta
+      // por requisição viraria flood no Discord (e uma chamada HTTP extra).
+      const now = Date.now()
+      if (now - lastDegradedAlertAt > DEGRADED_ALERT_INTERVAL_MS) {
+        lastDegradedAlertAt = now
+        reportError('rate-limit.redis_degraded', err, { name, id })
+      }
       return memLimit(name, id, max, windowSec)
     }
   }

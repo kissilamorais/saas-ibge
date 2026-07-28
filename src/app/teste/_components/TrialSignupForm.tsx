@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Mail, Phone, User, Loader2, ArrowRight } from 'lucide-react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
-import { createClient } from '@/lib/supabase/client'
 import { CTA_PRIMARY_ON_LIGHT } from '@/components/landing/brand'
 
 const FIELD_CLASS =
@@ -49,10 +48,10 @@ export function TrialSignupForm() {
     }
 
     setLoading(true)
-    const supabase = createClient()
 
     try {
-      // 1. Chamar API para criar usuário no servidor (admin.createUser)
+      // Registra o lead e devolve o cookie da sessão de convidado. Nenhuma
+      // conta é criada aqui — quem entra no Auth é só quem compra.
       const signupRes = await fetch('/api/trial/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,32 +63,22 @@ export function TrialSignupForm() {
       })
 
       const signupData = await signupRes.json().catch(() => null)
-      if (!signupRes.ok || !signupData?.email || !signupData?.password) {
+      if (!signupRes.ok || !signupData?.ok) {
         throw new Error(
-          signupData?.error || 'Não foi possível criar sua conta.',
+          signupData?.error || 'Não foi possível iniciar seu teste.',
         )
       }
 
       trackPixel('Lead')
 
-      // 2. Autenticar cliente com password temporária (sem e-mail)
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: signupData.email,
-        password: signupData.password,
-      })
-
-      if (authError) {
-        throw new Error(authError.message || 'Não foi possível autenticar.')
-      }
-
-      // 3. Redirecionar direto para /teste/cargo (sessão estabelecida)
+      // O cookie veio na response acima: a próxima etapa já enxerga a sessão.
       router.push('/teste/cargo')
       router.refresh()
     } catch (err) {
       setErro(
         err instanceof Error
           ? err.message
-          : 'Não foi possível criar sua conta. Tente de novo.',
+          : 'Não foi possível iniciar seu teste. Tente de novo.',
       )
       setLoading(false)
     }

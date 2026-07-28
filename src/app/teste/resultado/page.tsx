@@ -4,10 +4,11 @@ import { AlertTriangle, Check, CheckCircle2, ShieldCheck } from 'lucide-react'
 
 import { CheckoutButton } from '@/components/checkout/CheckoutButton'
 import { CTA_PRIMARY_ON_LIGHT } from '@/components/landing/brand'
-import { getProfile, getUser, hasContentAccess } from '@/lib/auth/session'
+import { hasContentAccess } from '@/lib/auth/session'
 import { BONUSES, FINAL_REVIEW_DATE } from '@/lib/bonuses/config'
 import { currentPriceLabel } from '@/lib/pricing'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getTrialSession } from '@/lib/trial-session'
 import { calcularResultado } from '@/lib/trial/scoring'
 import type { TrialAnswer, TrialNivel } from '@/lib/trial/types'
 
@@ -47,11 +48,12 @@ function ListaModulos({
   scores,
 }: {
   modulos: string[]
-  vazio: string
+  /** Fallback da lista vazia. Omitido quando a seção só é montada com itens. */
+  vazio?: string
   scores: Record<string, number>
 }) {
   if (modulos.length === 0) {
-    return <p className="mt-2 text-sm text-[#0B3D2E]/60">{vazio}</p>
+    return vazio ? <p className="mt-2 text-sm text-[#0B3D2E]/60">{vazio}</p> : null
   }
   return (
     <ul className="mt-3 space-y-2">
@@ -75,19 +77,21 @@ export default async function ResultadoPage({
 }: {
   searchParams: { id?: string }
 }) {
-  if (!(await getUser())) redirect('/teste')
+  const session = await getTrialSession()
+  if (!session) redirect('/teste')
 
   const id = searchParams.id
   if (!id) redirect('/teste/cargo')
 
-  // Client autenticado, não o admin: a policy `usuario_ve_proprio_resultado`
-  // já limita a leitura ao dono, então não há motivo para ignorar o RLS aqui —
-  // um id de outra pessoa simplesmente não retorna linha.
-  const supabase = createClient()
-  const { data } = await supabase
+  // Service_role porque o convidado não tem linha em auth.users para a policy
+  // `usuario_ve_proprio_resultado` casar. O escopo continua existindo: além do
+  // id, a busca exige o lead_id do cookie assinado — o id de outra pessoa
+  // simplesmente não retorna linha.
+  const { data } = await createAdminClient()
     .from('free_trial_results')
     .select('id, answers, completed_at')
     .eq('id', id)
+    .eq('lead_id', session.leadId)
     .maybeSingle()
 
   if (!data) redirect('/teste/cargo')
@@ -99,9 +103,11 @@ export default async function ResultadoPage({
   // servidor) — evita guardar nivel/dominou/precisa_estudar duplicados no banco.
   const resultado = calcularResultado(answers)
   const acertos = answers.filter((a) => a.is_correct).length
+  const temDominio = resultado.dominou.length > 0
 
-  const profile = await getProfile()
-  const primeiroNome = profile?.full_name?.trim().split(/\s+/)[0] ?? null
+  const primeiroNome = session.fullName.trim().split(/\s+/)[0] || null
+  // Só é true para quem já comprou E está logado — o convidado do teste, por
+  // definição, não tem conta ainda e cai no CTA de compra.
   const jaTemAcesso = await hasContentAccess()
 
   return (
@@ -134,18 +140,22 @@ export default async function ResultadoPage({
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <section className="rounded-2xl border border-[#0B3D2E]/10 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-[#0B3D2E]">
-            <Check className="h-4 w-4 text-[#1F7A52]" strokeWidth={3} />
-            Você dominou
-          </h2>
-          <ListaModulos
-            modulos={resultado.dominou}
-            scores={resultado.score_por_modulo}
-            vazio="Continue estudando — você chega lá!"
-          />
-        </section>
+      {/* "Você dominou" só existe quando há o que comemorar — um card vazio com
+          "continue estudando" logo abaixo da nota vira consolo, não diagnóstico.
+          Sem ele, "Precisa reforçar" ocupa a linha inteira. */}
+      <div className={`mt-6 grid gap-4 ${temDominio ? 'sm:grid-cols-2' : ''}`}>
+        {temDominio && (
+          <section className="rounded-2xl border border-[#0B3D2E]/10 bg-white p-5 shadow-sm">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-[#0B3D2E]">
+              <Check className="h-4 w-4 text-[#1F7A52]" strokeWidth={3} />
+              Você dominou
+            </h2>
+            <ListaModulos
+              modulos={resultado.dominou}
+              scores={resultado.score_por_modulo}
+            />
+          </section>
+        )}
 
         <section className="rounded-2xl border border-[#0B3D2E]/10 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-sm font-bold text-[#0B3D2E]">
@@ -176,7 +186,10 @@ export default async function ResultadoPage({
               Ir para meus estudos
             </Link>
           ) : (
-            <CheckoutButton className={`${CTA_PRIMARY_ON_LIGHT} w-full`}>
+            <CheckoutButton
+              className={`${CTA_PRIMARY_ON_LIGHT} w-full`}
+              emailPadrao={session.email}
+            >
               Quero desbloquear o Aprovus por {currentPriceLabel()} →
             </CheckoutButton>
           )}

@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto'
+
 import { activateUserAccess } from '@/lib/stripe/activate'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log } from '@/lib/observability/log'
@@ -9,7 +11,9 @@ type AdminClient = ReturnType<typeof createAdminClient>
  * InfinitePay, …). Recebe o e-mail já confirmado pelo pagamento e:
  *   1. resolve a conta pelo e-mail (profiles.email, único) ou cria no Auth;
  *   2. ativa o acesso pago (idempotente);
- *   3. dispara o e-mail de "definir senha" SÓ para conta nova.
+ *   3. reclama a conta se ela existir sem e-mail confirmado (ninguém provou
+ *      posse do endereço) — rotaciona a senha e trata como conta nova;
+ *   4. dispara o e-mail de "definir senha" para conta nova (ou reclamada).
  *
  * Só chame após confirmar o pagamento — usa o client admin (service_role).
  * É a MESMA função usada pelo webhook da Stripe e pelo do InfinitePay, para
@@ -61,6 +65,42 @@ export async function onboardGuestByEmail(
   // 3) Ativa o acesso pago (idempotente: não reescreve purchase_date).
   await activateUserAccess(userId, { stripeCustomerId })
   log.info(`${where}.access_activated`, { userId, flow: 'guest' })
+
+  // 3.1) Reclaim de conta não verificada. Uma conta pode existir com este
+  //      e-mail sem que ninguém tenha provado ser dono dele (o funil do teste
+  //      gratuito cria contas só com o e-mail digitado). Nesse caso quem
+  //      acabou de pagar é o dono legítimo do endereço: rotacionamos a
+  //      credencial — o que já revoga TODAS as sessões ativas do ocupante,
+  //      pois o GoTrue faz logout global ao trocar a senha via admin — e
+  //      forçamos o e-mail de "definir senha" para o comprador real.
+  //      Se a leitura do usuário falhar, tratamos como não verificada
+  //      (fail-closed): no pior caso o comprador recebe um e-mail a mais.
+  if (!isNewUser) {
+    const { data: authUserData, error: authUserErr } =
+      await admin.auth.admin.getUserById(userId)
+    if (authUserErr) {
+      log.warn(`${where}.reclaim_check_failed`, {
+        userId,
+        error: authUserErr.message,
+      })
+    }
+
+    if (!authUserData?.user?.email_confirmed_at) {
+      const { error: rotateErr } = await admin.auth.admin.updateUserById(
+        userId,
+        {
+          password: `${randomUUID()}-${randomUUID()}`,
+          email_confirm: true,
+        }
+      )
+      if (rotateErr) throw rotateErr
+
+      // Passa a tratar como conta nova para que o resetPasswordForEmail abaixo
+      // dispare e o comprador real receba o e-mail de "defina sua senha".
+      isNewUser = true
+      log.warn(`${where}.reclaimed_unverified_account`, { userId })
+    }
+  }
 
   // 4) E-mail de acesso: SÓ para conta nova. Reusa o fluxo de recuperação de
   //    senha do /auth/forgot-password — o link cai no callback e leva o
