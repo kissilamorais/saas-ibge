@@ -25,11 +25,12 @@ import { StreakCard } from '@/components/dashboard/StreakCard'
 import { StudyChart } from '@/components/dashboard/StudyChart'
 import { Card } from '@/components/ui/card'
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: { welcome?: string }
-}) {
+export default async function DashboardPage(
+  props: {
+    searchParams: Promise<{ welcome?: string }>
+  }
+) {
+  const searchParams = await props.searchParams
   const profile = await getProfile()
   const hasAccess = await hasContentAccess()
 

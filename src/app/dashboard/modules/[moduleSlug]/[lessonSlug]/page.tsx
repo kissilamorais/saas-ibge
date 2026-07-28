@@ -25,11 +25,12 @@ interface FullLesson extends LessonData {
   next: LessonNav | null
 }
 
-export default async function LessonPage({
-  params,
-}: {
-  params: { moduleSlug: string; lessonSlug: string }
-}) {
+export default async function LessonPage(
+  props: {
+    params: Promise<{ moduleSlug: string; lessonSlug: string }>
+  }
+) {
+  const params = await props.params
   const profile = await requireTargetFunction()
 
   const { moduleSlug } = params

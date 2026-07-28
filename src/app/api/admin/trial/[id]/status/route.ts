@@ -12,10 +12,8 @@ import { isTrialStatus } from '@/lib/trial/types'
  * atrás de RLS sem policy nenhuma, então a escrita só existe via service_role —
  * e o guard de admin é feito aqui, no servidor, antes de qualquer escrita.
  */
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   if (!(await isAdmin())) {
     // 404, não 403 — mesmo critério do requireAdmin: não confirma a existência
     // do painel para quem não é admin.

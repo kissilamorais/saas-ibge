@@ -20,11 +20,12 @@ import { isUnlocked, daysUntilUnlock, unlockDate, formatUnlockDate } from '@/lib
  * na página e, para edital/telegram, um botão que aponta para /api/bonus/[slug]
  * — que revalida o acesso do lado do servidor antes de servir o recurso.
  */
-export default async function BonusPage({
-  params,
-}: {
-  params: { bonusSlug: string }
-}) {
+export default async function BonusPage(
+  props: {
+    params: Promise<{ bonusSlug: string }>
+  }
+) {
+  const params = await props.params
   const bonus = getBonus(params.bonusSlug)
   if (!bonus) notFound()
 
@@ -83,7 +84,6 @@ export default async function BonusPage({
         title={bonus.title}
         description={bonus.description}
       />
-
       <Card className="space-y-4 p-6">
         {/*
           Conteúdo de página (cronograma, revisão): renderiza o markdown colado
@@ -116,7 +116,7 @@ export default async function BonusPage({
         {bonus.delivery === 'external' && (
           // mailto vai direto (não há segredo a proteger e um 302→mailto é
           // frágil); demais externos passam pelo gate de /api/bonus.
-          <a
+          (<a
             href={
               bonus.resourceUrl?.startsWith('mailto:')
                 ? bonus.resourceUrl
@@ -124,13 +124,12 @@ export default async function BonusPage({
             }
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            <Mail className="h-4 w-4" />
-            Enviar e-mail
-          </a>
+            <Mail className="h-4 w-4" />Enviar e-mail
+                      </a>)
         )}
       </Card>
     </div>
-  )
+  );
 }
 
 function BackLink() {

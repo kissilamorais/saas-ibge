@@ -61,7 +61,7 @@ export async function submitExamResult(
   if (!parsed.success) return { ok: false, error: 'invalid_input' }
   const input = parsed.data
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
@@ -193,7 +193,7 @@ export async function markLessonComplete(
   })
   if (!parsed.success) return { ok: false, error: 'invalid_input' }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
@@ -281,7 +281,7 @@ export async function submitPracticeAnswers(
   if (!parsed.success) return { ok: false, error: 'invalid_input' }
   const { answers } = parsed.data
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 

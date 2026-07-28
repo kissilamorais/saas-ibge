@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') as EmailOtpType | null
   const redirectTo = searchParams.get('redirect') || '/dashboard'
 
-  const supabase = createClient()
+  const supabase = await createClient()
 
   if (code) {
     // Fluxo PKCE: troca o `code` por uma sessão.

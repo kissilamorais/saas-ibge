@@ -7,11 +7,12 @@ import type { QuizQuestion } from '@/components/quiz/QuestionCard'
 
 const PRACTICE_SIZE = 10
 
-export default async function PracticeModulePage({
-  params,
-}: {
-  params: { moduleSlug: string }
-}) {
+export default async function PracticeModulePage(
+  props: {
+    params: Promise<{ moduleSlug: string }>
+  }
+) {
+  const params = await props.params
   const profile = await requireTargetFunction()
 
   const moduleData = await getModuleBySlug(params.moduleSlug)

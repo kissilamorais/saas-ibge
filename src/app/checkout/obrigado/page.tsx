@@ -39,17 +39,18 @@ export const dynamic = 'force-dynamic'
  * (O fluxo Stripe legado, quando ativo, chega com `session_id` já verificado
  * pela success route — mantido por compatibilidade.)
  */
-export default async function ObrigadoPage({
-  searchParams,
-}: {
-  searchParams: {
-    session_id?: string
-    order_nsu?: string
-    transaction_nsu?: string
-    slug?: string
-    capture_method?: string
+export default async function ObrigadoPage(
+  props: {
+    searchParams: Promise<{
+      session_id?: string
+      order_nsu?: string
+      transaction_nsu?: string
+      slug?: string
+      capture_method?: string
+    }>
   }
-}) {
+) {
+  const searchParams = await props.searchParams
   const { session_id, order_nsu, transaction_nsu, slug } = searchParams
 
   let confirmedPaid = Boolean(session_id) // Stripe: já verificado upstream.
@@ -70,8 +71,8 @@ export default async function ObrigadoPage({
   // no servidor, então é imune a ad-blocker. Dedup com o pixel do browser e com
   // o webhook via event_id=order_nsu; refresh reusa o mesmo id → não reconta.
   if (confirmedPaid && order_nsu && buyerEmail) {
-    const c = cookies()
-    const h = headers()
+    const c = await cookies()
+    const h = await headers()
     // Fire-and-forget de propósito: aqui o pixel do browser já cobre a
     // conversão, então não seguramos a renderização. `void` marca a promise
     // solta explicitamente (a função nunca rejeita).
