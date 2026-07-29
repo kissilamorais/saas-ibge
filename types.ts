@@ -22,6 +22,16 @@ export type LeadFollowupStatus = 'none' | 'contacted' | 'converted' | 'lost'
 // e cliente estão nos EUA, então em BR o valor é sempre null.
 export type PromoConsentStatus = 'opt_in' | 'opt_out' | null
 
+// Depoimentos (prova social) — curadoria manual pelo admin.
+export type TestimonialSource = 'whatsapp' | 'email' | 'platform'
+export type TestimonialObjectionTag =
+  | 'quality'
+  | 'price'
+  | 'trust'
+  | 'time'
+  | 'specific'
+  | 'simulator'
+
 export type Database = {
   public: {
     Tables: {
@@ -392,6 +402,36 @@ export type Database = {
         >
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          id: string
+          author_name: string
+          author_cargo: string | null
+          content: string
+          source: TestimonialSource
+          image_url: string | null
+          objection_tag: TestimonialObjectionTag | null
+          is_active: boolean
+          display_order: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          author_name: string
+          author_cargo?: string | null
+          content: string
+          source?: TestimonialSource
+          image_url?: string | null
+          objection_tag?: TestimonialObjectionTag | null
+          is_active?: boolean
+          display_order?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['testimonials']['Row']>
+        Relationships: []
+      }
     }
     Views: {}
     Functions: {
@@ -447,6 +487,9 @@ export type AbandonedCheckout =
 
 // Lead do teste gratuito (sem conta no Auth até comprar)
 export type TrialLead = Database['public']['Tables']['trial_leads']['Row']
+
+// Depoimento (prova social) — curadoria manual pelo admin
+export type Testimonial = Database['public']['Tables']['testimonials']['Row']
 
 // Composite types
 export type QuestionWithOptions = Question & {

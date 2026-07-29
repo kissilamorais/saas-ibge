@@ -10,6 +10,7 @@ import { GuaranteeSection } from '@/components/landing/GuaranteeSection'
 import { UrgencySection } from '@/components/landing/UrgencySection'
 import { FaqSection } from '@/components/landing/FaqSection'
 import { currentPriceLabel } from '@/lib/pricing'
+import { getActiveTestimonials } from '@/lib/supabase/queries'
 
 /**
  * A página é estática, então o preço exibido seria assado no build e ficaria
@@ -32,7 +33,9 @@ export function generateMetadata(): Metadata {
  * Ritmo de fundos claro→escuro alterna ao rolar; seções em
  * `src/components/landing/`. Copy aprovada (não muda); aqui é execução visual.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const testimonials = await getActiveTestimonials()
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAFAF7]">
       <Navbar />
@@ -41,7 +44,7 @@ export default function HomePage() {
       <PainSection />
       <SolutionSection />
       <OfferSection />
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
       <GuaranteeSection />
       <UrgencySection />
       <FaqSection />

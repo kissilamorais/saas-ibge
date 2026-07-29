@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { getProfile, getUser } from '@/lib/auth/session'
 import {
   buildRecommendations,
@@ -13,6 +14,7 @@ import type {
   Question,
   QuestionOption,
   QuestionWithOptions,
+  Testimonial,
 } from '@/types'
 
 /**
@@ -620,4 +622,27 @@ export async function getExamWithQuestions(
 
   const { exam_questions: _omit, ...exam } = row
   return { ...(exam as Exam), questions }
+}
+
+// --- Depoimentos (prova social da landing) ---
+
+/**
+ * Depoimentos ativos para a landing, na ordem de exibição definida pelo
+ * admin. RLS (`testimonials_public_read`) já restringe a `is_active = true`
+ * — o filtro aqui é redundante mas explícito.
+ *
+ * Usa o client público (sem cookies) de propósito: a landing depende de ISR
+ * (`revalidate` em `app/page.tsx`) para o preço não congelar no build, e
+ * qualquer leitura via `cookies()` forçaria a rota inteira a renderizar em
+ * modo dinâmico, perdendo o cache.
+ */
+export async function getActiveTestimonials(): Promise<Testimonial[]> {
+  const supabase = createPublicClient()
+  const { data } = await supabase
+    .from('testimonials')
+    .select('*')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true })
+
+  return (data ?? []) as Testimonial[]
 }

@@ -8,6 +8,7 @@ import {
   Gauge,
   Gift,
   LogOut,
+  Quote,
   ShoppingCart,
   UserPlus,
 } from 'lucide-react'
@@ -26,6 +27,12 @@ const NAV_ITEMS = [
     exact: false,
   },
   { href: '/admin/partners', label: 'Parceiros', icon: Gift, exact: false },
+  {
+    href: '/admin/testimonials',
+    label: 'Depoimentos',
+    icon: Quote,
+    exact: false,
+  },
 ] as const
 
 function useIsActive() {
