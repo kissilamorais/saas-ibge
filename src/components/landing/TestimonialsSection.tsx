@@ -2,15 +2,23 @@ import Image from 'next/image'
 import { MessageCircle, Quote, Star } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { TRIAL_CARGOS } from '@/lib/trial/types'
 import type { Testimonial } from '@/types'
 
-const CARGO_LABEL: Record<string, string> = {
-  ACA: 'Analista de Gestão',
-  ACI: 'Analista de Informática',
-  AOR: 'Analista de Orçamento',
-  ACR: 'Analista de Recursos Humanos',
-  ACS: 'Analista de Saúde',
-}
+/**
+ * Código do cargo → nome oficial do concurso.
+ *
+ * Derivado de `TRIAL_CARGOS` em vez de reescrito à mão: os rótulos aqui eram
+ * cargos que não existem no edital ("Analista de Orçamento"), e a landing
+ * anunciava aluno em vaga inventada. Importando a lista do funil, um ajuste de
+ * nomenclatura entra nos dois lugares de uma vez.
+ *
+ * O `?? author_cargo` no `authorLine` cobre o que o admin digitar livre no
+ * campo de cargo — o valor cru vai para a tela, sem tradução.
+ */
+const CARGO_LABEL: Record<string, string> = Object.fromEntries(
+  TRIAL_CARGOS.map((c) => [c.value, c.label]),
+)
 
 function authorLine(testimonial: Testimonial) {
   if (!testimonial.author_cargo) return testimonial.author_name
