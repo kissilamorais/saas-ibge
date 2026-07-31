@@ -42,13 +42,16 @@ export async function POST(request: NextRequest) {
     typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
   const fullName =
     typeof body?.full_name === 'string' ? body.full_name.trim() : ''
+  // Opcional: o formulário do /teste não pede mais WhatsApp (o contato agora
+  // acontece pelo botão da página de resultado). O campo continua aceito para
+  // quem enviar — e, quando vem, ainda precisa ser um número plausível.
   const whatsapp =
     typeof body?.whatsapp === 'string' ? body.whatsapp.replace(/\D/g, '') : ''
 
   if (!EMAIL_RE.test(email) || fullName.length < 2) {
     return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400 })
   }
-  if (whatsapp.length < 10 || whatsapp.length > 11) {
+  if (whatsapp && (whatsapp.length < 10 || whatsapp.length > 11)) {
     return NextResponse.json(
       { error: 'Digite um WhatsApp válido com DDD.' },
       { status: 400 },
@@ -76,10 +79,12 @@ export async function POST(request: NextRequest) {
   > | null
 
   if (lead) {
-    // Nome/WhatsApp podem ter sido corrigidos na segunda tentativa.
+    // Nome/WhatsApp podem ter sido corrigidos na segunda tentativa. Sem número
+    // no corpo, o update não toca a coluna: apagar um contato já gravado seria
+    // perda de dado do CRM, não correção.
     const { error } = await admin
       .from('trial_leads')
-      .update({ full_name: fullName, whatsapp })
+      .update({ full_name: fullName, ...(whatsapp ? { whatsapp } : {}) })
       .eq('id', lead.id)
     if (error) {
       reportError('trial.signup.update_lead', error)
@@ -91,7 +96,7 @@ export async function POST(request: NextRequest) {
   } else {
     const { data: criado, error } = await admin
       .from('trial_leads')
-      .insert({ email, full_name: fullName, whatsapp })
+      .insert({ email, full_name: fullName, whatsapp: whatsapp || null })
       .select('id, trial_cargo, target_function')
       .single()
 
@@ -114,7 +119,7 @@ export async function POST(request: NextRequest) {
       leadId: lead.id,
       email,
       fullName,
-      whatsapp,
+      ...(whatsapp ? { whatsapp } : {}),
       ...(lead.trial_cargo ? { cargo: lead.trial_cargo } : {}),
       ...(lead.target_function
         ? { targetFunction: lead.target_function }

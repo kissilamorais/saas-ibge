@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, Phone, User, Loader2, ArrowRight } from 'lucide-react'
+import { Mail, User, Loader2, ArrowRight } from 'lucide-react'
 
 import { trackPixel } from '@/lib/analytics/meta-pixel'
 import { CTA_PRIMARY_ON_LIGHT } from '@/components/landing/brand'
@@ -14,16 +14,10 @@ const LABEL_CLASS = 'block text-sm font-medium text-[#0B3D2E]'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-/** Só os dígitos — é o que o wa.me consome no painel do admin. */
-function apenasDigitos(valor: string): string {
-  return valor.replace(/\D/g, '')
-}
-
 export function TrialSignupForm() {
   const router = useRouter()
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -32,7 +26,6 @@ export function TrialSignupForm() {
     setErro(null)
 
     const emailNormalizado = email.trim().toLowerCase()
-    const digitos = apenasDigitos(whatsapp)
 
     if (nome.trim().length < 2) {
       setErro('Digite seu nome completo.')
@@ -40,10 +33,6 @@ export function TrialSignupForm() {
     }
     if (!EMAIL_RE.test(emailNormalizado)) {
       setErro('Digite um e-mail válido.')
-      return
-    }
-    if (digitos.length < 10 || digitos.length > 11) {
-      setErro('Digite um WhatsApp válido com DDD.')
       return
     }
 
@@ -58,7 +47,6 @@ export function TrialSignupForm() {
         body: JSON.stringify({
           email: emailNormalizado,
           full_name: nome.trim(),
-          whatsapp: digitos,
         }),
       })
 
@@ -121,26 +109,6 @@ export function TrialSignupForm() {
             disabled={loading}
             className={`${FIELD_CLASS} pl-10`}
             placeholder="voce@email.com"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <label className={LABEL_CLASS} htmlFor="whatsapp">
-          WhatsApp
-        </label>
-        <div className="relative flex items-center">
-          <Phone className="absolute left-3 h-4 w-4 text-[#0B3D2E]/40" strokeWidth={1.75} />
-          <input
-            id="whatsapp"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel-national"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            disabled={loading}
-            className={`${FIELD_CLASS} pl-10`}
-            placeholder="(21) 99999-9999"
           />
         </div>
       </div>

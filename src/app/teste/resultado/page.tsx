@@ -10,7 +10,12 @@ import { currentPriceLabel } from '@/lib/pricing'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTrialSession } from '@/lib/trial-session'
 import { calcularResultado } from '@/lib/trial/scoring'
-import type { TrialAnswer, TrialNivel } from '@/lib/trial/types'
+import { TRIAL_CARGOS, type TrialAnswer, type TrialNivel } from '@/lib/trial/types'
+
+import { PlanoEngajamento } from './_components/PlanoEngajamento'
+
+/** Número de atendimento do Aprovus (formato wa.me: DDI + DDD + número). */
+const WHATSAPP_NUMERO = '5585999703431'
 
 /** Cores do selo de nível — paleta da landing (verde-status / bronze / erro). */
 const NIVEL_ESTILO: Record<TrialNivel, string> = {
@@ -41,6 +46,21 @@ const BENEFICIOS = [
   `${tituloBonus('revisao-final')} (libera ${rotuloData(FINAL_REVIEW_DATE)})`,
   tituloBonus('grupo-telegram'),
 ]
+
+/**
+ * Link do WhatsApp já com o diagnóstico na mensagem — o atendimento abre a
+ * conversa sabendo nível e cargo, sem precisar perguntar.
+ *
+ * O cargo vem do cookie do funil como código ('ACA'); traduzimos para o rótulo
+ * legível. Sem cargo na sessão, a frase termina no nível em vez de anunciar um
+ * "undefined".
+ */
+function linkWhatsApp(nivel: TrialNivel, cargo?: string): string {
+  const rotuloCargo = TRIAL_CARGOS.find((c) => c.value === cargo)?.label
+  const resultado = rotuloCargo ? `${nivel} em ${rotuloCargo}` : nivel
+  const texto = `Olá! Fiz o diagnóstico do Aprovus e quero meu plano de estudo personalizado. Meu resultado foi: ${resultado}`
+  return `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(texto)}`
+}
 
 function ListaModulos({
   modulos,
@@ -170,6 +190,15 @@ export default async function ResultadoPage(
           />
         </section>
       </div>
+
+      <PlanoEngajamento
+        whatsappHref={linkWhatsApp(resultado.nivel, session.cargo)}
+        fracas={resultado.precisa_estudar.map((m) => ({
+          modulo: m,
+          score: resultado.score_por_modulo[m],
+        }))}
+        precoLabel={currentPriceLabel()}
+      />
 
       <hr className="my-10 border-[#0B3D2E]/10" />
 
