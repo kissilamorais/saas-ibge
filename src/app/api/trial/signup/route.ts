@@ -58,6 +58,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Rate limit adicional por e-mail (VUL-A06): o limite por IP sozinho não
+  // segura rotação de IP; por e-mail, o teto vale mesmo trocando de rede.
+  const rlEmail = await rateLimit('trial-signup-email', email, 5, 60)
+  if (!rlEmail.success) {
+    return NextResponse.json(
+      { error: 'Muitas tentativas. Aguarde um instante e tente de novo.' },
+      { status: 429 },
+    )
+  }
+
   const admin = createAdminClient()
 
   // Reaproveita um lead recente do mesmo e-mail (voltou para o /teste, perdeu

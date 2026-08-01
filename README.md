@@ -44,6 +44,7 @@ migrations/0012_free_trial.sql
 migrations/0013_trial_leads.sql
 migrations/0014_testimonials.sql
 migrations/0015_lock_profile_billing_columns.sql
+migrations/0016_trial_sample_pool.sql
 ```
 
 > Os arquivos em `supabase/*.sql` são **históricos** (superseded pelas migrations) — não rode. O seed é idempotente por `source_ref` — reexecute quando precisar atualizar o conteúdo.

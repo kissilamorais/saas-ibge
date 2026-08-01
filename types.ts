@@ -142,10 +142,15 @@ export type Database = {
           explanation: string | null
           source_ref: string | null
           order_index: number | null
+          // Pool fixo do diagnóstico gratuito (0016/VUL-A06) — só estas
+          // entram no sorteio de /api/trial/questions.
+          is_trial_sample: boolean
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['questions']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Omit<Database['public']['Tables']['questions']['Row'], 'id' | 'created_at' | 'updated_at' | 'is_trial_sample'> & {
+          is_trial_sample?: boolean
+        }
         Update: Partial<Database['public']['Tables']['questions']['Row']>
         Relationships: []
       }
@@ -355,6 +360,10 @@ export type Database = {
           target_function: FunctionCode | null
           trial_status: TrialStatus
           converted_at: string | null
+          // Sorteio do diagnóstico persistido (0016/VUL-A06) — os mesmos ids
+          // voltam em qualquer chamada seguinte deste lead, em vez de
+          // ampliar a amostra do pool a cada refresh.
+          sampled_question_ids: string[] | null
           created_at: string
           updated_at: string
         }
@@ -367,6 +376,7 @@ export type Database = {
           target_function?: FunctionCode | null
           trial_status?: TrialStatus
           converted_at?: string | null
+          sampled_question_ids?: string[] | null
           created_at?: string
           updated_at?: string
         }

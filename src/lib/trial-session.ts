@@ -33,6 +33,10 @@ export interface TrialSessionData {
   whatsapp?: string
   cargo?: string
   targetFunction?: string
+  // Ids das 10 questões sorteadas do pool de amostra (VUL-A06). Uma vez
+  // preenchido, /api/trial/questions devolve sempre este conjunto — recarregar
+  // ou refazer o teste não amplia a exposição do pool.
+  sampledQuestionIds?: string[]
 }
 
 export async function createTrialSession(
