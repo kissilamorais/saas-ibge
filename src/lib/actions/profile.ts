@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/session'
 import { reportError } from '@/lib/observability/log'
 import { isFunctionCode } from '@/lib/functions'
+import { rateLimit } from '@/lib/rate-limit'
 import type { Database } from '@/types'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -49,6 +50,10 @@ export async function updateStudyConfig(
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
+  // Rate limit: máximo 10 updates/min (não é operação frequente).
+  const rl = await rateLimit('profile-update-config', user.id, 10, 60)
+  if (!rl.success) return { ok: false, error: 'rate_limited' }
+
   try {
     const payload: ProfileUpdate = {
       exam_date: examDate,
@@ -80,6 +85,10 @@ export async function setTargetFunction(code: string): Promise<ActionResult> {
   const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
+
+  // Rate limit: máximo 5 updates/min (é uma decisão que não muda frequente).
+  const rl = await rateLimit('profile-set-function', user.id, 5, 60)
+  if (!rl.success) return { ok: false, error: 'rate_limited' }
 
   try {
     const payload: ProfileUpdate = { target_function: code }

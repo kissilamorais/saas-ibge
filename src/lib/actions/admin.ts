@@ -2,8 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { requireAdmin } from '@/lib/auth/session'
+import { requireAdmin, getUser } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimit } from '@/lib/rate-limit'
 import type { LeadFollowupStatus } from '@/types'
 
 const VALID_STATUS: LeadFollowupStatus[] = [
@@ -20,6 +21,12 @@ const VALID_STATUS: LeadFollowupStatus[] = [
  */
 export async function setLeadFollowup(formData: FormData) {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return
+
+  // Rate limit: máximo 30 updates de lead/min (é operação de admin).
+  const rl = await rateLimit('admin-set-lead-followup', user.id, 30, 60)
+  if (!rl.success) return
 
   const id = String(formData.get('leadId') ?? '')
   const status = String(formData.get('status') ?? '') as LeadFollowupStatus
@@ -57,6 +64,12 @@ export async function grantComplimentary(
   formData: FormData
 ): Promise<ActionState> {
   const admin = await requireAdmin()
+  const user = await getUser()
+  if (!user) return { ok: false, message: 'Autenticação perdida.' }
+
+  // Rate limit: máximo 20 cortesias/min.
+  const rl = await rateLimit('admin-grant-complimentary', user.id, 20, 60)
+  if (!rl.success) return { ok: false, message: 'Tente novamente em alguns segundos.' }
 
   const email = String(formData.get('email') ?? '')
     .trim()
@@ -98,6 +111,13 @@ export async function grantComplimentary(
 /** Revoga uma cortesia (marca revoked_at). Admin-only. */
 export async function revokeComplimentary(formData: FormData) {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return
+
+  // Rate limit: máximo 20 revogações/min.
+  const rl = await rateLimit('admin-revoke-complimentary', user.id, 20, 60)
+  if (!rl.success) return
+
   const id = String(formData.get('id') ?? '')
   if (!id) return
 

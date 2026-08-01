@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-import { requireAdmin } from '@/lib/auth/session'
+import { requireAdmin, getUser } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimit } from '@/lib/rate-limit'
 import type { TestimonialObjectionTag, TestimonialSource } from '@/types'
 
 export type ActionState = { ok: boolean; message: string } | null
@@ -85,6 +86,12 @@ export async function createTestimonial(
   formData: FormData
 ): Promise<ActionState> {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return { ok: false, message: 'Autenticação perdida.' }
+
+  // Rate limit: máximo 10 depoimentos/min.
+  const rl = await rateLimit('admin-create-testimonial', user.id, 10, 60)
+  if (!rl.success) return { ok: false, message: 'Tente novamente em alguns segundos.' }
 
   const parsed = parseTestimonialForm(formData)
   if ('error' in parsed) return { ok: false, message: parsed.error }
@@ -107,6 +114,12 @@ export async function updateTestimonial(
   formData: FormData
 ): Promise<ActionState> {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return { ok: false, message: 'Autenticação perdida.' }
+
+  // Rate limit: máximo 20 updates de depoimento/min.
+  const rl = await rateLimit('admin-update-testimonial', user.id, 20, 60)
+  if (!rl.success) return { ok: false, message: 'Tente novamente em alguns segundos.' }
 
   const id = String(formData.get('id') ?? '')
   if (!id) return { ok: false, message: 'Depoimento inválido.' }
@@ -132,6 +145,12 @@ export async function updateTestimonial(
 /** Ativa/desativa um depoimento na landing. Admin-only. */
 export async function toggleTestimonialActive(formData: FormData) {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return
+
+  // Rate limit: máximo 30 toggle/min.
+  const rl = await rateLimit('admin-toggle-testimonial', user.id, 30, 60)
+  if (!rl.success) return
 
   const id = String(formData.get('id') ?? '')
   const nextActive = formData.get('next_active') === 'true'
@@ -150,6 +169,12 @@ export async function toggleTestimonialActive(formData: FormData) {
 /** Remove um depoimento. Admin-only. */
 export async function deleteTestimonial(formData: FormData) {
   await requireAdmin()
+  const user = await getUser()
+  if (!user) return
+
+  // Rate limit: máximo 10 deletions/min.
+  const rl = await rateLimit('admin-delete-testimonial', user.id, 10, 60)
+  if (!rl.success) return
 
   const id = String(formData.get('id') ?? '')
   if (!id) return

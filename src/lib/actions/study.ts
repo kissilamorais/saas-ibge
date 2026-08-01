@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/session'
 import { reportError } from '@/lib/observability/log'
 import { computeScore } from '@/lib/study/scoring'
+import { rateLimit } from '@/lib/rate-limit'
 import type { Database } from '@/types'
 
 type ExamResultInsert =
@@ -64,6 +65,11 @@ export async function submitExamResult(
   const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
+
+  // Rate limit por usuário: máximo 60 simulados em 60s. Mitiga abuso por
+  // autenticado (martelar a rota com requests paralelos).
+  const rl = await rateLimit('study-submit-exam', user.id, 60, 60)
+  if (!rl.success) return { ok: false, error: 'rate_limited' }
 
   try {
     // Total e gabarito são AUTORITATIVOS (banco), não vêm do cliente. Buscamos
@@ -197,6 +203,10 @@ export async function markLessonComplete(
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
 
+  // Rate limit por usuário: máximo 100 updates de progresso/min.
+  const rl = await rateLimit('study-mark-complete', user.id, 100, 60)
+  if (!rl.success) return { ok: false, error: 'rate_limited' }
+
   try {
     // Só registra sessão de estudo na 1ª vez que a lição é concluída.
     const { data: existing } = await supabase
@@ -284,6 +294,10 @@ export async function submitPracticeAnswers(
   const supabase = await createClient()
   const user = await getUser()
   if (!user) return { ok: false, error: 'not_authenticated' }
+
+  // Rate limit por usuário: máximo 100 respostas/min (é um upsert em massa).
+  const rl = await rateLimit('study-submit-answers', user.id, 100, 60)
+  if (!rl.success) return { ok: false, error: 'rate_limited' }
 
   try {
     const questionIds = answers.map((a) => a.questionId)
