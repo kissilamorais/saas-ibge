@@ -6,6 +6,7 @@ import { CheckCircle2, Mail } from 'lucide-react'
 import { AuthShell } from '@/components/auth/AuthShell'
 import { GuestPurchaseTracker } from '@/components/analytics/GuestPurchaseTracker'
 import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
+import { parseConsentFromCookieHeader } from '@/lib/consent'
 import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
 import { evaluateSettlement } from '@/lib/infinitepay/settlement'
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
@@ -71,21 +72,28 @@ export default async function ObrigadoPage(
   // (cookies _fbp/_fbc, IP, user-agent) — o disparo de melhor qualidade. Roda
   // no servidor, então é imune a ad-blocker. Dedup com o pixel do browser e com
   // o webhook via event_id=order_nsu; refresh reusa o mesmo id → não reconta.
+  //
+  // VUL-A04: esta é a requisição do PRÓPRIO comprador (ele está vendo esta
+  // página agora), então o cookie de consentimento é o dele de verdade — só
+  // dispara com opt-in de marketing explícito.
   if (confirmedPaid && order_nsu && buyerEmail) {
     const c = await cookies()
     const h = await headers()
-    // Fire-and-forget de propósito: aqui o pixel do browser já cobre a
-    // conversão, então não seguramos a renderização. `void` marca a promise
-    // solta explicitamente (a função nunca rejeita).
-    void sendMetaPurchaseEvent({
-      email: buyerEmail,
-      orderId: order_nsu,
-      eventSourceUrl: resolveAppUrl(),
-      clientIpAddress: h.get('x-forwarded-for'),
-      clientUserAgent: h.get('user-agent'),
-      fbp: c.get('_fbp')?.value ?? null,
-      fbc: c.get('_fbc')?.value ?? null,
-    })
+    const consent = parseConsentFromCookieHeader(h.get('cookie'))
+    if (consent?.marketing === true) {
+      // Fire-and-forget de propósito: aqui o pixel do browser já cobre a
+      // conversão, então não seguramos a renderização. `void` marca a promise
+      // solta explicitamente (a função nunca rejeita).
+      void sendMetaPurchaseEvent({
+        email: buyerEmail,
+        orderId: order_nsu,
+        eventSourceUrl: resolveAppUrl(),
+        clientIpAddress: h.get('x-forwarded-for'),
+        clientUserAgent: h.get('user-agent'),
+        fbp: c.get('_fbp')?.value ?? null,
+        fbc: c.get('_fbc')?.value ?? null,
+      })
+    }
   }
 
   // Dispara o Purchase do pixel só quando o pagamento está confirmado.

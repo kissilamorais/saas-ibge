@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
 import { resolveAppUrl } from '@/lib/url/resolve-app-url'
+import { parseConsentFromCookieHeader } from '@/lib/consent'
 
 // Formato de e-mail simples (obrigatório no fluxo guest). Espelha a validação
 // do CheckoutButton — o cliente valida por UX, o servidor por segurança.
@@ -76,6 +77,13 @@ export async function POST(request: Request) {
   // `createInfinitePayLink`.
   const priceCents = getCurrentPriceCents()
 
+  // Opt-in de marketing (VUL-A04): esta é a ÚNICA requisição do fluxo de
+  // pagamento que roda no navegador do próprio comprador — o webhook é
+  // server-to-server do InfinitePay e não vê o cookie dele. Capturamos aqui
+  // e persistimos no pedido para a Meta CAPI honrar o consentimento depois.
+  const consent = parseConsentFromCookieHeader(request.headers.get('cookie'))
+  const marketingConsent = consent?.marketing === true
+
   try {
     // 1) Registra o pedido pendente ANTES de criar o link — assim o webhook
     //    sempre encontra a linha, mesmo que a resposta do /links se perca.
@@ -85,6 +93,7 @@ export async function POST(request: Request) {
       amount: priceCents,
       status: 'pending',
       customer_email: customerEmail,
+      marketing_consent: marketingConsent,
     })
     if (insertErr) throw insertErr
 

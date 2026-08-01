@@ -2,6 +2,8 @@
 
 import Script from 'next/script'
 
+import { useConsent } from '@/components/consent/ConsentProvider'
+
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID
 
 // Mesma regra do Meta Pixel: só dispara em produção E com o ID configurado.
@@ -16,9 +18,13 @@ const GA4_ENABLED = process.env.NODE_ENV === 'production' && Boolean(GA4_ID)
  *   `config`. Navegações client-side (App Router) são cobertas pelo
  *   "enhanced measurement" do GA4 (page_view via eventos de histórico, ligado
  *   por padrão) — por isso não disparamos page_view manual, para não duplicar.
+ *
+ * VUL-A04: além de produção + ID configurado, exige opt-in de analytics
+ * (banner de cookies) — sem isso o script nem é montado.
  */
 export function GoogleAnalytics() {
-  if (!GA4_ENABLED) return null
+  const { consent } = useConsent()
+  if (!GA4_ENABLED || consent?.analytics !== true) return null
 
   return (
     <>

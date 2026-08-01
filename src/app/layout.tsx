@@ -3,6 +3,8 @@ import { Fraunces, Inter, Sora } from 'next/font/google'
 
 import { MetaPixel } from '@/components/analytics/MetaPixel'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import { ConsentProvider } from '@/components/consent/ConsentProvider'
+import { CookieBanner } from '@/components/consent/CookieBanner'
 import '@/styles/globals.css'
 
 const inter = Inter({
@@ -67,9 +69,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sora.variable} ${fraunces.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
-        <MetaPixel />
-        <GoogleAnalytics />
-        {children}
+        <ConsentProvider>
+          <MetaPixel />
+          <GoogleAnalytics />
+          {children}
+          <CookieBanner />
+        </ConsentProvider>
       </body>
     </html>
   )

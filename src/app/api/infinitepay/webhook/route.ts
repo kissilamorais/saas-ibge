@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       // `amount` entra aqui para o Purchase reportar o valor REALMENTE pago —
       // com preço promocional, o preço vigente na hora do webhook pode já ser
       // outro que não o gravado quando o pedido nasceu.
-      .select('order_nsu, status, customer_email, amount')
+      .select('order_nsu, status, customer_email, amount, marketing_consent')
       .eq('order_nsu', orderNsu)
       .maybeSingle()
     if (findErr) throw findErr
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       status: string
       customer_email: string | null
       amount: number | null
+      marketing_consent: boolean | null
     } | null
 
     if (!order) {
@@ -153,14 +154,21 @@ export async function POST(request: Request) {
     // Obs.: aqui o request é server-to-server do InfinitePay, então IP/UA/fbp
     // não são do comprador — o match forte vem do e-mail hasheado. O disparo
     // com os sinais do browser acontece na /checkout/obrigado.
-    await sendMetaPurchaseEvent({
-      email,
-      orderId: orderNsu,
-      eventSourceUrl: resolveAppUrl(),
-      fbp: readCookie(request.headers.get('cookie'), '_fbp'),
-      fbc: readCookie(request.headers.get('cookie'), '_fbc'),
-      valueBRL: order.amount != null ? order.amount / 100 : undefined,
-    })
+    //
+    // VUL-A04: só envia se o comprador deu opt-in de marketing no checkout
+    // (marketing_consent, capturado na única requisição do fluxo que roda no
+    // navegador dele). Qualquer coisa != true (inclusive null de pedido sem
+    // sinal) é tratada como SEM consentimento — fail-closed.
+    if (order.marketing_consent === true) {
+      await sendMetaPurchaseEvent({
+        email,
+        orderId: orderNsu,
+        eventSourceUrl: resolveAppUrl(),
+        fbp: readCookie(request.headers.get('cookie'), '_fbp'),
+        fbc: readCookie(request.headers.get('cookie'), '_fbc'),
+        valueBRL: order.amount != null ? order.amount / 100 : undefined,
+      })
+    }
 
     log.info('infinitepay.webhook.processed', { orderNsu })
     return NextResponse.json({ received: true })

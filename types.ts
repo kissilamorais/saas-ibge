@@ -334,6 +334,10 @@ export type Database = {
           amount: number
           status: string
           customer_email: string | null
+          // Opt-in de marketing capturado no momento do checkout (0017) — o
+          // webhook (server-to-server, sem cookie do comprador) lê daqui para
+          // decidir se manda o Purchase pra Meta CAPI. null = sem sinal.
+          marketing_consent: boolean | null
           created_at: string
         }
         Insert: {
@@ -342,9 +346,36 @@ export type Database = {
           amount: number
           status?: string
           customer_email?: string | null
+          marketing_consent?: boolean | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['pending_orders']['Row']>
+        Relationships: []
+      }
+      // Aceite eletrônico de Termos/Privacidade/Reembolso/Cookies (0017,
+      // VUL-A03). Escrita/leitura exclusivamente via service_role.
+      legal_acceptances: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string
+          document: 'terms' | 'privacy' | 'refund' | 'cookies'
+          version: string
+          ip: string | null
+          user_agent: string | null
+          accepted_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email: string
+          document: 'terms' | 'privacy' | 'refund' | 'cookies'
+          version: string
+          ip?: string | null
+          user_agent?: string | null
+          accepted_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['legal_acceptances']['Row']>
         Relationships: []
       }
       // Lead do teste gratuito. Vive FORA do auth.users: o visitante do trial

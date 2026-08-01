@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import Script from 'next/script'
 
 import { META_PIXEL_ID, PIXEL_ENABLED } from '@/lib/analytics/meta-pixel'
+import { useConsent } from '@/components/consent/ConsentProvider'
 
 /**
  * Base do Meta Pixel + PageView.
@@ -12,22 +13,27 @@ import { META_PIXEL_ID, PIXEL_ENABLED } from '@/lib/analytics/meta-pixel'
  *   interativa, sem competir com o LCP.
  * - O snippet padrão já dispara o 1º PageView no init; o efeito abaixo
  *   cobre as navegações client-side (App Router não dá full reload).
+ *
+ * VUL-A04: além de produção + ID configurado, exige opt-in de marketing
+ * (banner de cookies) — sem isso o script nem é montado.
  */
 export function MetaPixel() {
   const pathname = usePathname()
   const isFirstLoad = useRef(true)
+  const { consent } = useConsent()
+  const enabled = PIXEL_ENABLED && consent?.marketing === true
 
   useEffect(() => {
-    if (!PIXEL_ENABLED) return
+    if (!enabled) return
     if (isFirstLoad.current) {
       // O init script já contou o primeiro PageView — não duplicar.
       isFirstLoad.current = false
       return
     }
     window.fbq?.('track', 'PageView')
-  }, [pathname])
+  }, [pathname, enabled])
 
-  if (!PIXEL_ENABLED) return null
+  if (!enabled) return null
 
   return (
     <>
