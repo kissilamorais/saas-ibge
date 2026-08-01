@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
 import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
+import { evaluateSettlement } from '@/lib/infinitepay/settlement'
 import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
@@ -104,15 +105,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'unverifiable' }, { status: 400 })
     }
     const check = await checkInfinitePayPayment({ orderNsu, transactionNsu, slug })
-    if (check.paid !== true) {
+    // `paid: true` prova que ALGUM dinheiro entrou, não que o PREÇO foi pago:
+    // a API /links do InfinitePay é pública por handle, então dá para forjar um
+    // link de R$0,01 com o nosso order_nsu. O valor liquidado tem que cobrir o
+    // que gravamos no pedido — ver lib/infinitepay/settlement.ts.
+    const verdict = evaluateSettlement(check, order.amount)
+    if (!verdict.settled) {
       // Webhook sem pagamento real confirmado (possível forja). Não provisiona;
       // 200 para não entrar em loop de retry, mas registra alto para alertar.
       reportError(
         'infinitepay.webhook.payment_not_confirmed',
-        new Error('payment_check não retornou paid=true'),
-        { orderNsu },
+        new Error(`payment_check não liquidou o pedido: ${verdict.reason}`),
+        {
+          orderNsu,
+          reason: verdict.reason,
+          paidCents: verdict.paidCents,
+          expectedCents: verdict.expectedCents,
+        },
       )
-      return NextResponse.json({ received: true, skipped: 'not_paid' })
+      return NextResponse.json({ received: true, skipped: verdict.reason })
     }
 
     // Pagamento confirmado. Marca pago antes do onboarding: barra

@@ -7,6 +7,7 @@ import { AuthShell } from '@/components/auth/AuthShell'
 import { GuestPurchaseTracker } from '@/components/analytics/GuestPurchaseTracker'
 import { sendMetaPurchaseEvent } from '@/lib/analytics/meta-capi'
 import { checkInfinitePayPayment } from '@/lib/infinitepay/server'
+import { evaluateSettlement } from '@/lib/infinitepay/settlement'
 import { onboardGuestByEmail } from '@/lib/onboarding/guest'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log, reportError } from '@/lib/observability/log'
@@ -163,12 +164,15 @@ async function infinitePaySafetyNet({
 
     const { data } = await admin
       .from('pending_orders')
-      .select('status, customer_email')
+      // `amount` entra aqui para a confirmação comparar o valor liquidado com o
+      // preço gravado quando o pedido nasceu (ver settlement.ts).
+      .select('status, customer_email, amount')
       .eq('order_nsu', orderNsu)
       .maybeSingle()
     const order = data as {
       status: string
       customer_email: string | null
+      amount: number | null
     } | null
 
     if (!order) return { paid: false, email: null }
@@ -183,7 +187,23 @@ async function infinitePaySafetyNet({
       transactionNsu,
       slug,
     })
-    if (check.paid !== true) return { paid: false, email: null }
+    // MESMA trava do webhook — esta rota também provisiona acesso, então
+    // validar só num dos dois lugares não fecha nada. `paid: true` não prova
+    // que o PREÇO foi pago (ver lib/infinitepay/settlement.ts).
+    const verdict = evaluateSettlement(check, order.amount)
+    if (!verdict.settled) {
+      reportError(
+        'infinitepay.safetynet.payment_not_confirmed',
+        new Error(`payment_check não liquidou o pedido: ${verdict.reason}`),
+        {
+          orderNsu,
+          reason: verdict.reason,
+          paidCents: verdict.paidCents,
+          expectedCents: verdict.expectedCents,
+        },
+      )
+      return { paid: false, email: null }
+    }
 
     // Pago, mas o webhook atrasou: reivindica e faz o onboarding aqui.
     const { data: claimed } = await admin
