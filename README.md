@@ -3,12 +3,12 @@
 Plataforma de estudo online para o concurso de Analista de Gestão (ACA) do IBGE.
 Marca **Aprovus**, assinada pela **Vellum**.
 
-**Status:** MVP integrado (Supabase + Stripe reais) — faltam apenas envs/webhook de produção  
-**Preço:** R$97 (one-time purchase)  
-**Stack:** Next.js 14 | TypeScript | Supabase | Stripe | Tailwind CSS + shadcn/ui  
+**Status:** Produção no ar (aprovus-ibge.vercel.app) — Supabase + InfinitePay live, autenticação, RLS, webhooks idempotentes.  
+**Preço:** R$67 (acesso vitalício, one-time purchase)  
+**Stack:** Next.js 15.5.22 | TypeScript | Supabase | InfinitePay | Tailwind CSS + shadcn/ui  
 **Design:** sistema **"Foco calmo"** — teal sereno, off-white quente, dark mode de 1ª classe; tipografia Inter (corpo) + Sora (títulos). Tokens em `src/styles/globals.css` + `tailwind.config.js`.
 
-> ✅ As telas de estudo consomem **dados reais do Supabase** (sem mocks). Auth (login/signup/recuperação de senha), gate de assinatura por RLS, checkout Stripe R$97 com webhook idempotente, landing pública e layout com Sidebar já estão prontos. Rode `npm test` para os testes dos fluxos críticos. Para ir a produção, veja **Deploy na Vercel** abaixo.
+> ✅ As telas de estudo consomem **dados reais do Supabase** (sem mocks). Auth (login/signup/recuperação de senha), gate de assinatura por RLS com **duas** provedores de pagamento (Stripe legacy + InfinitePay ativo), webhooks idempotentes, landing pública e layout com Sidebar prontos. Rode `npm test` para os testes dos fluxos críticos (38 testes, 0 vulnerabilidades de produção). Auditoria de segurança completa em `AUDITORIA-2026-07-31.md`.
 
 ---
 
@@ -27,29 +27,36 @@ npm install
 2. Copie a URL e as chaves em `.env.local`
 3. Execute os SQLs no Supabase SQL editor, **nesta ordem**:
 
-```text
-1) schema.sql
-2) migrations/0001_rls_indexes_exams.sql
-3) migrations/0002_questions_source_ref.sql
-4) migrations/0003_grant_subscription_fn.sql
-5) migrations/0004_consolidate_and_answers_unique.sql
-```
-
-> Os arquivos em `supabase/*.sql` são **históricos** (superseded pelas migrations) — não rode.
-
-4. Seed de dados: o banco já foi populado a partir dos `.md`. Para repovoar do
-   zero, importe o conteúdo via SQL Editor (o seed é idempotente por `source_ref`).
-
-### 3. Configurar Stripe
-
-1. Crie uma conta em [stripe.com](https://stripe.com)
-2. Copie as chaves de teste em `.env.local`
-3. Configure o webhook:
-
 ```bash
-# Localmente, use Stripe CLI:
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+# schema.sql + todas as migrations em sequência:
+schema.sql
+migrations/0001_rls_indexes_exams.sql
+migrations/0002_questions_source_ref.sql
+migrations/0003_grant_subscription_fn.sql
+migrations/0004_consolidate_and_answers_unique.sql
+migrations/0005_profile_study_config.sql
+migrations/0007_content_by_function.sql
+migrations/0008_admin_and_complimentary.sql
+migrations/0009_user_answers_update_policy.sql
+migrations/0010_abandoned_checkouts.sql
+migrations/0011_add_pending_orders_stripe_events.sql
+migrations/0012_free_trial.sql
+migrations/0013_trial_leads.sql
+migrations/0014_testimonials.sql
+migrations/0015_lock_profile_billing_columns.sql
 ```
+
+> Os arquivos em `supabase/*.sql` são **históricos** (superseded pelas migrations) — não rode. O seed é idempotente por `source_ref` — reexecute quando precisar atualizar o conteúdo.
+
+### 3. Configurar InfinitePay (checkout ativo)
+
+1. Crie uma conta em [infinitepay.io](https://infinitepay.io) (conta brasileira)
+2. Copie `INFINITEPAY_HANDLE` e `INFINITEPAY_SLUG` em `.env.local`
+3. Configure o webhook no painel do InfinitePay apontando para `https://<seu-dominio>/api/infinitepay/webhook`
+
+> O Stripe antigo existe (em `src/app/api/stripe/webhook`) como fallback documentado, mas o checkout de novo está desativado (responde 410). Ele pode ser reativado se necessário — ver comentário no arquivo.
+
+**Nota de segurança:** VUL-A02 (auditoria de 07/2026) foi a validação ausente do valor pago no webhook. Verificar que `src/lib/infinitepay/settlement.ts` está sendo usado em AMBOS os locais: webhook e safety-net em `/checkout/obrigado`.
 
 ### 4. Variáveis de Ambiente
 

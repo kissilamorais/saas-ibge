@@ -121,10 +121,11 @@ export async function rateLimit(
       // instância (protege muito menos) e a equipe precisa saber disso.
       // Throttled: numa queda do Redis TODA requisição cai aqui, e um alerta
       // por requisição viraria flood no Discord (e uma chamada HTTP extra).
+      // Não vaza o IP do cliente (arg `id`) — é PII (VUL-A04).
       const now = Date.now()
       if (now - lastDegradedAlertAt > DEGRADED_ALERT_INTERVAL_MS) {
         lastDegradedAlertAt = now
-        reportError('rate-limit.redis_degraded', err, { name, id })
+        reportError('rate-limit.redis_degraded', err, { name })
       }
       return memLimit(name, id, max, windowSec)
     }

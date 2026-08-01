@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # npm
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '03:00'
+    # Abre PRs automaticamente para updates de segurança e patches
+    open-pull-requests-limit: 10
+    reviewers:
+      - kissilamorais
+    allow:
+      - dependency-type: production
+      - dependency-type: development

@@ -8,6 +8,7 @@ import { getCurrentPriceCents } from '@/lib/pricing'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
+import { resolveAppUrl } from '@/lib/url/resolve-app-url'
 
 // Formato de e-mail simples (obrigatório no fluxo guest). Espelha a validação
 // do CheckoutButton — o cliente valida por UX, o servidor por segurança.
@@ -63,14 +64,9 @@ export async function POST(request: Request) {
     }
   }
 
-  // Base para redirect/webhook. Preferimos o host real da requisição (proxy da
-  // Vercel) para não depender de NEXT_PUBLIC_APP_URL estar correta em produção.
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
-  const appUrl =
-    forwardedHost && !forwardedHost.includes('localhost')
-      ? `${forwardedProto}://${forwardedHost}`
-      : process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
+  // Base para redirect/webhook. Usa `resolveAppUrl()` para evitar host header
+  // injection (VUL-A08): nunca deriva de headers controláveis pelo cliente.
+  const appUrl = resolveAppUrl()
 
   // order_nsu: identificador único do pedido (UUID). Amarra o pending_order ao
   // link do InfinitePay e volta no webhook/redirect para reconciliação.
