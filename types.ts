@@ -378,6 +378,29 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['legal_acceptances']['Row']>
         Relationships: []
       }
+      // Trilha de auditoria do painel /admin (0018) — quem fez o quê.
+      admin_audit_log: {
+        Row: {
+          id: string
+          admin_id: string | null
+          admin_email: string
+          action: string
+          target: string | null
+          details: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          admin_id?: string | null
+          admin_email: string
+          action: string
+          target?: string | null
+          details?: Json | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['admin_audit_log']['Row']>
+        Relationships: []
+      }
       // Lead do teste gratuito. Vive FORA do auth.users: o visitante do trial
       // não tem conta (ver 0013 e lib/trial-session.ts) — ela só nasce se ele
       // comprar. Escrita/leitura exclusivamente via service_role.

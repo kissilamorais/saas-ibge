@@ -23,10 +23,8 @@ const nextConfig = {
   // Não redefinimos aqui para não mascarar a env configurada no ambiente; quando
   // ausente, o código usa o origin da requisição como fallback.
 
-  // Headers de segurança aplicados a todas as rotas. CSP fica de FORA de
-  // propósito (exige allowlist testada de pixel/GA/InfinitePay/Supabase — será
-  // uma tarefa separada com teste dedicado). HSTS com preload: só habilitar se
-  // o domínio for sempre HTTPS (é o caso na Vercel).
+  // Headers de segurança aplicados a todas as rotas. HSTS com preload: só
+  // habilitar se o domínio for sempre HTTPS (é o caso na Vercel).
   async headers() {
     return [
       {
@@ -45,6 +43,29 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
+          },
+          // Report-Only (auditoria 31/07/2026, item 21 do Bloco 3): só LOGA
+          // violação no console do navegador, nunca bloqueia. Allowlist
+          // cobre os hosts que o site de fato chama: Supabase (dados/storage),
+          // Meta Pixel + GA4 (script-src/connect-src/img-src), InfinitePay
+          // (checkout). `'unsafe-inline'` em script-src é exigido pelos
+          // snippets inline do Pixel/GA4 (ver MetaPixel.tsx/GoogleAnalytics.tsx)
+          // — eliminá-lo exigiria migrar para nonce. Depois de 1-2 semanas
+          // sem violação real no console, promover para
+          // `Content-Security-Policy` (enforce).
+          {
+            key: 'Content-Security-Policy-Report-Only',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com",
+              "connect-src 'self' https://*.supabase.co https://graph.facebook.com https://www.google-analytics.com https://api.checkout.infinitepay.io",
+              "img-src 'self' data: https://*.supabase.co https://www.facebook.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
           },
         ],
       },

@@ -2,9 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { requireAdmin, getUser } from '@/lib/auth/session'
+import { requireAdmin } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimit } from '@/lib/rate-limit'
+import { logAdminAction } from '@/lib/admin/audit-log'
 import type { LeadFollowupStatus } from '@/types'
 
 const VALID_STATUS: LeadFollowupStatus[] = [
@@ -20,12 +21,10 @@ const VALID_STATUS: LeadFollowupStatus[] = [
  * o servidor as altera.
  */
 export async function setLeadFollowup(formData: FormData) {
-  await requireAdmin()
-  const user = await getUser()
-  if (!user) return
+  const admin = await requireAdmin()
 
   // Rate limit: máximo 30 updates de lead/min (é operação de admin).
-  const rl = await rateLimit('admin-set-lead-followup', user.id, 30, 60)
+  const rl = await rateLimit('admin-set-lead-followup', admin.id, 30, 60)
   if (!rl.success) return
 
   const id = String(formData.get('leadId') ?? '')
@@ -34,8 +33,8 @@ export async function setLeadFollowup(formData: FormData) {
 
   if (!id || !VALID_STATUS.includes(status)) return
 
-  const admin = createAdminClient()
-  await admin
+  const client = createAdminClient()
+  await client
     .from('profiles')
     .update({
       lead_followup_status: status,
@@ -43,6 +42,8 @@ export async function setLeadFollowup(formData: FormData) {
       lead_followup_at: new Date().toISOString(),
     })
     .eq('id', id)
+
+  void logAdminAction(admin, 'lead.set_followup', id, { status })
 
   revalidatePath('/admin/leads')
   revalidatePath(`/admin/leads/${id}`)
@@ -64,11 +65,9 @@ export async function grantComplimentary(
   formData: FormData
 ): Promise<ActionState> {
   const admin = await requireAdmin()
-  const user = await getUser()
-  if (!user) return { ok: false, message: 'Autenticação perdida.' }
 
   // Rate limit: máximo 20 cortesias/min.
-  const rl = await rateLimit('admin-grant-complimentary', user.id, 20, 60)
+  const rl = await rateLimit('admin-grant-complimentary', admin.id, 20, 60)
   if (!rl.success) return { ok: false, message: 'Tente novamente em alguns segundos.' }
 
   const email = String(formData.get('email') ?? '')
@@ -104,18 +103,18 @@ export async function grantComplimentary(
     return { ok: false, message: 'Não foi possível conceder. Tente de novo.' }
   }
 
+  void logAdminAction(admin, 'complimentary.grant', email, { expires_at })
+
   revalidatePath('/admin/partners')
   return { ok: true, message: `Cortesia concedida a ${email}.` }
 }
 
 /** Revoga uma cortesia (marca revoked_at). Admin-only. */
 export async function revokeComplimentary(formData: FormData) {
-  await requireAdmin()
-  const user = await getUser()
-  if (!user) return
+  const admin = await requireAdmin()
 
   // Rate limit: máximo 20 revogações/min.
-  const rl = await rateLimit('admin-revoke-complimentary', user.id, 20, 60)
+  const rl = await rateLimit('admin-revoke-complimentary', admin.id, 20, 60)
   if (!rl.success) return
 
   const id = String(formData.get('id') ?? '')
@@ -126,6 +125,8 @@ export async function revokeComplimentary(formData: FormData) {
     .from('complimentary_access')
     .update({ revoked_at: new Date().toISOString() })
     .eq('id', id)
+
+  void logAdminAction(admin, 'complimentary.revoke', id)
 
   revalidatePath('/admin/partners')
 }

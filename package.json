@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:rls": "node scripts/test-rls.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,md}\""
   },
   "dependencies": {

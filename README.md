@@ -46,6 +46,7 @@ migrations/0014_testimonials.sql
 migrations/0015_lock_profile_billing_columns.sql
 migrations/0016_trial_sample_pool.sql
 migrations/0017_privacy_infra.sql
+migrations/0018_admin_audit_log.sql
 ```
 
 > Os arquivos em `supabase/*.sql` são **históricos** (superseded pelas migrations) — não rode. O seed é idempotente por `source_ref` — reexecute quando precisar atualizar o conteúdo.
@@ -78,8 +79,9 @@ Abra [http://localhost:3000](http://localhost:3000) no navegador.
 ### 6. Rodar os testes
 
 ```bash
-npm test        # fluxos críticos (correção de simulado, gate de acesso)
+npm test        # fluxos críticos (correção de simulado, gate de acesso, webhook de pagamento)
 npm run type-check
+npm run test:rls  # regressão de RLS ao vivo (cria/apaga usuários de teste no Supabase de .env.local; rodar manualmente, não entra no CI)
 ```
 
 ---

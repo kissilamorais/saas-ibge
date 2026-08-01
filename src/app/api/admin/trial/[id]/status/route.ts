@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 
-import { isAdmin } from '@/lib/auth/session'
+import { isAdmin, getProfile } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logAdminAction } from '@/lib/admin/audit-log'
 import { isTrialStatus } from '@/lib/trial/types'
 
 /**
@@ -38,6 +39,13 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       { error: 'Não foi possível salvar o status.' },
       { status: 500 },
     )
+  }
+
+  const profile = await getProfile()
+  if (profile) {
+    void logAdminAction(profile, 'trial_lead.set_status', params.id, {
+      trial_status: body.trial_status,
+    })
   }
 
   return NextResponse.json({ ok: true })
