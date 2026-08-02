@@ -9,10 +9,15 @@ import { getCurrentPriceBRL } from '@/lib/pricing'
 const COURSE_CURRENCY = 'BRL'
 
 /**
- * Após o pagamento, /checkout/success redireciona para /dashboard?welcome=1.
- * Esse "welcome=1" é o sinal confiável de compra paga (confirmada na Stripe),
- * então disparamos o Purchase aqui — uma vez — e limpamos o param da URL
- * para não recontar em refresh/navegação.
+ * Dispara o Purchase quando o comprador chega ao dashboard com "welcome=1",
+ * marcador posto após o pagamento confirmado. Dispara uma vez e limpa o param
+ * da URL para não recontar em refresh/navegação.
+ *
+ * DORMENTE: hoje nenhum fluxo produz `welcome=1` — quem o emitia era a rota
+ * /checkout/success do Stripe, removida. O checkout atual (InfinitePay) sempre
+ * volta para /checkout/obrigado, que conta a conversão pelo
+ * `GuestPurchaseTracker`. Mantido por ser agnóstico ao provedor: um futuro
+ * fluxo de compra logada só precisa redirecionar para /dashboard?welcome=1.
  */
 export function PurchaseTracker() {
   const searchParams = useSearchParams()

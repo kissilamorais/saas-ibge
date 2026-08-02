@@ -1,13 +1,16 @@
 /**
- * Fonte única de verdade para preço e urgência.
+ * Fonte única de verdade para preço, nome do produto e urgência.
  *
- * Vive em `lib/` (e não em `lib/stripe/server.ts`) porque é importado tanto por
- * client components — landing, trackers de analytics — quanto pelo servidor. O
- * módulo da Stripe carrega a secret key e não pode cruzar essa fronteira.
+ * Vive em `lib/` (e não junto do módulo de um provedor de pagamento) porque é
+ * importado tanto por client components — landing, trackers de analytics —
+ * quanto pelo servidor.
  *
  * Regra: nada de literal de preço fora daqui. Centavos é a fonte; reais são
  * derivados, para 67 e 6700 nunca divergirem.
  */
+
+/** Descrição do produto enviada ao provedor de pagamento. */
+export const COURSE_NAME = 'Aprovus - Preparatório IBGE'
 
 /**
  * Momento em que o preço de lançamento expira (America/Sao_Paulo).

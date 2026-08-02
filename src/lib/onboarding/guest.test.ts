@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/stripe/activate', () => ({
+vi.mock('@/lib/access/activate', () => ({
   activateUserAccess: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: vi.fn() }))

@@ -1,14 +1,14 @@
 import { randomUUID } from 'crypto'
 
-import { activateUserAccess } from '@/lib/stripe/activate'
+import { activateUserAccess } from '@/lib/access/activate'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { log } from '@/lib/observability/log'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 /**
- * Onboarding de compra guest, agnóstico ao provedor de pagamento (Stripe,
- * InfinitePay, …). Recebe o e-mail já confirmado pelo pagamento e:
+ * Onboarding de compra guest, agnóstico ao provedor de pagamento. Recebe o
+ * e-mail já confirmado pelo pagamento e:
  *   1. resolve a conta pelo e-mail (profiles.email, único) ou cria no Auth;
  *   2. ativa o acesso pago (idempotente);
  *   3. reclama a conta se ela existir sem e-mail confirmado (ninguém provou
@@ -16,15 +16,15 @@ type AdminClient = ReturnType<typeof createAdminClient>
  *   4. dispara o e-mail de "definir senha" para conta nova (ou reclamada).
  *
  * Só chame após confirmar o pagamento — usa o client admin (service_role).
- * É a MESMA função usada pelo webhook da Stripe e pelo do InfinitePay, para
- * garantir provisionamento idêntico.
+ * É a MESMA função usada pelo webhook do InfinitePay e pelo safety net da
+ * página de obrigado, para garantir provisionamento idêntico.
  */
 export async function onboardGuestByEmail(
   admin: AdminClient,
   email: string,
-  opts: { appUrl: string; where: string; stripeCustomerId?: string | null }
+  opts: { appUrl: string; where: string }
 ): Promise<{ userId: string; isNewUser: boolean }> {
-  const { appUrl, where, stripeCustomerId = null } = opts
+  const { appUrl, where } = opts
   const normalized = email.toLowerCase()
 
   // 1) Achar conta existente. O profiles.email (único, populado pelo trigger
@@ -63,7 +63,7 @@ export async function onboardGuestByEmail(
   }
 
   // 3) Ativa o acesso pago (idempotente: não reescreve purchase_date).
-  await activateUserAccess(userId, { stripeCustomerId })
+  await activateUserAccess(userId)
   log.info(`${where}.access_activated`, { userId, flow: 'guest' })
 
   // 3.1) Reclaim de conta não verificada. Uma conta pode existir com este

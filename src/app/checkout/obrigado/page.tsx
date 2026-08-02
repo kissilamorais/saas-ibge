@@ -38,13 +38,15 @@ export const dynamic = 'force-dynamic'
  * consulta o `payment_check` e, se confirmado pago, reivindica o pedido e
  * dispara o MESMO onboarding do webhook. É idempotente com o webhook.
  *
- * (O fluxo Stripe legado, quando ativo, chega com `session_id` já verificado
- * pela success route — mantido por compatibilidade.)
+ * O pagamento SÓ é dado como confirmado pelo `payment_check` do InfinitePay —
+ * nunca por um parâmetro da URL. (Havia aqui um `session_id` do fluxo Stripe
+ * tratado como "já verificado upstream"; com o Stripe removido ele não tinha
+ * mais quem o emitisse nem quem o validasse, e bastava inventá-lo na query
+ * para a página declarar a compra paga e disparar um Purchase falso.)
  */
 export default async function ObrigadoPage(
   props: {
     searchParams: Promise<{
-      session_id?: string
       order_nsu?: string
       transaction_nsu?: string
       slug?: string
@@ -53,9 +55,9 @@ export default async function ObrigadoPage(
   }
 ) {
   const searchParams = await props.searchParams
-  const { session_id, order_nsu, transaction_nsu, slug } = searchParams
+  const { order_nsu, transaction_nsu, slug } = searchParams
 
-  let confirmedPaid = Boolean(session_id) // Stripe: já verificado upstream.
+  let confirmedPaid = false
   let buyerEmail: string | null = null
   if (order_nsu) {
     const result = await infinitePaySafetyNet({
@@ -97,7 +99,7 @@ export default async function ObrigadoPage(
   }
 
   // Dispara o Purchase do pixel só quando o pagamento está confirmado.
-  const trackerId = order_nsu || session_id
+  const trackerId = order_nsu
 
   return (
     <AuthShell>

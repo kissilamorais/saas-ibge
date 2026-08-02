@@ -1,5 +1,4 @@
-import { getCurrentPriceCents } from '@/lib/pricing'
-import { COURSE_NAME } from '@/lib/stripe/server'
+import { COURSE_NAME, getCurrentPriceCents } from '@/lib/pricing'
 
 /**
  * Cliente mínimo da API de Checkout do InfinitePay. Os endpoints públicos
@@ -14,7 +13,7 @@ export const INFINITEPAY_HANDLE =
 // da Vercel até o timeout dela — no checkout, deixa o comprador no spinner.
 const INFINITEPAY_TIMEOUT_MS = 8000
 
-// Preço/descrição vêm da mesma fonte do Stripe para não divergir.
+// Preço/descrição vêm de `lib/pricing` (fonte única) para não divergir.
 export { COURSE_NAME }
 export { getCurrentPriceCents }
 

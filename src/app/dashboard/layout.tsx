@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/*
-        Purchase (Meta Pixel) ao chegar de /checkout/success?welcome=1.
+        Purchase (Meta Pixel) ao chegar em /dashboard?welcome=1.
         Fica no LAYOUT (não na page) porque o comprador novo é redirecionado
         de /dashboard para /dashboard/onboarding — que nunca renderiza a page
         raiz. O layout cobre TODAS as rotas de estudo, então o welcome=1

@@ -10,14 +10,14 @@ const CONTENT_IDS = ['aprovus-ibge-2026']
 
 /**
  * Dispara o Purchase do Meta Pixel na página de obrigado do fluxo guest.
- * O pagamento já foi confirmado server-side na Stripe (a success route só
- * redireciona pra cá quando `payment_status === 'paid'`), então é seguro
- * contar a conversão aqui.
+ * O pagamento já foi confirmado server-side pelo `payment_check` do
+ * InfinitePay antes deste componente ser renderizado, então é seguro contar a
+ * conversão aqui.
  *
- * Anti-duplicação: guarda um flag no sessionStorage com a chave do
- * `session_id` da Stripe. Assim um refresh (mesmo session_id) não reconta, e
- * uma nova compra (session_id diferente) conta normalmente. O `useRef` cobre
- * o StrictMode/duplo-mount em dev.
+ * Anti-duplicação: guarda um flag no sessionStorage com a chave do `order_nsu`
+ * do pedido. Assim um refresh (mesmo pedido) não reconta, e uma nova compra
+ * (order_nsu diferente) conta normalmente. O `useRef` cobre o StrictMode/
+ * duplo-mount em dev.
  */
 export function GuestPurchaseTracker({
   sessionId,
