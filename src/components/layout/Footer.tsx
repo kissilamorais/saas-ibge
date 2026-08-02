@@ -10,7 +10,7 @@ export function Footer() {
           <span className="text-muted-foreground/70">· por Vellum</span> —
           preparatório para o concurso do IBGE.
         </p>
-        <nav className="flex items-center gap-4">
+        <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <Link href="/dashboard" className="hover:text-foreground">
             Dashboard
           </Link>
@@ -19,6 +19,15 @@ export function Footer() {
           </Link>
           <Link href="/dashboard/exams" className="hover:text-foreground">
             Simulados
+          </Link>
+          <Link href="/termos" className="hover:text-foreground">
+            Termos
+          </Link>
+          <Link href="/privacidade" className="hover:text-foreground">
+            Privacidade
+          </Link>
+          <Link href="/reembolso" className="hover:text-foreground">
+            Reembolso
           </Link>
           <a
             href="mailto:suporteaprovus@gmail.com"

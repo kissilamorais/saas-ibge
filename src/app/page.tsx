@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import { Navbar } from '@/components/layout/Navbar'
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection'
@@ -64,6 +65,23 @@ export default async function HomePage() {
             suporteaprovus@gmail.com
           </a>
         </p>
+        <nav className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <Link href="/termos" className="underline-offset-2 hover:underline">
+            Termos de Uso
+          </Link>
+          <Link
+            href="/privacidade"
+            className="underline-offset-2 hover:underline"
+          >
+            Política de Privacidade
+          </Link>
+          <Link
+            href="/reembolso"
+            className="underline-offset-2 hover:underline"
+          >
+            Política de Reembolso
+          </Link>
+        </nav>
       </footer>
     </div>
   )
