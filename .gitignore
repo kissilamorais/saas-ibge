@@ -17,6 +17,12 @@
 .env.development.local
 .env.production.local
 
+# backups do banco — contêm e-mails, hashes de senha e todo o PII dos
+# usuários. Um dump commitado é vazamento de base inteira. NUNCA commitar.
+/backups/
+*.sql.gz
+*.dump
+
 # misc
 .DS_Store
 *.pem
