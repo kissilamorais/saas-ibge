@@ -6,6 +6,7 @@ import { TestimonialsSection } from '@/components/landing/TestimonialsSection'
 import { HeroSection } from '@/components/landing/HeroSection'
 import { PainSection } from '@/components/landing/PainSection'
 import { SolutionSection } from '@/components/landing/SolutionSection'
+import { PlatformSection } from '@/components/landing/PlatformSection'
 import { OfferSection } from '@/components/landing/OfferSection'
 import { GuaranteeSection } from '@/components/landing/GuaranteeSection'
 import { UrgencySection } from '@/components/landing/UrgencySection'
@@ -44,6 +45,7 @@ export default async function HomePage() {
       <HeroSection />
       <PainSection />
       <SolutionSection />
+      <PlatformSection />
       <OfferSection />
       <TestimonialsSection testimonials={testimonials} />
       <GuaranteeSection />
