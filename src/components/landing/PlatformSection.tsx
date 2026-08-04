@@ -14,6 +14,17 @@ interface Shot {
   path: string
 }
 
+/**
+ * A copy segue de propósito a ordem da `PainSection`: cada uma das quatro dores
+ * listadas lá em cima ganha, aqui, a tela que a resolve. É o que transforma a
+ * seção de vitrine em resposta — quem rolou até aqui já sabe qual é o problema
+ * dele e reconhece o próprio na legenda.
+ *
+ *   1. "não sabe por onde começar"          → painel
+ *   2. "gasta horas no que a IBFC não cobra" → módulos
+ *   3. "não reconhece o padrão da banca"     → questão comentada
+ *   4. "trava na prova e não entende o erro" → simulado
+ */
 const PAINEL: Shot = {
   src: '/plataforma/dashboard.webp',
   width: 2160,
@@ -21,9 +32,9 @@ const PAINEL: Shot = {
   mobileSrc: '/plataforma/dashboard-mobile.webp',
   mobileWidth: 780,
   mobileHeight: 1688,
-  alt: 'Painel do Aprovus mostrando contagem regressiva de 55 dias para a prova, sequência de 12 dias seguidos de estudo, metas diária e semanal em 100% e conquistas desbloqueadas.',
-  title: 'Você abre e já sabe o que fazer',
-  desc: 'Quantos dias faltam, quanto você estudou na semana e qual é a próxima lição. Sem planilha, sem se perder no edital.',
+  alt: 'Painel do Aprovus mostrando a contagem regressiva para a prova, sequência de 12 dias seguidos de estudo, metas diária e semanal em 100% e conquistas desbloqueadas.',
+  title: 'Você entra e já sabe o que estudar hoje',
+  desc: 'Sem abrir o edital e travar. A tela começa pela próxima lição, mostra quanto falta para a prova e quanto você já andou na semana. Um clique em "Continuar de onde parei" e a decisão do dia acabou.',
   path: '/dashboard',
 }
 
@@ -36,8 +47,8 @@ const TELAS: Shot[] = [
     mobileWidth: 780,
     mobileHeight: 1688,
     alt: 'Tela de módulos do Aprovus com Revisão Intensiva, Português, Raciocínio Lógico e Administração, cada um com barra de progresso, e o edital em 97% concluído.',
-    title: 'O edital, matéria por matéria',
-    desc: 'Cada módulo mostra quantas lições você já fechou e quanto falta. O progresso é medido em cima do edital de verdade — não em "aulas assistidas".',
+    title: 'Só o que a banca cobra — e quanto falta',
+    desc: 'A Revisão Intensiva é o filtro: o essencial da IBFC, sem o resto do mundo. E a porcentagem de cada matéria é medida em cima do edital de verdade, não em "aulas assistidas".',
     path: '/dashboard/modules',
   },
   {
@@ -48,8 +59,8 @@ const TELAS: Shot[] = [
     mobileWidth: 780,
     mobileHeight: 1688,
     alt: 'Questão de português no Aprovus com a alternativa correta destacada em verde e um comentário explicando por que ela está certa.',
-    title: 'Toda questão vem comentada',
-    desc: 'Você responde, vê o gabarito na hora e lê por que a certa é a certa. É a parte que faz o erro não se repetir na prova.',
+    title: 'O comentário é onde você aprende a pegadinha',
+    desc: 'Você responde, o gabarito aparece na hora e o porquê vem junto. É lendo esse "por quê", questão atrás de questão, que o padrão da banca para de te pegar de surpresa.',
     path: '/dashboard/practice',
   },
   {
@@ -60,8 +71,8 @@ const TELAS: Shot[] = [
     mobileWidth: 780,
     mobileHeight: 1688,
     alt: 'Simulado do Aprovus em andamento, com cronômetro de 4 horas, mapa das 60 questões e a primeira questão aberta.',
-    title: 'Simulado no formato da prova',
-    desc: '60 questões, 4 horas no cronômetro e o mapa da prova do lado. Você treina o cansaço e o relógio antes do dia que conta.',
+    title: 'A prova antes da prova',
+    desc: '60 questões, 4 horas no cronômetro e o mapa da prova do lado. Você descobre onde trava agora, com tempo de corrigir — e não no dia em que não dá mais.',
     path: '/dashboard/exams',
   },
 ]
@@ -136,11 +147,16 @@ export function PlatformSection() {
           Por dentro da plataforma
         </p>
         <h2 className="mx-auto mt-4 max-w-3xl text-balance text-center font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-          Não é uma pasta de PDF. É uma plataforma que sabe onde você parou.
+          Cada problema lá de cima tem uma tela aqui embaixo.
         </h2>
+        {/* "Conta de demonstração", e não "conta de um aluno": o progresso é
+            sintético (scripts/demo-seed-progress.mjs). Sugerir aluno real seria
+            depoimento falso — e o número não fica menos convincente por ser
+            honesto. */}
         <p className="mx-auto mt-5 max-w-2xl text-balance text-center text-base leading-relaxed text-white/70 sm:text-lg">
-          As telas abaixo são do Aprovus rodando, na conta de quem já fechou
-          quase o edital inteiro. É isso que abre quando você entra.
+          Nada de mockup: são capturas do Aprovus rodando, numa conta de
+          demonstração com o edital quase fechado. É isso que abre quando você
+          entra.
         </p>
 
         {/* Captura larga: a tela que o aluno mais vê. */}
@@ -189,6 +205,14 @@ export function PlatformSection() {
             </div>
           ))}
         </div>
+
+        {/* Fecho que emenda na Oferta — mesmo papel da última linha da Solução.
+            "Tudo isso" são as quatro telas acima, todas liberadas na hora; os
+            bônus com desbloqueio temporal ficam de fora da frase de propósito
+            (o Resumo Estratégico e a Simulação Final não abrem no ato). */}
+        <p className="mx-auto mt-20 max-w-2xl text-balance text-center font-serif text-xl font-medium leading-snug tracking-tight sm:mt-24 sm:text-2xl">
+          Tudo isso abre no minuto em que o pagamento cai.
+        </p>
       </div>
     </section>
   )
