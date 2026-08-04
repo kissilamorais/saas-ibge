@@ -53,5 +53,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # A landing (`/`) é pré-renderizada no build e lê `testimonials` do
+      # Supabase. Sem estas duas variáveis o cliente nem se constrói
+      # ("supabaseUrl is required") e o build morre no export — que é o motivo
+      # de este job estar vermelho desde o primeiro push.
+      #
+      # São valores FALSOS de propósito: o CI não deve falar com o banco de
+      # produção. A URL não resolve, a query devolve erro e
+      # `getActiveTestimonials` degrada para lista vazia — o que basta para o
+      # build compilar e provar que o código não quebrou. Quem valida contra
+      # dados reais é o build da Vercel, que tem os segredos de verdade.
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
